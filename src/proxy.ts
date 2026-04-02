@@ -1,13 +1,14 @@
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 
-export function middleware(req: NextRequest) {
-  const isAdminPage = req.nextUrl.pathname.startsWith('/admin');
-  const isAdminApi = req.nextUrl.pathname.startsWith('/api/admin');
+const isProtectedRoute = createRouteMatcher(['/checkout(.*)', '/account(.*)']);
 
-  // Allow unauthenticated GET on products endpoint — used by the public storefront
+export default clerkMiddleware(async (auth, req) => {
+  const { pathname } = req.nextUrl;
+  const isAdminPage = pathname.startsWith('/admin');
+  const isAdminApi = pathname.startsWith('/api/admin');
   const isPublicProductsGet =
-    req.method === 'GET' && req.nextUrl.pathname === '/api/admin/products';
+    req.method === 'GET' && pathname === '/api/admin/products';
 
   if (isPublicProductsGet) {
     return NextResponse.next();
@@ -15,28 +16,25 @@ export function middleware(req: NextRequest) {
 
   if (isAdminPage || isAdminApi) {
     const basicAuth = req.headers.get('authorization');
-    
+
     if (isAdminApi && !basicAuth) {
       return new NextResponse(JSON.stringify({ error: 'Authentication required' }), {
         status: 401,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
     }
-    
+
     if (basicAuth) {
       const authValue = basicAuth.split(' ')[1];
       const decodedString = atob(authValue);
       const [user, pwd] = decodedString.split(':');
-
       if (user === 'admin' && pwd === 'Good@luck123') {
         return NextResponse.next();
       }
     }
 
     if (isAdminApi) {
-       return new NextResponse(JSON.stringify({ error: 'Invalid credentials' }), {
+      return new NextResponse(JSON.stringify({ error: 'Invalid credentials' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -44,15 +42,18 @@ export function middleware(req: NextRequest) {
 
     return new NextResponse('Authentication required', {
       status: 401,
-      headers: {
-        'WWW-Authenticate': 'Basic realm="Secure Admin Area"',
-      },
+      headers: { 'WWW-Authenticate': 'Basic realm="Secure Admin Area"' },
     });
   }
 
-  return NextResponse.next();
-}
+  if (isProtectedRoute(req)) {
+    await auth.protect();
+  }
+});
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+  ],
 };

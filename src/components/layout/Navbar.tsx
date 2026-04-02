@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { useCartStore } from '@/stores/cart-store';
 
 export default function Navbar() {
@@ -69,6 +70,30 @@ export default function Navbar() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-4">
+            {/* Auth */}
+            <SignedOut>
+              <Link
+                href="/sign-in"
+                className="hidden md:inline-block text-xs tracking-[0.15em] uppercase text-charcoal hover:text-gold transition-colors duration-300 border border-current/20 px-4 py-2"
+              >
+                Sign In
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: 'w-8 h-8 border border-gold/30',
+                    userButtonPopoverCard: 'bg-[#1a1a1a] border border-white/10 shadow-2xl',
+                    userButtonPopoverActionButton: 'text-white/70 hover:text-white hover:bg-white/8',
+                    userButtonPopoverActionButtonText: 'text-white/70',
+                    userButtonPopoverFooter: 'border-t border-white/10',
+                  },
+                }}
+              />
+            </SignedIn>
+
             {/* Cart Button */}
             <button
               onClick={toggleCart}
@@ -154,6 +179,30 @@ export default function Navbar() {
                   </Link>
                 </motion.div>
               ))}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: navLinks.length * 0.1 }}
+              >
+                <SignedOut>
+                  <Link
+                    href="/sign-in"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-lg tracking-[0.2em] uppercase text-charcoal/60 hover:text-gold transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                </SignedOut>
+                <SignedIn>
+                  <Link
+                    href="/account"
+                    onClick={() => setMobileOpen(false)}
+                    className="text-lg tracking-[0.2em] uppercase text-charcoal/60 hover:text-gold transition-colors"
+                  >
+                    My Account
+                  </Link>
+                </SignedIn>
+              </motion.div>
             </nav>
           </motion.div>
         )}

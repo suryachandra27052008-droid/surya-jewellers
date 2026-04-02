@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
 import Script from 'next/script';
 import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
@@ -17,6 +18,7 @@ declare global {
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, getSubtotal, clearCart } = useCartStore();
+  const { user } = useUser();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -33,6 +35,17 @@ export default function CheckoutPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Pre-fill form with Clerk user data
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        fullName: prev.fullName || [user.firstName, user.lastName].filter(Boolean).join(' '),
+        email: prev.email || user.primaryEmailAddress?.emailAddress || '',
+      }));
+    }
+  }, [user]);
 
   if (!mounted) {
     return (
