@@ -85,7 +85,7 @@ export default function Footer() {
 
             <div className="mt-8 pt-6 border-t border-white/10">
               <p className="text-xs text-white/40">
-                Contact: info@suryajewellers.com
+                Contact: suryajewellersjaipur@gmail.com
               </p>
               <p className="text-xs text-white/40 mt-1">
                 Phone: 099839 39306

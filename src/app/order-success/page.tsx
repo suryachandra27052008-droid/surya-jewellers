@@ -81,7 +81,7 @@ function OrderSuccessContent() {
           {/* Note */}
           <p className="text-xs text-charcoal-muted mt-8">
             Need help? Contact us at{' '}
-            <span className="text-gold">info@suryajewellers.com</span>
+            <span className="text-gold">suryajewellersjaipur@gmail.com</span>
           </p>
         </motion.div>
       </div>

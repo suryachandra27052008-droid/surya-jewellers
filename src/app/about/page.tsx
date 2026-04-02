@@ -264,7 +264,7 @@ export default function AboutPage() {
                <Mail className="w-6 h-6 text-amber-400 mb-4" />
                <h4 className="text-lg font-serif mb-2">Email Us</h4>
                <p className="text-amber-100/70 font-light text-sm hover:text-white transition-colors">
-                 <a href="mailto:info@suryajewellers.com">info@suryajewellers.com</a>
+                 <a href="mailto:suryajewellersjaipur@gmail.com">suryajewellersjaipur@gmail.com</a>
                </p>
              </div>
 
