@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth, UserButton } from '@clerk/nextjs';
 import { useCartStore } from '@/stores/cart-store';
+import { useCurrencyStore, CURRENCIES, type CurrencyCode } from '@/stores/currency-store';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -15,6 +16,9 @@ export default function Navbar() {
   const { isSignedIn } = useAuth();
 
   const [mounted, setMounted] = useState(false);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const currency = useCurrencyStore((s) => s.currency);
+  const setCurrency = useCurrencyStore((s) => s.setCurrency);
 
   useEffect(() => {
     setMounted(true);
@@ -71,7 +75,43 @@ export default function Navbar() {
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Currency Selector */}
+            {mounted && (
+              <div className="relative">
+                <button
+                  onClick={() => setCurrencyOpen(!currencyOpen)}
+                  className="flex items-center gap-1 text-xs text-charcoal hover:text-gold transition-colors px-2 py-1.5 border border-charcoal/15 hover:border-gold/40 rounded"
+                >
+                  <span>{CURRENCIES[currency].flag}</span>
+                  <span className="hidden sm:inline tracking-[0.1em] font-medium">{currency}</span>
+                  <svg className="w-3 h-3 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {currencyOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setCurrencyOpen(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-cream-dark shadow-xl rounded z-50 overflow-hidden">
+                      {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => (
+                        <button
+                          key={code}
+                          onClick={() => { setCurrency(code); setCurrencyOpen(false); }}
+                          className={`flex items-center gap-2.5 w-full text-left px-3 py-2.5 text-sm transition-colors ${
+                            currency === code ? 'text-gold bg-gold/5 font-medium' : 'text-charcoal hover:bg-cream'
+                          }`}
+                        >
+                          <span className="text-base">{CURRENCIES[code].flag}</span>
+                          <span>{code}</span>
+                          <span className="text-charcoal-muted text-xs ml-auto">{CURRENCIES[code].symbol}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Auth */}
             {isSignedIn ? (
               <UserButton

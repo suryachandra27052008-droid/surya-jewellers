@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
+import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
 // Same demo data - in production this would come from Sanity
@@ -36,6 +37,7 @@ export default function ProductDetailPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
+  const currency = useCurrencyStore((s) => s.currency);
 
   useEffect(() => {
     async function fetchDynamic() {
@@ -202,7 +204,7 @@ export default function ProductDetailPage() {
               {/* Price */}
               <div className="flex items-baseline gap-3">
                 <span className="text-2xl font-semibold text-charcoal">
-                  ₹{product.price.toLocaleString('en-IN')}
+                  {formatPrice(product.price, currency)}
                 </span>
                 <span className="text-xs text-charcoal-muted">(Incl. of taxes)</span>
               </div>

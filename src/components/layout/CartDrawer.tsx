@@ -2,12 +2,14 @@
 
 import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
+import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal } =
     useCartStore();
+  const currency = useCurrencyStore((s) => s.currency);
 
   const subtotal = getSubtotal();
 
@@ -127,7 +129,7 @@ export default function CartDrawer() {
                           {item.name}
                         </h3>
                         <p className="text-sm text-gold font-semibold mt-1">
-                          ₹{item.price.toLocaleString('en-IN')}
+                          {formatPrice(item.price, currency)}
                         </p>
 
                         {/* Quantity Controls */}
@@ -189,7 +191,7 @@ export default function CartDrawer() {
                     Subtotal
                   </span>
                   <span className="text-lg font-serif font-semibold">
-                    ₹{subtotal.toLocaleString('en-IN')}
+                    {formatPrice(subtotal, currency)}
                   </span>
                 </div>
                 <p className="text-xs text-charcoal-muted">
