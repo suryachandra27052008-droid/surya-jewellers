@@ -119,6 +119,34 @@ export default function BlogPostPage() {
                 </ul>
               );
             }
+            if (section.type === 'table' && section.headers && section.rows) {
+              return (
+                <div key={i} className="overflow-hidden border border-white/8 rounded-sm my-6">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gold/10 border-b border-white/8">
+                        {section.headers.map((h, j) => (
+                          <th key={j} className="py-3 px-5 text-left text-gold tracking-[0.15em] uppercase text-xs font-semibold">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {section.rows.map((row, j) => (
+                        <tr key={j} className={`border-b border-white/5 hover:bg-white/4 transition-colors duration-200 ${j % 2 === 0 ? 'bg-white/[0.015]' : 'bg-transparent'}`}>
+                          {row.map((cell, k) => (
+                            <td key={k} className={`py-3 px-5 ${k === 0 ? 'text-white font-medium' : 'text-white/60'}`}>
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            }
             return null;
           })}
         </motion.div>

@@ -1,3 +1,11 @@
+export interface Section {
+  type: 'heading' | 'paragraph' | 'list' | 'quote' | 'subheading' | 'table';
+  text?: string;
+  items?: string[];
+  headers?: string[];
+  rows?: string[][];
+}
+
 export interface BlogPost {
   slug: string;
   category: string;
@@ -6,16 +14,108 @@ export interface BlogPost {
   excerpt: string;
   readTime: string;
   date: string;
+  pinned?: boolean;
   content: Section[];
 }
 
-export interface Section {
-  type: 'heading' | 'paragraph' | 'list' | 'quote' | 'subheading';
-  text?: string;
-  items?: string[];
-}
-
 export const posts: BlogPost[] = [
+  {
+    slug: 'size-guide',
+    category: 'Size Guide',
+    title: 'Ring & Bracelet Size Guide',
+    subtitle: 'Find your perfect fit — Indian and US ring sizes, bracelet sizing, and a simple at-home measuring guide',
+    excerpt:
+      'Not sure of your ring size? Use our complete size chart covering Indian sizes, US equivalents, and inner diameter in mm — plus a simple paper-strip method you can do at home in two minutes.',
+    readTime: '3 min read',
+    date: 'Pinned',
+    pinned: true,
+    content: [
+      {
+        type: 'paragraph',
+        text: 'Getting the right size before you order makes all the difference. Use the chart and instructions below — and if you are still unsure, reach out to us directly before placing your order.',
+      },
+      {
+        type: 'heading',
+        text: 'Ring Size Chart',
+      },
+      {
+        type: 'paragraph',
+        text: 'Find your Indian ring size using the inner diameter of a ring that already fits well, or follow the measuring guide below.',
+      },
+      {
+        type: 'table',
+        headers: ['Indian Size', 'US Size', 'Diameter (mm)'],
+        rows: [
+          ['6',  '3',    '14.1'],
+          ['7',  '3½',   '14.5'],
+          ['8',  '4',    '14.9'],
+          ['9',  '4½',   '15.3'],
+          ['10', '5',    '15.7'],
+          ['11', '5½',   '16.1'],
+          ['12', '6',    '16.5'],
+          ['13', '6½',   '16.9'],
+          ['14', '7',    '17.3'],
+          ['15', '7½',   '17.7'],
+          ['16', '8',    '18.1'],
+          ['17', '8½',   '18.5'],
+          ['18', '9',    '18.9'],
+          ['19', '9½',   '19.3'],
+          ['20', '10',   '19.7'],
+          ['21', '10½',  '20.1'],
+          ['22', '11',   '20.5'],
+          ['23', '11½',  '20.9'],
+          ['24', '12',   '21.3'],
+          ['25', '12½',  '21.7'],
+        ],
+      },
+      {
+        type: 'quote',
+        text: 'If you are between sizes, we recommend sizing up for comfort.',
+      },
+      {
+        type: 'heading',
+        text: 'Bracelet Size',
+      },
+      {
+        type: 'paragraph',
+        text: 'All Surya Jewellers bracelets are crafted in a standard length of 17–18 cm, designed to fit most wrists with a comfortable, elegant drape. If you have a specific wrist size requirement, please reach out to us for a custom order.',
+      },
+      {
+        type: 'quote',
+        text: 'Tip: Measure your wrist snugly with a tape measure, then add 1–2 cm for the ideal bracelet length.',
+      },
+      {
+        type: 'heading',
+        text: 'How to Measure Your Ring Size at Home',
+      },
+      {
+        type: 'paragraph',
+        text: 'All you need is a thin strip of paper and a ruler. Follow these five steps:',
+      },
+      {
+        type: 'list',
+        items: [
+          'Cut a thin strip of paper about 1 cm wide and long enough to wrap around your finger.',
+          'Wrap it snugly around the base of the finger you plan to wear the ring on — not too tight.',
+          'Mark where the paper overlaps with a pen. This is the inner circumference.',
+          'Lay the paper flat and measure the marked length in millimetres. Divide by 3.14 to get your inner diameter.',
+          'Find the closest diameter value in the chart above to get your Indian ring size.',
+        ],
+      },
+      {
+        type: 'subheading',
+        text: 'Pro Tips',
+      },
+      {
+        type: 'list',
+        items: [
+          'Measure at the end of the day — fingers are slightly larger then and this gives you the most accurate fit.',
+          'Avoid measuring when your hands are cold, as fingers shrink in cold temperatures.',
+          'If your knuckle is wider than the base of your finger, size up so the ring can pass over comfortably.',
+        ],
+      },
+    ],
+  },
   {
     slug: 'care-for-sterling-silver',
     category: 'Care & Maintenance',

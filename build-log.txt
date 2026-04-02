@@ -1,0 +1,1068 @@
+﻿
+> surya-jewellers@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.2.1 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+node.exe : 
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (:  
+  String) [], RemoteExc   
+ eption
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+> Build error occurred
+Error: Turbopack build 
+failed with 13 errors:
+./node_modules/@sanity/ins
+ert-menu/node_modules/@san
+ity/ui/dist/_chunks-es/_vi
+sual-editing.mjs:5:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m3 |[0m 
+...[36mrom[0m [32m"reac
+t-compiler-runtime"[0m;
+  [90m4 |[0m 
+...eContext, useContext, 
+forwardRef, useId, 
+useState, useEffect, 
+[33mChildren[0m, 
+isValidElement, ...
+[31m[1m>[0m [90m5 
+|[0m 
+...[33mProvider[0m 
+[36mas[0m 
+[33mThemeProvider$1[0m, 
+useTheme [36mas[0m 
+useTheme$1, css, styled, 
+keyframes } [36mfrom[0m 
+[32m"styl...[0m
+  [90m  |[0m    [31m[1
+m^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^[0m
+  [90m6 |[0m ..., { 
+isValidElementType } 
+[36mfrom[0m 
+[32m"react-is"[0m;
+  [90m7 |[0m 
+...[33merIcon[0m, 
+[33mCheckmarkIcon[0m, 
+[33mRemoveIcon[0m, 
+[33mChevronDownIcon[0m, 
+[33mCloseIcon[0m, 
+[33mChevronRightIcon[0m 
+} [36mfrom[0m 
+[32m"...[0m
+  [90m8 |[0m 
+...tOverflow, 
+useFloating, 
+autoPlacement, flip, 
+offset, shift, arrow, 
+hide, autoUpdate } 
+[36mfr..[0m.
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/@sanity
+/insert-menu/node_modules/
+@sanity/ui/dist/_chunks-es
+/_visual-editing.mjs 
+[Client Component Browser]
+    ./node_modules/@sanity
+/insert-menu/dist/index.js
+ [Client Component 
+Browser]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/@sanity
+/insert-menu/node_modules/
+@sanity/ui/dist/_chunks-es
+/_visual-editing.mjs 
+[Client Component SSR]
+    ./node_modules/@sanity
+/insert-menu/dist/index.js
+ [Client Component SSR]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/lib/
+_chunks-es/index.js:7:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m 5 |[0m 
+[36mimport[0m { 
+[33mSourceContext[0m } 
+[36mfrom[0m [32m"sanity
+/_singletons"[0m;
+  [90m 6 |[0m 
+[36mimport[0m { 
+isValidElementType } 
+[36mfrom[0m 
+[32m"react-is"[0m;
+[31m[1m>[0m [90m 7 
+|[0m [36mimport[0m { 
+styled } [36mfrom[0m [3
+2m"styled-components"[0m;
+  [90m   |[0m [31m[1m^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^[0m
+  [90m 8 |[0m 
+[36mimport[0m { 
+useTranslation } 
+[36mfrom[0m 
+[32m"react-i18next"[0m;
+  [90m 9 |[0m 
+[36mconst[0m [33mLARGE_
+BUTTON_PROPS[0m = {
+  [90m10 |[0m   space: 
+[35m3[0m,
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+lib/_chunks-es/index.js 
+[Client Component Browser]
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+lib/_chunks-es/index.js 
+[Client Component SSR]
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/lib/
+_chunks-es/index2.js:16:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m14 |[0m 
+[36mimport[0m [32m"@san
+ity/util/paths"[0m;
+  [90m15 |[0m 
+[36mimport[0m [32m"loda
+sh-es/omit.js"[0m;
+[31m[1m>[0m [90m16 
+|[0m [36mimport[0m { 
+styled } [36mfrom[0m [3
+2m"styled-components"[0m;
+  [90m   |[0m [31m[1m^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^[0m
+  [90m17 |[0m 
+[36mconst[0m 
+[33mRoot[0m = styled([3
+3mBox[0m).withConfig({
+  [90m18 |[0m   
+displayName: 
+[32m"Root"[0m,
+  [90m19 |[0m   
+componentId: 
+[32m"sc-s75qv0-0"[0m
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+lib/_chunks-es/index2.js 
+[Client Component Browser]
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+lib/_chunks-es/index2.js 
+[Client Component SSR]
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/lib/
+_chunks-es/index3.js:15:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m13 |[0m 
+[36mimport[0m [32m"@san
+ity/util/paths"[0m;
+  [90m14 |[0m 
+[36mimport[0m [32m"loda
+sh-es/omit.js"[0m;
+[31m[1m>[0m [90m15 
+|[0m [36mimport[0m { 
+styled } [36mfrom[0m [3
+2m"styled-components"[0m;
+  [90m   |[0m [31m[1m^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^[0m
+  [90m16 |[0m 
+[36mconst[0m 
+[33mDividerContainer[0m 
+= styled([33mBox[0m).wit
+hConfig({
+  [90m17 |[0m   
+displayName: [32m"Divider
+Container"[0m,
+  [90m18 |[0m   
+componentId: 
+[32m"sc-j4cdg4-0"[0m
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+lib/_chunks-es/index3.js 
+[Client Component Browser]
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+lib/_chunks-es/index3.js 
+[Client Component SSR]
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/lib/
+_chunks-es/index4.js:18:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m16 |[0m 
+[36mimport[0m { 
+[33mSyncIcon[0m, [33mWa
+rningOutlineIcon[0m } 
+[36mfrom[0m 
+[32m"@sanity/icons"[0m;
+  [90m17 |[0m 
+[36mimport[0m { 
+[33mStack[0m, 
+[33mText[0m, 
+[33mCode[0m, 
+[33mBox[0m, 
+[33mCard[0m, 
+[33mContainer[0m, 
+[33mHeading[0m, 
+[33mFlex[0m, useToast, 
+useTheme, 
+[33mPorta...[0m
+[31m[1m>[0m [90m18 
+|[0m [36mimport[0m { 
+styled } [36mfrom[0m [3
+2m"styled-components"[0m;
+  [90m   |[0m [31m[1m^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^[0m
+  [90m19 |[0m 
+[36mimport[0m 
+[32m"react-i18next"[0m;
+  [90m20 |[0m 
+[36mimport[0m [32m"loda
+sh-es/camelCase.js"[0m;
+  [90m21 |[0m 
+[36mimport[0m 
+[32m"speakingurl"[0m;
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+lib/_chunks-es/index4.js 
+[Client Component Browser]
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+lib/_chunks-es/index4.js 
+[Client Component SSR]
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/lib/
+_chunks-es/resources.js:23
+:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m21 |[0m 
+[36mimport[0m 
+[32m"@sanity/color"[0m;
+  [90m22 |[0m 
+[36mimport[0m 
+[32m"color2k"[0m;
+[31m[1m>[0m [90m23 
+|[0m [36mimport[0m [32
+m"styled-components"[0m;
+  [90m   |[0m [31m[1m^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+[0m
+  [90m24 |[0m 
+[36mimport[0m [32m"loda
+sh-es/isString.js"[0m;
+  [90m25 |[0m 
+[36mimport[0m 
+[32m"dataloader"[0m;
+  [90m26 |[0m 
+[36mimport[0m 
+[32m"./version.js"[0m;
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+lib/_chunks-es/resources.j
+s [Client Component 
+Browser]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+lib/_chunks-es/resources.j
+s [Client Component SSR]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/lib/
+_chunks-es/resources3.js:2
+3:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m21 |[0m 
+[36mimport[0m 
+[32m"@sanity/color"[0m;
+  [90m22 |[0m 
+[36mimport[0m 
+[32m"color2k"[0m;
+[31m[1m>[0m [90m23 
+|[0m [36mimport[0m [32
+m"styled-components"[0m;
+  [90m   |[0m [31m[1m^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+[0m
+  [90m24 |[0m 
+[36mimport[0m [32m"loda
+sh-es/isString.js"[0m;
+  [90m25 |[0m 
+[36mimport[0m 
+[32m"dataloader"[0m;
+  [90m26 |[0m 
+[36mimport[0m 
+[32m"./version.js"[0m;
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+lib/_chunks-es/resources3.
+js [Client Component 
+Browser]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+lib/_chunks-es/resources3.
+js [Client Component SSR]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/lib/
+_chunks-es/resources4.js:2
+3:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m21 |[0m 
+[36mimport[0m 
+[32m"@sanity/color"[0m;
+  [90m22 |[0m 
+[36mimport[0m 
+[32m"color2k"[0m;
+[31m[1m>[0m [90m23 
+|[0m [36mimport[0m [32
+m"styled-components"[0m;
+  [90m   |[0m [31m[1m^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+[0m
+  [90m24 |[0m 
+[36mimport[0m [32m"loda
+sh-es/isString.js"[0m;
+  [90m25 |[0m 
+[36mimport[0m 
+[32m"dataloader"[0m;
+  [90m26 |[0m 
+[36mimport[0m 
+[32m"./version.js"[0m;
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+lib/_chunks-es/resources4.
+js [Client Component 
+Browser]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+lib/_chunks-es/resources4.
+js [Client Component SSR]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/lib/
+_chunks-es/resources5.js:2
+3:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m21 |[0m 
+[36mimport[0m 
+[32m"@sanity/color"[0m;
+  [90m22 |[0m 
+[36mimport[0m 
+[32m"color2k"[0m;
+[31m[1m>[0m [90m23 
+|[0m [36mimport[0m [32
+m"styled-components"[0m;
+  [90m   |[0m [31m[1m^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+[0m
+  [90m24 |[0m 
+[36mimport[0m [32m"loda
+sh-es/isString.js"[0m;
+  [90m25 |[0m 
+[36mimport[0m 
+[32m"dataloader"[0m;
+  [90m26 |[0m 
+[36mimport[0m 
+[32m"./version.js"[0m;
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+lib/_chunks-es/resources5.
+js [Client Component 
+Browser]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+lib/_chunks-es/resources5.
+js [Client Component SSR]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/lib/
+_chunks-es/structureTool.j
+s:21:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m19 |[0m 
+[36mimport[0m { 
+useObservable, 
+useObservableEvent } 
+[36mfrom[0m 
+[32m"react-rx"[0m;
+  [90m20 |[0m 
+[36mimport[0m { 
+[33mSubject[0m, 
+distinctUntilChanged, 
+filter, map, [36mof[0m, 
+merge, startWith, 
+catchError, con...
+[31m[1m>[0m [90m21 
+|[0m [36mimport[0m { 
+styled, css, keyframes } 
+[36mfrom[0m [32m"styled
+-components"[0m;
+  [90m   |[0m [31m[1m^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^[0m
+  [90m22 |[0m 
+[36mimport[0m { 
+isValidationErrorMarker, 
+isSanityDocument 
+[36mas[0m 
+isSanityDocument$1, 
+isKeySegment, is...
+  [90m23 |[0m 
+[36mimport[0m { parse } 
+[36mfrom[0m 
+[32m"groq-js"[0m;
+  [90m24 |[0m 
+[36mimport[0m { 
+[33mChannelError[0m, 
+[33mServerError[0m, 
+[33mClientError[0m } 
+[36mfrom[0m 
+[32m"@sanity/client"[0m;
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/lib/
+index.js:12:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m10 |[0m ... 
+useVirtualizer, 
+defaultRangeExtractor, 
+elementScroll } 
+[36mfrom[0m [32m"@tanst
+ack/react-virtual"[0m;
+  [90m11 |[0m 
+...hrottle [36mfrom[0m 
+[32m"lodash-es/throttle.js
+"[0m;
+[31m[1m>[0m [90m12 
+|[0m ... styled, css, 
+keyframes, useTheme 
+[36mas[0m useTheme$1, 
+createGlobalStyle } 
+[36mfrom[0m 
+[32m"styled-compo...[0m
+  [90m   |[0m    [31m[
+1m^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^[0m
+  [90m13 |[0m ... [33mE
+llipsisHorizontalIcon[0m,
+ [33mErrorOutlineIcon[0m
+, [33mCircleIcon[0m, 
+[33mCalendarIcon[0m, 
+[33mUnpublishIcon[0m, 
+[33mPub...[0m
+  [90m14 |[0m ... 
+createMemoryHistory, 
+createBrowserHistory } 
+[36mfrom[0m 
+[32m"history"[0m;
+  [90m15 |[0m ... uuid 
+} [36mfrom[0m 
+[32m"@sanity/uuid"[0m;
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/node
+_modules/@sanity/ui/dist/_
+chunks-es/_visual-editing.
+mjs:5:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m3 |[0m 
+...[36mrom[0m [32m"reac
+t-compiler-runtime"[0m;
+  [90m4 |[0m 
+...eContext, useContext, 
+forwardRef, useId, 
+useState, useEffect, 
+[33mChildren[0m, 
+isValidElement, ...
+[31m[1m>[0m [90m5 
+|[0m 
+...[33mProvider[0m 
+[36mas[0m 
+[33mThemeProvider$1[0m, 
+useTheme [36mas[0m 
+useTheme$1, css, styled, 
+keyframes } [36mfrom[0m 
+[32m"styl...[0m
+  [90m  |[0m    [31m[1
+m^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^[0m
+  [90m6 |[0m ..., { 
+isValidElementType } 
+[36mfrom[0m 
+[32m"react-is"[0m;
+  [90m7 |[0m 
+...[33merIcon[0m, 
+[33mCheckmarkIcon[0m, 
+[33mRemoveIcon[0m, 
+[33mChevronDownIcon[0m, 
+[33mCloseIcon[0m, 
+[33mChevronRightIcon[0m 
+} [36mfrom[0m 
+[32m"...[0m
+  [90m8 |[0m 
+...tOverflow, 
+useFloating, 
+autoPlacement, flip, 
+offset, shift, arrow, 
+hide, autoUpdate } 
+[36mfr..[0m.
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+node_modules/@sanity/ui/di
+st/_chunks-es/_visual-edit
+ing.mjs [Client Component 
+Browser]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+node_modules/@sanity/ui/di
+st/_chunks-es/_visual-edit
+ing.mjs [Client Component 
+SSR]
+    ./node_modules/sanity/
+lib/index.js [Client 
+Component SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+./node_modules/sanity/node
+_modules/@sanity/ui/dist/i
+ndex.mjs:7:1
+Module not found: Can't 
+resolve 
+'styled-components'
+  [90m 5 |[0m 
+[36mimport[0m { 
+[33mSpinnerIcon[0m, 
+[33mChevronDownIcon[0m, 
+[33mCloseIcon[0m, [33mT
+oggleArrowRightIcon[0m } 
+[36mfrom[0m 
+[32m"@sanity/ico...[0m
+  [90m 6 |[0m 
+[36mimport[0m { 
+useState, useRef, 
+useEffect, 
+useImperativeHandle, 
+[33mComponent[0m, 
+forwardRef, useReduc...
+[31m[1m>[0m [90m 7 
+|[0m [36mimport[0m { 
+styled, keyframes, css } 
+[36mfrom[0m [32m"styled
+-components"[0m;
+  [90m   |[0m [31m[1m^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^[0m
+  [90m 8 |[0m 
+[36mimport[0m { 
+getTheme_v2 } 
+[36mfrom[0m [32m"@sanit
+y/ui/theme"[0m;
+  [90m 9 |[0m 
+[36mimport[0m { motion, 
+[33mAnimatePresence[0m 
+} [36mfrom[0m 
+[32m"motion/react"[0m;
+  [90m10 |[0m 
+[36mfunction[0m 
+_raf(fn) {
+
+
+
+Import traces:
+  Client Component 
+Browser:
+    ./node_modules/sanity/
+node_modules/@sanity/ui/di
+st/index.mjs [Client 
+Component Browser]
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+Browser]
+    ./sanity.config.ts 
+[Client Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component Browser]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+  Client Component SSR:
+    ./node_modules/sanity/
+node_modules/@sanity/ui/di
+st/index.mjs [Client 
+Component SSR]
+    ./node_modules/sanity/
+lib/_chunks-es/structureTo
+ol.js [Client Component 
+SSR]
+    ./sanity.config.ts 
+[Client Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Client 
+Component SSR]
+    ./src/app/studio/[[...
+tool]]/page.tsx [Server 
+Component]
+
+https://nextjs.org/docs/me
+ssages/module-not-found
+
+
+    at <unknown> (https://
+nextjs.org/docs/messages/m
+odule-not-found)
+    ... collapsed 10 
+duplicate lines matching 
+above 1 lines 10 times...
+    at ./node_modules/sani
+ty/node_modules/ (sanity/u
+i/dist/_chunks-es/_visual-
+editing.mjs:5:1)
+    at <unknown> (https://
+nextjs.org/docs/messages/m
+odule-not-found)
+    at ./node_modules/sani
+ty/node_modules/ (sanity/u
+i/dist/index.mjs:7:1)
+    at <unknown> (https://
+nextjs.org/docs/messages/m
+odule-not-found)

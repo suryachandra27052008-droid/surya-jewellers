@@ -1,0 +1,2 @@
+e0844938-c5b6-4c71-8328-c4624c445cfb|surya-jewellers-official|https://surya-jewellers-official.netlify.app
+0f1b7492-8170-4342-8d97-2a3298efd94a|surya-jewellers-store|https://surya-jewellers-store.netlify.app
