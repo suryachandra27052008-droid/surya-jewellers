@@ -202,9 +202,9 @@ export default function AboutPage() {
             <div className="relative z-10 overflow-hidden rounded-sm">
               <iframe
                 title="Surya Jewellers Location"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3558.123!2d75.7873!3d26.9124!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjbCsDU0JzQ0LjYiTiA3NcKwNDcnMTQuMyJF!5e0!3m2!1sen!2sin!4v1234567890"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3557.9585720482346!2d75.82120473955301!3d26.904809860527966!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db6b98c851fff%3A0x2406d9efdc66cfff!2sSurya%20Jewellers!5e0!3m2!1sen!2sin!4v1775133965158!5m2!1sen!2sin"
                 width="100%"
-                height="420"
+                height="450"
                 style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) saturate(0.8) brightness(0.85)' }}
                 allowFullScreen
                 loading="lazy"
