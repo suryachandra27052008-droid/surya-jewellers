@@ -46,6 +46,7 @@ export default function Footer() {
                 { href: '/shipping', label: 'Shipping & Returns' },
                 { href: '/size-guide', label: 'Size Guide' },
                 { href: '/contact', label: 'Contact Us' },
+                { href: '/wholesale', label: 'Wholesale / B2B' },
               ].map((link) => (
                 <li key={link.href}>
                   <Link
