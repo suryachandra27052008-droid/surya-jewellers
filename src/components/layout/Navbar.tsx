@@ -41,13 +41,14 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center group">
             <Image
-              src="/logo_sj.png"
+              src="/logo_sj.webp"
               alt="Surya Jewellers"
               height={50}
               width={160}
               style={{ height: '50px', width: 'auto' }}
               className="drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]"
               priority
+              fetchPriority="high"
             />
           </Link>
 
