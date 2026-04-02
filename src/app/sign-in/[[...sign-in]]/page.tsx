@@ -1,5 +1,4 @@
 import { SignIn } from '@clerk/nextjs';
-import { motion } from 'motion/react';
 
 const clerkAppearance = {
   variables: {

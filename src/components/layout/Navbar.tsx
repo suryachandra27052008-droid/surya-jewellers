@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { useAuth, UserButton } from '@clerk/nextjs';
 import { useCartStore } from '@/stores/cart-store';
 
 export default function Navbar() {
@@ -12,6 +12,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const toggleCart = useCartStore((s) => s.toggleCart);
   const itemCount = useCartStore((s) => s.getItemCount());
+  const { isSignedIn } = useAuth();
 
   const [mounted, setMounted] = useState(false);
 
@@ -71,15 +72,7 @@ export default function Navbar() {
           {/* Right Actions */}
           <div className="flex items-center gap-4">
             {/* Auth */}
-            <SignedOut>
-              <Link
-                href="/sign-in"
-                className="hidden md:inline-block text-xs tracking-[0.15em] uppercase text-charcoal hover:text-gold transition-colors duration-300 border border-current/20 px-4 py-2"
-              >
-                Sign In
-              </Link>
-            </SignedOut>
-            <SignedIn>
+            {isSignedIn ? (
               <UserButton
                 afterSignOutUrl="/"
                 appearance={{
@@ -92,7 +85,14 @@ export default function Navbar() {
                   },
                 }}
               />
-            </SignedIn>
+            ) : (
+              <Link
+                href="/sign-in"
+                className="hidden md:inline-block text-xs tracking-[0.15em] uppercase text-charcoal hover:text-gold transition-colors duration-300 border border-charcoal/20 px-4 py-2"
+              >
+                Sign In
+              </Link>
+            )}
 
             {/* Cart Button */}
             <button
@@ -184,24 +184,13 @@ export default function Navbar() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: navLinks.length * 0.1 }}
               >
-                <SignedOut>
-                  <Link
-                    href="/sign-in"
-                    onClick={() => setMobileOpen(false)}
-                    className="text-lg tracking-[0.2em] uppercase text-charcoal/60 hover:text-gold transition-colors"
-                  >
-                    Sign In
-                  </Link>
-                </SignedOut>
-                <SignedIn>
-                  <Link
-                    href="/account"
-                    onClick={() => setMobileOpen(false)}
-                    className="text-lg tracking-[0.2em] uppercase text-charcoal/60 hover:text-gold transition-colors"
-                  >
-                    My Account
-                  </Link>
-                </SignedIn>
+                <Link
+                  href={isSignedIn ? '/account' : '/sign-in'}
+                  onClick={() => setMobileOpen(false)}
+                  className="text-lg tracking-[0.2em] uppercase text-charcoal/60 hover:text-gold transition-colors"
+                >
+                  {isSignedIn ? 'My Account' : 'Sign In'}
+                </Link>
               </motion.div>
             </nav>
           </motion.div>
