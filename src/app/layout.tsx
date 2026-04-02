@@ -19,30 +19,43 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   icons: {
-    icon: [
-      { url: "/logo_sj.png", type: "image/png" },
-    ],
+    icon: [{ url: "/logo_sj.png", type: "image/png" }],
     apple: "/logo_sj.png",
     shortcut: "/logo_sj.png",
   },
-  title: "Surya Jewellers | Premium 92.5 Sterling Silver Jewelry",
+  title: {
+    default: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",
+    template: "%s | Surya Jewellers",
+  },
   description:
-    "Discover exquisite 92.5 sterling silver jewelry adorned with real diamonds and precious stones. Handcrafted elegance from Surya Jewellers — BIS Hallmarked, certified, and timeless.",
+    "Surya Jewellers, Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Handcrafted rings, necklaces, earrings with natural diamonds and precious gemstones. BIS Hallmarked. Shop now.",
   keywords: [
-    "silver jewelry",
-    "92.5 sterling silver",
-    "diamond jewelry",
-    "ruby rings",
+    "Surya Jewellers Jaipur",
+    "92.5 sterling silver jewellery",
+    "silver jewellery manufacturer Jaipur",
+    "natural diamond jewellery",
+    "ruby silver rings",
     "emerald necklaces",
     "sapphire earrings",
-    "hallmarked silver",
-    "surya jewellers",
+    "BIS hallmarked silver",
+    "handcrafted jewellery",
   ],
+  metadataBase: new URL("https://suryajewellers.shop"),
   openGraph: {
-    title: "Surya Jewellers | Premium 92.5 Sterling Silver Jewelry",
+    title: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",
     description:
-      "Handcrafted 92.5 sterling silver jewelry with real diamonds and precious stones.",
+      "Surya Jewellers, Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Handcrafted rings, necklaces, earrings with natural diamonds and precious gemstones. BIS Hallmarked.",
     type: "website",
+    url: "https://suryajewellers.shop",
+    siteName: "Surya Jewellers",
+    images: [{ url: "/logo_sj.png", width: 512, height: 512, alt: "Surya Jewellers" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",
+    description:
+      "Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Natural diamonds & precious gemstones. BIS Hallmarked.",
+    images: ["/logo_sj.png"],
   },
 };
 
