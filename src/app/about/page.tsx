@@ -202,7 +202,7 @@ export default function AboutPage() {
             <div className="relative z-10 overflow-hidden rounded-sm">
               <iframe
                 title="Surya Jewellers Location"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3558.7!2d75.8189!3d26.9124!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db5e3396f28a5%3A0x1!2sB-169%2C%20Anandpuri%2C%20Moti%20Doongri%20Rd%2C%20near%20Naila%20House%2C%20Jaipur%2C%20Rajasthan%20302004!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3558.123!2d75.7873!3d26.9124!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjbCsDU0JzQ0LjYiTiA3NcKwNDcnMTQuMyJF!5e0!3m2!1sen!2sin!4v1234567890"
                 width="100%"
                 height="420"
                 style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) saturate(0.8) brightness(0.85)' }}
