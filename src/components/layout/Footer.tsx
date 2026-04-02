@@ -43,6 +43,8 @@ export default function Footer() {
                 { href: '/products?category=necklaces', label: 'Necklaces' },
                 { href: '/products?category=earrings', label: 'Earrings' },
                 { href: '/products?category=bracelets', label: 'Bracelets' },
+                { href: '/products?category=pendants', label: 'Pendants' },
+                { href: '/products?category=studs', label: 'Studs / Tops' },
                 { href: '/shipping', label: 'Shipping & Returns' },
                 { href: '/blog/size-guide', label: 'Size Guide' },
                 { href: '/contact', label: 'Contact Us' },

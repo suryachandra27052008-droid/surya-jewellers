@@ -10,7 +10,7 @@ import AnimatedSection from '@/components/ui/AnimatedSection';
 // Demo products data (used when Sanity is not connected)
 
 
-const categories = ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets'];
+const categories = ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Pendants', 'Studs'];
 const stoneTypes = ['All', 'Diamond', 'Ruby', 'Emerald', 'Sapphire'];
 const sortOptions = [
   { label: 'Newest', value: 'newest' },
@@ -270,9 +270,12 @@ export default function ProductsPage() {
                             <div className="w-full h-full flex items-center justify-center">
                               <div className="text-center">
                                 <span className="text-5xl opacity-20">
-                                  {product.category.name === 'Rings' ? '💍' : 
+                                  {product.category.name === 'Rings' ? '💍' :
                                    product.category.name === 'Necklaces' ? '📿' :
-                                   product.category.name === 'Earrings' ? '✨' : '⭐'}
+                                   product.category.name === 'Earrings' ? '✨' :
+                                   product.category.name === 'Bracelets' ? '⭐' :
+                                   product.category.name === 'Pendants' ? '🔮' :
+                                   product.category.name === 'Studs' ? '🌟' : '⭐'}
                                 </span>
                               </div>
                             </div>
