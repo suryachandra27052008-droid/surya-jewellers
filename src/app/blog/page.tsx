@@ -14,6 +14,9 @@ const categoryColors: Record<string, string> = {
 const romanNumerals = ['I', 'II', 'III', 'IV'];
 
 export default function BlogPage() {
+  const pinnedPost = posts.find((p) => p.pinned);
+  const regularPosts = posts.filter((p) => !p.pinned);
+
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
@@ -62,8 +65,63 @@ export default function BlogPage() {
 
       {/* Blog Posts Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+
+        {/* Pinned / Featured Post */}
+        {pinnedPost && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.7 }}
+            className="mb-8"
+          >
+            <Link href={`/blog/${pinnedPost.slug}`} className="group block">
+              <div className="relative border border-gold/25 bg-gold/5 hover:bg-gold/8 hover:border-gold/40 transition-all duration-500 rounded-sm overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
+                <div className="absolute top-0 bottom-0 left-0 w-[1px] bg-gradient-to-b from-gold/40 via-transparent to-transparent" />
+
+                <div className="p-8 lg:p-10 flex flex-col sm:flex-row gap-8 items-start">
+                  {/* Pin badge */}
+                  <div className="flex-shrink-0 flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 rounded-full border border-gold/30 bg-gold/10 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                      </svg>
+                    </div>
+                    <span className="text-gold/60 text-[0.6rem] tracking-[0.25em] uppercase font-medium">Pinned</span>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-[0.7rem] tracking-[0.2em] uppercase font-medium px-2.5 py-1 rounded-full border text-gold border-gold/30 bg-gold/10">
+                        {pinnedPost.category}
+                      </span>
+                      <span className="text-white/25 text-xs">{pinnedPost.readTime}</span>
+                    </div>
+
+                    <h2 className="font-serif text-2xl md:text-3xl text-white group-hover:text-gold-light transition-colors duration-300 leading-snug mb-3">
+                      {pinnedPost.title}
+                    </h2>
+                    <div className="w-8 h-[1px] bg-gold/40 mb-4" />
+                    <p className="text-white/45 text-sm leading-relaxed font-light mb-5 max-w-2xl">
+                      {pinnedPost.excerpt}
+                    </p>
+
+                    <span className="inline-flex items-center gap-2 text-gold/70 group-hover:text-gold text-xs tracking-[0.15em] uppercase font-medium transition-colors duration-300">
+                      Read Guide
+                      <svg className="w-3.5 h-3.5 -rotate-45 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </motion.div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-          {posts.map((post, i) => (
+          {regularPosts.map((post, i) => (
             <motion.article
               key={post.slug}
               initial={{ opacity: 0, y: 40 }}

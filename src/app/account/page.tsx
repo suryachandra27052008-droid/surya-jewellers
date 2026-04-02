@@ -86,7 +86,7 @@ export default function AccountPage() {
                 </svg>
               ),
               label: 'Size Guide',
-              href: '/size-guide',
+              href: '/blog/size-guide',
             },
             {
               icon: (

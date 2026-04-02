@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Vercel__deploy_to_vercel",
+      "Bash(vercel deploy:*)",
+      "Bash(npx vercel:*)",
+      "mcp__claude_ai_Vercel__get_deployment_build_logs",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(printf \"production\")",
+      "Bash(magick --version)",
+      "Bash(convert --version)",
+      "Bash(node -e ':*)",
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(node:*)",
+      "Bash(xargs grep:*)"
+    ]
+  }
+}

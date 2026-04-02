@@ -44,7 +44,7 @@ export default function Footer() {
                 { href: '/products?category=earrings', label: 'Earrings' },
                 { href: '/products?category=bracelets', label: 'Bracelets' },
                 { href: '/shipping', label: 'Shipping & Returns' },
-                { href: '/size-guide', label: 'Size Guide' },
+                { href: '/blog/size-guide', label: 'Size Guide' },
                 { href: '/contact', label: 'Contact Us' },
                 { href: '/wholesale', label: 'Wholesale / B2B' },
               ].map((link) => (
