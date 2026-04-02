@@ -2,10 +2,16 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(req: NextRequest) {
-  // Check auth for admin routes, but allow public API like GET products if needed.
-  // Wait, if it's the admin panel, the admin themselves will hit POST /api/admin/products so we should protect it too!
   const isAdminPage = req.nextUrl.pathname.startsWith('/admin');
   const isAdminApi = req.nextUrl.pathname.startsWith('/api/admin');
+
+  // Allow unauthenticated GET on products endpoint — used by the public storefront
+  const isPublicProductsGet =
+    req.method === 'GET' && req.nextUrl.pathname === '/api/admin/products';
+
+  if (isPublicProductsGet) {
+    return NextResponse.next();
+  }
 
   if (isAdminPage || isAdminApi) {
     const basicAuth = req.headers.get('authorization');
