@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
+import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
 // Demo products data (used when Sanity is not connected)
@@ -33,6 +34,7 @@ export default function ProductsPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const addItem = useCartStore((s) => s.addItem);
+  const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -328,7 +330,7 @@ export default function ProductsPage() {
                         </Link>
                         <div className="flex items-center justify-between mt-2">
                           <p className="text-gold font-semibold tracking-wide">
-                            ₹{product.price.toLocaleString('en-IN')}
+                            {formatPrice(product.price, currency)}
                           </p>
                           <span className="text-[0.65rem] text-charcoal-muted">
                             {product.silverWeight}g Silver

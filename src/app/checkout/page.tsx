@@ -6,6 +6,7 @@ import { useUser } from '@clerk/nextjs';
 import Script from 'next/script';
 import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
+import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
 declare global {
@@ -19,6 +20,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, getSubtotal, clearCart } = useCartStore();
   const { user } = useUser();
+  const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -253,7 +255,7 @@ export default function CheckoutPage() {
                           <p className="text-charcoal-muted text-xs">Qty: {item.quantity}</p>
                         </div>
                         <span className="text-charcoal font-medium ml-4">
-                          ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                          {formatPrice(item.price * item.quantity, currency)}
                         </span>
                       </div>
                     ))}
@@ -265,7 +267,7 @@ export default function CheckoutPage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-charcoal-muted">Subtotal</span>
-                      <span className="text-charcoal">₹{subtotal.toLocaleString('en-IN')}</span>
+                      <span className="text-charcoal">{formatPrice(subtotal, currency)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-charcoal-muted">Shipping</span>
@@ -273,12 +275,12 @@ export default function CheckoutPage() {
                         {shipping === 0 ? (
                           <span className="text-green-600">Free</span>
                         ) : (
-                          `₹${shipping}`
+                          formatPrice(shipping, currency)
                         )}
                       </span>
                     </div>
                     {shipping === 0 && (
-                      <p className="text-xs text-green-600">Free shipping on orders above ₹5,000!</p>
+                      <p className="text-xs text-green-600">Free shipping on orders above {formatPrice(5000, currency)}!</p>
                     )}
                   </div>
 
@@ -287,7 +289,7 @@ export default function CheckoutPage() {
                   <div className="flex justify-between items-baseline mb-6">
                     <span className="text-sm tracking-[0.1em] uppercase text-charcoal-muted">Total</span>
                     <span className="font-serif text-2xl text-charcoal">
-                      ₹{total.toLocaleString('en-IN')}
+                      {formatPrice(total, currency)}
                     </span>
                   </div>
 
@@ -303,7 +305,7 @@ export default function CheckoutPage() {
                         Processing...
                       </span>
                     ) : (
-                      `Pay ₹${total.toLocaleString('en-IN')}`
+                      `Pay ${formatPrice(total, currency)}`
                     )}
                   </motion.button>
 
