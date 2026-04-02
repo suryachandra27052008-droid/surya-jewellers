@@ -19,8 +19,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   icons: {
-    icon: "/logo_sj.png",
+    icon: [
+      { url: "/logo_sj.png", type: "image/png" },
+    ],
     apple: "/logo_sj.png",
+    shortcut: "/logo_sj.png",
   },
   title: "Surya Jewellers | Premium 92.5 Sterling Silver Jewelry",
   description:
