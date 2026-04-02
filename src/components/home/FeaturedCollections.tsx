@@ -29,6 +29,18 @@ const collections = [
     description: 'Delicate cuffs & bangles',
     emoji: '⭐',
   },
+  {
+    name: 'Pendants',
+    slug: 'pendants',
+    description: 'Delicate drops & statement charms',
+    emoji: '🔮',
+  },
+  {
+    name: 'Studs / Tops',
+    slug: 'studs',
+    description: 'Classic & gemstone ear tops',
+    emoji: '🌟',
+  },
 ];
 
 export default function FeaturedCollections() {
@@ -50,7 +62,7 @@ export default function FeaturedCollections() {
         </AnimatedSection>
 
         {/* Collections Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {collections.map((collection, index) => (
             <AnimatedSection key={collection.slug} delay={index * 0.1}>
               <Link href={`/products?category=${collection.slug}`}>
