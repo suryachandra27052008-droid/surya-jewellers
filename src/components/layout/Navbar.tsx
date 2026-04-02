@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 
@@ -38,21 +39,16 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="flex flex-col">
-              <span
-                className="text-xl sm:text-2xl tracking-[0.2em] font-serif font-semibold"
-                style={{ color: scrolled ? '#1a1a1a' : '#1a1a1a' }}
-              >
-                SURYA
-              </span>
-              <span
-                className="text-[0.6rem] sm:text-[0.7rem] tracking-[0.35em] uppercase"
-                style={{ color: '#D4AF37' }}
-              >
-                Jewellers
-              </span>
-            </div>
+          <Link href="/" className="flex items-center group">
+            <Image
+              src="/logo_sj.png"
+              alt="Surya Jewellers"
+              height={50}
+              width={160}
+              style={{ height: '50px', width: 'auto' }}
+              className="drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]"
+              priority
+            />
           </Link>
 
           {/* Desktop Nav */}

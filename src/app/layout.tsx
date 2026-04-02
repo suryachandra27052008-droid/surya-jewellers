@@ -18,6 +18,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  icons: {
+    icon: "/logo_sj.png",
+    apple: "/logo_sj.png",
+  },
   title: "Surya Jewellers | Premium 92.5 Sterling Silver Jewelry",
   description:
     "Discover exquisite 92.5 sterling silver jewelry adorned with real diamonds and precious stones. Handcrafted elegance from Surya Jewellers — BIS Hallmarked, certified, and timeless.",
