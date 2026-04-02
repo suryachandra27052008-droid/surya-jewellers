@@ -166,6 +166,77 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Map Section */}
+      <section className="bg-gray-900 py-24 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-600/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-amber-600/5 rounded-full blur-[100px]" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <p className="text-amber-400/70 tracking-[0.35em] uppercase text-xs font-medium mb-4">
+              ✦ &nbsp; Find Us &nbsp; ✦
+            </p>
+            <h2 className="font-serif text-3xl md:text-4xl text-white mb-3">
+              Visit Our Studio
+            </h2>
+            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent mx-auto mb-4" />
+            <p className="text-gray-400 font-light text-sm">
+              B-169 Anandpuri, Moti Doongri Rd, near Naila House, Jaipur, Rajasthan 302004
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative"
+          >
+            {/* Gold border frame */}
+            <div className="absolute -inset-[1px] bg-gradient-to-br from-amber-400/30 via-transparent to-amber-400/20 rounded-sm z-0" />
+            <div className="relative z-10 overflow-hidden rounded-sm">
+              <iframe
+                title="Surya Jewellers Location"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3558.7!2d75.8189!3d26.9124!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db5e3396f28a5%3A0x1!2sB-169%2C%20Anandpuri%2C%20Moti%20Doongri%20Rd%2C%20near%20Naila%20House%2C%20Jaipur%2C%20Rajasthan%20302004!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                width="100%"
+                height="420"
+                style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg) saturate(0.8) brightness(0.85)' }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          </motion.div>
+
+          {/* Get Directions button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center mt-8"
+          >
+            <a
+              href="https://www.google.com/maps/dir/?api=1&destination=B-169+Anandpuri+Moti+Doongri+Rd+near+Naila+House+Jaipur+Rajasthan+302004"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 btn-gold text-xs"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Get Directions
+            </a>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Contact & Location Strip */}
       <section className="bg-amber-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
