@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Collections | Surya Jewellers — 92.5 Sterling Silver',
   description:
-    'Browse our exclusive collection of 92.5 sterling silver jewellery with natural diamonds, rubies, emeralds and sapphires. One piece one design philosophy.',
+    'Browse our exclusive 92.5 sterling silver jewellery collection with natural diamonds, rubies, emeralds and sapphires. One piece one design.',
   keywords: [
     '92.5 sterling silver jewellery',
     'silver rings with diamonds',
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Collections | Surya Jewellers — 92.5 Sterling Silver',
     description:
-      'Browse our exclusive collection of 92.5 sterling silver jewellery with natural diamonds, rubies, emeralds and sapphires. One piece one design philosophy.',
+      'Browse our exclusive 92.5 sterling silver jewellery collection with natural diamonds, rubies, emeralds and sapphires. One piece one design.',
     type: 'website',
     url: 'https://suryajewellers.shop/products',
     images: [{ url: '/logo_sj.png', width: 512, height: 512, alt: 'Surya Jewellers Collections' }],

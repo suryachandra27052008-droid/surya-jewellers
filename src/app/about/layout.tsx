@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'About Us | Surya Jewellers Jaipur',
   description:
-    'Learn about Surya Jewellers, founded by Sanjay and Pooja Chandra in 2003. Premium silver jewellery manufacturers in Jaipur with global presence in Hong Kong, Bangkok and Europe.',
+    'Learn about Surya Jewellers founded by Sanjay and Pooja Chandra in 2003. Premium silver jewellery manufacturers in Jaipur with global presence in Hong Kong, Bangkok and Europe.',
   keywords: [
     'Surya Jewellers about',
     'Jaipur silver jewellery manufacturer',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'About Surya Jewellers | Est. 2003, Jaipur',
     description:
-      'Learn about Surya Jewellers, founded by Sanjay and Pooja Chandra in 2003. Premium silver jewellery manufacturers in Jaipur with global presence in Hong Kong, Bangkok and Europe.',
+      'Learn about Surya Jewellers founded by Sanjay and Pooja Chandra in 2003. Premium silver jewellery manufacturers in Jaipur with global presence in Hong Kong, Bangkok and Europe.',
     type: 'website',
     url: 'https://suryajewellers.shop/about',
     images: [{ url: '/logo_sj.png', width: 512, height: 512, alt: 'Surya Jewellers' }],

@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     template: "%s | Surya Jewellers",
   },
   description:
-    "Surya Jewellers, Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Handcrafted rings, necklaces, earrings with natural diamonds and precious gemstones. BIS Hallmarked. Shop now.",
+    "Surya Jewellers, Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Handcrafted rings, necklaces, earrings with natural diamonds and precious gemstones. BIS Hallmarked.",
   keywords: [
     "Surya Jewellers Jaipur",
     "92.5 sterling silver jewellery",
