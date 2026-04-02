@@ -45,6 +45,7 @@ export default function Footer() {
                 { href: '/products?category=bracelets', label: 'Bracelets' },
                 { href: '/shipping', label: 'Shipping & Returns' },
                 { href: '/size-guide', label: 'Size Guide' },
+                { href: '/contact', label: 'Contact Us' },
               ].map((link) => (
                 <li key={link.href}>
                   <Link
