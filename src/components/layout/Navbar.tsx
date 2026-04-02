@@ -74,7 +74,6 @@ export default function Navbar() {
             {/* Auth */}
             {isSignedIn ? (
               <UserButton
-                afterSignOutUrl="/"
                 appearance={{
                   elements: {
                     avatarBox: 'w-8 h-8 border border-gold/30',
