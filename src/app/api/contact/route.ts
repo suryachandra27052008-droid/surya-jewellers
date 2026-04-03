@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,18 +10,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Required fields missing.' }, { status: 400 });
     }
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
-    });
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    await transporter.sendMail({
-      from: `"Surya Jewellers Website" <${process.env.GMAIL_USER}>`,
+    await resend.emails.send({
+      from: 'Surya Jewellers <onboarding@resend.dev>',
       to: 'suryajewellersjaipur@gmail.com',
-      replyTo: email,
+      reply_to: email,
       subject: `New enquiry from ${name}`,
       html: `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #fafaf8; border: 1px solid #e8e0d0;">
