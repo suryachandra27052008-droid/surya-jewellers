@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: 'Surya Jewellers <onboarding@resend.dev>',
       to: 'suryajewellersjaipur@gmail.com',
-      reply_to: email,
+      replyTo: email,
       subject: `New Wholesale Enquiry from ${companyName}`,
       html: `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #fafaf8; border: 1px solid #e8e0d0;">
