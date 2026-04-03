@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     await resend.emails.send({
-      from: 'Surya Jewellers <onboarding@resend.dev>',
+      from: 'Surya Jewellers <hello@suryajewellers.shop>',
       to: 'suryajewellersjaipur@gmail.com',
       replyTo: email,
       subject: `New Wholesale Enquiry from ${companyName}`,
