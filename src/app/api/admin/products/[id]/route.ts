@@ -11,7 +11,8 @@ export async function GET(
       `*[_type == "product" && _id == $id][0] {
         ...,
         "category": category->name,
-        "images": images[].asset->url
+        "images": images[].asset->url,
+        "imageRefs": images[]{ "_key": _key, "assetId": asset._ref }
       }`,
       { id }
     );
@@ -33,9 +34,36 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
+    const slugify = (text: string) =>
+      text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
 
-    // Mapping fields if needed
+    const contentType = request.headers.get('content-type') || '';
+    let body: any;
+    let keptImageRefs: { _key: string; assetId: string }[] = [];
+    let newImageFiles: File[] = [];
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      body = {
+        name: formData.get('name'),
+        sku: formData.get('sku'),
+        price: formData.get('price'),
+        compareAtPrice: formData.get('compareAtPrice'),
+        categoryName: formData.get('categoryName'),
+        silverWeight: formData.get('silverWeight'),
+        mainStoneType: formData.get('mainStoneType'),
+        totalCaratWeight: formData.get('totalCaratWeight'),
+        diamondColorClarity: formData.get('diamondColorClarity'),
+        description: formData.get('description'),
+        inStock: formData.get('inStock') === 'true',
+        featured: formData.get('featured') === 'true',
+      };
+      keptImageRefs = JSON.parse((formData.get('keptImageRefs') as string) || '[]');
+      newImageFiles = (formData.getAll('images') as File[]).filter((f) => f.size > 0);
+    } else {
+      body = await request.json();
+    }
+
     const updateData: any = {
       name: body.name,
       sku: body.sku,
@@ -50,28 +78,46 @@ export async function PATCH(
       featured: body.featured,
     };
 
-    // If category changed, we need to resolve it
-    if (body.categoryName) {
-      // Slugify helper
-      const slugify = (text: string) =>
-        text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
-      
-      const categorySlug = slugify(body.categoryName);
+    const categoryName = body.categoryName ?? body.category;
+    if (categoryName) {
+      const categorySlug = slugify(categoryName);
       let category = await writeClient.fetch(`*[_type == "category" && slug.current == $slug][0]`, { slug: categorySlug });
-      
       if (!category) {
         category = await writeClient.create({
           _type: 'category',
-          name: body.categoryName,
+          name: categoryName,
           slug: { _type: 'slug', current: categorySlug },
         });
       }
       updateData.category = { _type: 'reference', _ref: category._id };
     }
 
-    // Update the product in Sanity
-    const updatedProduct = await writeClient.patch(id).set(updateData).commit();
+    // Rebuild images array: kept existing refs + newly uploaded
+    const keptImages = keptImageRefs.map((ref) => ({
+      _key: ref._key,
+      _type: 'image',
+      asset: { _type: 'reference', _ref: ref.assetId },
+    }));
 
+    const uploadedImages = [];
+    for (let i = 0; i < newImageFiles.length; i++) {
+      const file = newImageFiles[i];
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const asset = await writeClient.assets.upload('image', buffer, { filename: file.name });
+      uploadedImages.push({
+        _key: `img-${Date.now()}-${i}`,
+        _type: 'image',
+        asset: { _type: 'reference', _ref: asset._id },
+      });
+    }
+
+    const allImages = [...keptImages, ...uploadedImages];
+    if (allImages.length > 0) {
+      updateData.images = allImages;
+    }
+
+    const updatedProduct = await writeClient.patch(id).set(updateData).commit();
     return NextResponse.json({ success: true, product: updatedProduct });
   } catch (error) {
     console.error('Failed to update product:', error);

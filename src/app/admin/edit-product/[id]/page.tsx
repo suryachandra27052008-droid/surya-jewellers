@@ -82,6 +82,7 @@ export default function EditProductPage() {
   const id = params.id as string;
 
   const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [existingImageRefs, setExistingImageRefs] = useState<{ _key: string; assetId: string }[]>([]);
   const [newImages, setNewImages] = useState<{ file: File; preview: string }[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -126,6 +127,7 @@ export default function EditProductPage() {
             featured: p.featured,
           });
           setExistingImages(p.images || []);
+          setExistingImageRefs(p.imageRefs || []);
         } else {
           alert('Product not found');
           router.push('/admin/inventory');
@@ -187,6 +189,7 @@ export default function EditProductPage() {
 
   const removeExistingImage = (index: number) => {
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
+    setExistingImageRefs((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Form submission
@@ -194,25 +197,26 @@ export default function EditProductPage() {
     setSubmitting(true);
 
     try {
-      // For editing, we'll send a JSON PATCH request first for metadata
-      // If there are new images, we might need a separate handle or multipart.
-      // To keep it simple and consistent with our setup, we'll use PATCH with JSON
-      // Note: Updating images in Sanity via PATCH is complex if they are references.
-      // For now, let's implement the metadata update. 
-      // We'll also send images if any NEW ones are added.
-      
-      const payload = {
-          ...data,
-          categoryName: data.category // API expects categoryName to resolve ref
-      };
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (key === 'category') {
+          formData.append('categoryName', String(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      });
+
+      formData.append('keptImageRefs', JSON.stringify(existingImageRefs));
+
+      for (const img of newImages) {
+        const compressed = await compressImage(img.file);
+        formData.append('images', compressed);
+      }
 
       const res = await fetch(`/api/admin/products/${id}`, {
         method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic ' + btoa('admin:Good@luck123'),
-        },
-        body: JSON.stringify(payload),
+        headers: { 'Authorization': 'Basic ' + btoa('admin:Good@luck123') },
+        body: formData,
       });
 
       if (res.ok) {
@@ -319,6 +323,8 @@ export default function EditProductPage() {
                 <option value="Necklaces">Necklaces</option>
                 <option value="Earrings">Earrings</option>
                 <option value="Bracelets">Bracelets</option>
+                <option value="Pendants">Pendants</option>
+                <option value="Studs">Studs</option>
               </select>
             </div>
 
@@ -405,27 +411,77 @@ export default function EditProductPage() {
             <div className="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center">
               <ImagePlus className="w-4 h-4 text-purple-500" />
             </div>
-            <h2 className="text-sm font-semibold text-gray-900">
-              Product Images
-            </h2>
-            <span className="text-xs text-blue-500 ml-auto flex items-center gap-1">
-                <Info className="w-3 h-3" />
-                Editing images coming soon
-            </span>
+            <h2 className="text-sm font-semibold text-gray-900">Product Images</h2>
+            <span className="text-xs text-gray-400 ml-auto">{existingImages.length + newImages.length}/5</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {existingImages.map((url, index) => (
-                <div key={`exist-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-white">
-                  <Image src={url} alt="Product" fill className="object-cover opacity-60" sizes="120px" />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/5">
-                    <span className="text-[0.6rem] bg-white/90 text-gray-500 px-1.5 py-0.5 rounded font-medium border border-gray-200">
-                        Current
-                    </span>
+          {/* Existing images */}
+          {existingImages.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-medium text-gray-500 mb-2">Current Images — click × to remove</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {existingImages.map((url, index) => (
+                  <div key={`exist-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50 group">
+                    <Image src={url} alt="Product" fill className="object-cover" sizes="120px" />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingImage(index)}
+                      className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                </div>
-              ))}
-          </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* New images to be added */}
+          {newImages.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-medium text-gray-500 mb-2">New Images to Upload</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {newImages.map((img, index) => (
+                  <div key={`new-${index}`} className="relative aspect-square rounded-lg overflow-hidden border-2 border-dashed border-amber-300 bg-amber-50 group">
+                    <Image src={img.preview} alt="New" fill className="object-cover" sizes="120px" />
+                    <button
+                      type="button"
+                      onClick={() => removeNewImage(index)}
+                      className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upload zone */}
+          {existingImages.length + newImages.length < 5 && (
+            <div
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
+                dragActive ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-amber-300 hover:bg-gray-50'
+              }`}
+              onClick={() => document.getElementById('edit-image-input')?.click()}
+            >
+              <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm font-medium text-gray-600">Drop images or click to upload</p>
+              <p className="text-xs text-gray-400 mt-1">JPEG, PNG, WebP — max 10MB each</p>
+              <input
+                id="edit-image-input"
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleFileInput}
+              />
+            </div>
+          )}
         </div>
 
         {/* ==== SECTION: Toggles ==== */}
