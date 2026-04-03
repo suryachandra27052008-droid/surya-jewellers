@@ -66,7 +66,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm tracking-[0.15em] uppercase text-charcoal hover:text-gold transition-colors duration-300 relative group"
+                className="text-sm tracking-[0.15em] uppercase text-white/90 hover:text-gold transition-colors duration-300 relative group"
               >
                 {link.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-gold group-hover:w-full transition-all duration-300" />
@@ -81,7 +81,7 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setCurrencyOpen(!currencyOpen)}
-                  className="flex items-center gap-1 text-xs text-charcoal hover:text-gold transition-colors px-2 py-1.5 border border-charcoal/15 hover:border-gold/40 rounded"
+                  className="flex items-center gap-1 text-xs text-white/80 hover:text-gold transition-colors px-2 py-1.5 border border-white/20 hover:border-gold/40 rounded"
                 >
                   <span>{CURRENCIES[currency].flag}</span>
                   <span className="hidden sm:inline tracking-[0.1em] font-medium">{currency}</span>
@@ -128,7 +128,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/sign-in"
-                className="hidden md:inline-block text-xs tracking-[0.15em] uppercase text-charcoal hover:text-gold transition-colors duration-300 border border-charcoal/20 px-4 py-2"
+                className="hidden md:inline-block text-xs tracking-[0.15em] uppercase text-white/80 hover:text-gold transition-colors duration-300 border border-white/20 px-4 py-2"
               >
                 Sign In
               </Link>
@@ -137,7 +137,7 @@ export default function Navbar() {
             {/* Cart Button */}
             <button
               onClick={toggleCart}
-              className="relative p-2 text-charcoal hover:text-gold transition-colors"
+              className="relative p-2 text-white/80 hover:text-gold transition-colors"
               aria-label="Shopping cart"
               id="cart-toggle"
             >
@@ -169,22 +169,22 @@ export default function Navbar() {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 text-charcoal"
+              className="md:hidden p-2 text-white/80"
               aria-label="Toggle menu"
               id="mobile-menu-toggle"
             >
               <div className="space-y-1.5">
                 <motion.span
                   animate={mobileOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
-                  className="block w-6 h-[1.5px] bg-charcoal"
+                  className="block w-6 h-[1.5px] bg-white"
                 />
                 <motion.span
                   animate={mobileOpen ? { opacity: 0 } : { opacity: 1 }}
-                  className="block w-6 h-[1.5px] bg-charcoal"
+                  className="block w-6 h-[1.5px] bg-white"
                 />
                 <motion.span
                   animate={mobileOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
-                  className="block w-6 h-[1.5px] bg-charcoal"
+                  className="block w-6 h-[1.5px] bg-white"
                 />
               </div>
             </button>
