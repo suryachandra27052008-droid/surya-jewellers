@@ -17,7 +17,12 @@
       "Bash(git commit -m ':*)",
       "Bash(git push:*)",
       "Bash(node:*)",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(npm list:*)",
+      "mcp__claude_ai_Vercel__get_runtime_logs",
+      "mcp__claude_ai_Vercel__get_project",
+      "mcp__claude_ai_Vercel__list_deployments",
+      "Bash(vercel env:*)"
     ]
   }
 }
