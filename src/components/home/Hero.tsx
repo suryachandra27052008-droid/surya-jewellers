@@ -41,6 +41,22 @@ export default function Hero() {
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
 
+        {/* Tagline */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="flex items-center justify-center gap-3 mb-8"
+        >
+          <div className="h-[1px] w-10 bg-gradient-to-r from-transparent to-[#c9a84c]" />
+          <span
+            className="text-[10px] font-medium tracking-[5px] uppercase"
+            style={{ color: '#c9a84c', fontVariant: 'small-caps' }}
+          >
+            ✦ Jewellery by Surya Jewellers ✦
+          </span>
+          <div className="h-[1px] w-10 bg-gradient-to-l from-transparent to-[#c9a84c]" />
+        </motion.div>
 
         {/* Main Heading */}
         <motion.h1
