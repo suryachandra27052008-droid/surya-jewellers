@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 export async function POST(req: NextRequest) {
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
     const body = await req.json();
     const { name, email, phone, message } = body;
 
@@ -11,9 +10,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Required fields missing.' }, { status: 400 });
     }
 
-    const { error } = await resend.emails.send({
-      from: 'Surya Jewellers Contact Form <onboarding@resend.dev>',
-      to: ['suryajewellersjaipur@gmail.com'],
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"Surya Jewellers Website" <${process.env.GMAIL_USER}>`,
+      to: 'suryajewellersjaipur@gmail.com',
       replyTo: email,
       subject: `New enquiry from ${name}`,
       html: `
@@ -51,14 +58,9 @@ export async function POST(req: NextRequest) {
       `,
     });
 
-    if (error) {
-      console.error('[Contact] Resend error:', error);
-      return NextResponse.json({ error: 'Failed to send email.' }, { status: 500 });
-    }
-
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[Contact] Unexpected error:', err);
-    return NextResponse.json({ error: 'Something went wrong.' }, { status: 500 });
+    console.error('[Contact] Error:', err);
+    return NextResponse.json({ error: 'Failed to send email.' }, { status: 500 });
   }
 }
