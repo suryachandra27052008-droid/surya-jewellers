@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[88vh] flex items-center justify-center overflow-hidden">
       {/* Background with gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#16213e]" />
 
@@ -17,27 +17,6 @@ export default function Hero() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full border border-gold/5" />
       </div>
 
-      {/* Sparkle particles */}
-      {[...Array(6)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 rounded-full bg-gold/60"
-          style={{
-            top: `${20 + Math.random() * 60}%`,
-            left: `${10 + Math.random() * 80}%`,
-          }}
-          animate={{
-            opacity: [0, 1, 0],
-            scale: [0, 1.5, 0],
-          }}
-          transition={{
-            duration: 2 + Math.random() * 2,
-            repeat: Infinity,
-            delay: Math.random() * 3,
-          }}
-        />
-      ))}
-
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
 
@@ -46,16 +25,16 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="flex items-center justify-center gap-3 mb-8"
+          className="flex items-center justify-center gap-4 mb-8"
         >
-          <div className="h-[1px] w-10 bg-gradient-to-r from-transparent to-[#c9a84c]" />
+          <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#c9a84c]" />
           <span
-            className="text-[10px] font-medium tracking-[5px] uppercase"
+            className="text-xs font-semibold tracking-[4px] uppercase"
             style={{ color: '#c9a84c', fontVariant: 'small-caps' }}
           >
             ✦ Jewellery by Surya Jewellers ✦
           </span>
-          <div className="h-[1px] w-10 bg-gradient-to-l from-transparent to-[#c9a84c]" />
+          <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#c9a84c]" />
         </motion.div>
 
         {/* Main Heading */}
@@ -107,7 +86,7 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.2 }}
-          className="mt-16 flex flex-wrap justify-center gap-8 text-white/30 text-xs tracking-[0.15em] uppercase"
+          className="mt-10 flex flex-wrap justify-center gap-8 text-white/30 text-xs tracking-[0.15em] uppercase"
         >
           <span className="flex items-center gap-2">
             <span className="text-gold text-sm">✦</span> BIS Hallmarked
