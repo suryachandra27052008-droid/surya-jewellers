@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import CartDrawer from './CartDrawer';
+import ShippingBanner from '@/components/ui/ShippingBanner';
 
 const LIGHT_PREFIXES = ['/about', '/products', '/checkout', '/order-success', '/sign-in', '/sign-up'];
 
@@ -18,11 +19,13 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   }
 
   const isDarkPage = !LIGHT_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'));
+  const showShippingBanner = pathname === '/' || pathname === '/checkout';
 
   // Storefront pages get the full navbar + footer
   return (
     <>
       <Navbar isDarkPage={isDarkPage} />
+      {showShippingBanner && <ShippingBanner />}
       <main className="flex-1">{children}</main>
       <Footer />
       <CartDrawer />

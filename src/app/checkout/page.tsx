@@ -7,6 +7,7 @@ import Script from 'next/script';
 import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
+import { getShipping, isPromoActive, FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE } from '@/lib/shipping';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
 declare global {
@@ -58,7 +59,7 @@ export default function CheckoutPage() {
   }
 
   const subtotal = getSubtotal();
-  const shipping = subtotal > 5000 ? 0 : 199;
+  const shipping = getShipping(subtotal);
   const total = subtotal + shipping;
 
   if (items.length === 0) {
@@ -279,8 +280,14 @@ export default function CheckoutPage() {
                         )}
                       </span>
                     </div>
-                    {shipping === 0 && (
-                      <p className="text-xs text-green-600">Free shipping on orders above {formatPrice(5000, currency)}!</p>
+                    {shipping === 0 && isPromoActive() && (
+                      <p className="text-xs text-green-600">Free shipping — limited time offer till 4th May 2026!</p>
+                    )}
+                    {shipping === 0 && !isPromoActive() && (
+                      <p className="text-xs text-green-600">Free shipping on orders above {formatPrice(FREE_SHIPPING_THRESHOLD, currency)}!</p>
+                    )}
+                    {shipping > 0 && (
+                      <p className="text-xs text-charcoal-muted">Free shipping on orders above {formatPrice(FREE_SHIPPING_THRESHOLD, currency)}.</p>
                     )}
                   </div>
 
