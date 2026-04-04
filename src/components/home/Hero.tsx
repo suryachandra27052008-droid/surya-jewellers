@@ -73,12 +73,6 @@ export default function Hero() {
           <Link href="/products" className="btn-gold text-sm">
             Explore Collections
           </Link>
-          <Link
-            href="/products?category=rings"
-            className="btn-gold-outline text-sm border-white/30 text-white/80 hover:bg-white/10 hover:text-white"
-          >
-            View Rings
-          </Link>
         </motion.div>
 
         {/* Trust indicators */}
