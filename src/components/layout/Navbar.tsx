@@ -8,7 +8,7 @@ import { useAuth, UserButton } from '@clerk/nextjs';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, CURRENCIES, type CurrencyCode } from '@/stores/currency-store';
 
-export default function Navbar() {
+export default function Navbar({ isDarkPage = true }: { isDarkPage?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const toggleCart = useCartStore((s) => s.toggleCart);
@@ -66,7 +66,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm tracking-[0.15em] uppercase text-white/90 hover:text-gold transition-colors duration-300 relative group"
+                className={`text-sm tracking-[0.15em] uppercase hover:text-gold transition-colors duration-300 relative group ${isDarkPage ? 'text-white/90' : 'text-charcoal'}`}
               >
                 {link.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-gold group-hover:w-full transition-all duration-300" />
@@ -81,7 +81,7 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setCurrencyOpen(!currencyOpen)}
-                  className="flex items-center gap-1 text-xs text-white/80 hover:text-gold transition-colors px-2 py-1.5 border border-white/20 hover:border-gold/40 rounded"
+                  className={`flex items-center gap-1 text-xs hover:text-gold transition-colors px-2 py-1.5 border hover:border-gold/40 rounded ${isDarkPage ? 'text-white/80 border-white/20' : 'text-charcoal border-charcoal/15'}`}
                 >
                   <span>{CURRENCIES[currency].flag}</span>
                   <span className="hidden sm:inline tracking-[0.1em] font-medium">{currency}</span>
@@ -128,7 +128,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/sign-in"
-                className="hidden md:inline-block text-xs tracking-[0.15em] uppercase text-white/80 hover:text-gold transition-colors duration-300 border border-white/20 px-4 py-2"
+                className={`hidden md:inline-block text-xs tracking-[0.15em] uppercase hover:text-gold transition-colors duration-300 border px-4 py-2 ${isDarkPage ? 'text-white/80 border-white/20' : 'text-charcoal border-charcoal/20'}`}
               >
                 Sign In
               </Link>
@@ -137,7 +137,7 @@ export default function Navbar() {
             {/* Cart Button */}
             <button
               onClick={toggleCart}
-              className="relative p-2 text-white/80 hover:text-gold transition-colors"
+              className={`relative p-2 hover:text-gold transition-colors ${isDarkPage ? 'text-white/80' : 'text-charcoal'}`}
               aria-label="Shopping cart"
               id="cart-toggle"
             >
@@ -169,22 +169,22 @@ export default function Navbar() {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 text-white/80"
+              className={`md:hidden p-2 ${isDarkPage ? 'text-white/80' : 'text-charcoal'}`}
               aria-label="Toggle menu"
               id="mobile-menu-toggle"
             >
               <div className="space-y-1.5">
                 <motion.span
                   animate={mobileOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
-                  className="block w-6 h-[1.5px] bg-white"
+                  className={`block w-6 h-[1.5px] ${isDarkPage ? 'bg-white' : 'bg-charcoal'}`}
                 />
                 <motion.span
                   animate={mobileOpen ? { opacity: 0 } : { opacity: 1 }}
-                  className="block w-6 h-[1.5px] bg-white"
+                  className={`block w-6 h-[1.5px] ${isDarkPage ? 'bg-white' : 'bg-charcoal'}`}
                 />
                 <motion.span
                   animate={mobileOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
-                  className="block w-6 h-[1.5px] bg-white"
+                  className={`block w-6 h-[1.5px] ${isDarkPage ? 'bg-white' : 'bg-charcoal'}`}
                 />
               </div>
             </button>

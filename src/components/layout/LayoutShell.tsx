@@ -5,6 +5,8 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import CartDrawer from './CartDrawer';
 
+const LIGHT_PREFIXES = ['/about', '/products', '/checkout', '/order-success', '/sign-in', '/sign-up'];
+
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin');
@@ -15,10 +17,12 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
+  const isDarkPage = !LIGHT_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'));
+
   // Storefront pages get the full navbar + footer
   return (
     <>
-      <Navbar />
+      <Navbar isDarkPage={isDarkPage} />
       <main className="flex-1">{children}</main>
       <Footer />
       <CartDrawer />
