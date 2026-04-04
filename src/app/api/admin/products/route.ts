@@ -74,6 +74,7 @@ export async function POST(request: Request) {
       totalCaratWeight: formData.get('totalCaratWeight') ? Number(formData.get('totalCaratWeight')) : undefined,
       diamondColorClarity: (formData.get('diamondColorClarity') as string) || undefined,
       description: (formData.get('description') as string) || '',
+      stockQuantity: formData.get('stockQuantity') ? Number(formData.get('stockQuantity')) : 1,
       inStock: formData.get('inStock') === 'true',
       featured: formData.get('featured') === 'true',
     };
@@ -136,6 +137,7 @@ export async function POST(request: Request) {
       diamondColorClarity: productData.diamondColorClarity,
       images: uploadedImages,
       description: productData.description,
+      stockQuantity: productData.stockQuantity,
       featured: productData.featured,
       inStock: productData.inStock,
     });
