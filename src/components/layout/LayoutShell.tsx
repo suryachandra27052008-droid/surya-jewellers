@@ -6,7 +6,9 @@ import Footer from './Footer';
 import CartDrawer from './CartDrawer';
 import ShippingBanner from '@/components/ui/ShippingBanner';
 
-const LIGHT_PREFIXES = ['/about', '/products', '/checkout', '/order-success', '/sign-in', '/sign-up'];
+// Pages where the navbar should show WHITE text (dark background)
+const WHITE_NAV_EXACT = new Set(['/']);
+const WHITE_NAV_PREFIXES = ['/blog', '/about'];
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -18,7 +20,9 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  const isDarkPage = !LIGHT_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'));
+  const isDarkPage =
+    WHITE_NAV_EXACT.has(pathname) ||
+    WHITE_NAV_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'));
   const showShippingBanner = pathname === '/' || pathname === '/checkout';
 
   // Storefront pages get the full navbar + footer
