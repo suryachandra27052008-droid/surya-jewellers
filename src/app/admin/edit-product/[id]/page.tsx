@@ -27,6 +27,7 @@ interface ProductFormData {
   totalCaratWeight?: number;
   diamondColorClarity?: string;
   description: string;
+  stockQuantity: number;
   inStock: boolean;
   featured: boolean;
 }
@@ -123,6 +124,7 @@ export default function EditProductPage() {
             totalCaratWeight: p.totalCaratWeight,
             diamondColorClarity: p.diamondColorClarity || '',
             description: p.description || '',
+            stockQuantity: p.stockQuantity ?? 1,
             inStock: p.inStock,
             featured: p.featured,
           });
@@ -482,6 +484,28 @@ export default function EditProductPage() {
               />
             </div>
           )}
+        </div>
+
+        {/* ==== SECTION: Stock Quantity ==== */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-7 h-7 rounded-md bg-green-50 flex items-center justify-center">
+              <span className="text-green-600 text-xs font-bold">#</span>
+            </div>
+            <h2 className="text-sm font-semibold text-gray-900">Stock Quantity</h2>
+          </div>
+          <div className="max-w-xs">
+            <label className="block text-xs font-medium text-gray-700 mb-1.5">
+              Available Pieces <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="number"
+              min={1}
+              {...register('stockQuantity', { required: true, valueAsNumber: true, min: 1 })}
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900"
+            />
+            <p className="text-xs text-gray-400 mt-1.5">Maximum quantity a customer can add to cart.</p>
+          </div>
         </div>
 
         {/* ==== SECTION: Toggles ==== */}

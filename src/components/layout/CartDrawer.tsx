@@ -149,10 +149,14 @@ export default function CartDrawer() {
                             onClick={() =>
                               updateQuantity(item._id, item.quantity + 1)
                             }
-                            className="w-7 h-7 border border-cream-dark flex items-center justify-center text-sm hover:border-gold transition-colors"
+                            disabled={item.quantity >= (item.stockQuantity ?? 1)}
+                            className="w-7 h-7 border border-cream-dark flex items-center justify-center text-sm hover:border-gold transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-cream-dark"
                           >
                             +
                           </button>
+                          {item.quantity >= (item.stockQuantity ?? 1) && (
+                            <span className="text-[10px] text-charcoal-muted/60 uppercase tracking-wide">Max</span>
+                          )}
                         </div>
                       </div>
 

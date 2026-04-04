@@ -74,6 +74,7 @@ export async function PATCH(
       totalCaratWeight: body.totalCaratWeight ? Number(body.totalCaratWeight) : undefined,
       diamondColorClarity: body.diamondColorClarity,
       description: body.description,
+      stockQuantity: body.stockQuantity ? Number(body.stockQuantity) : undefined,
       inStock: body.inStock,
       featured: body.featured,
     };

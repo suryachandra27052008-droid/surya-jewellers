@@ -36,7 +36,7 @@ export default function ProductDetailPage() {
   const product = dynamicProduct;
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
-  const addItem = useCartStore((s) => s.addItem);
+  const { addItem, items } = useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
 
   useEffect(() => {
@@ -62,6 +62,7 @@ export default function ProductDetailPage() {
               diamondColorClarity: found.diamondColorClarity || '',
               description: found.description || '',
               inStock: found.inStock,
+              stockQuantity: found.stockQuantity ?? 1,
               images: found.images || [],
             });
           }
@@ -91,7 +92,11 @@ export default function ProductDetailPage() {
     );
   }
 
+  const cartItem = items.find((i) => i._id === product._id);
+  const atMaxQty = cartItem ? cartItem.quantity >= (product.stockQuantity ?? 1) : false;
+
   const handleAddToCart = () => {
+    if (atMaxQty) return;
     addItem({
       _id: product._id,
       name: product.name,
@@ -100,6 +105,7 @@ export default function ProductDetailPage() {
       slug: product.slug,
       silverWeight: product.silverWeight,
       mainStoneType: product.mainStoneType,
+      stockQuantity: product.stockQuantity ?? 1,
     });
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
@@ -235,14 +241,17 @@ export default function ProductDetailPage() {
               {/* Add to Cart */}
               <motion.button
                 onClick={handleAddToCart}
-                whileTap={{ scale: 0.97 }}
+                whileTap={atMaxQty ? {} : { scale: 0.97 }}
+                disabled={atMaxQty}
                 className={`w-full py-4 text-center font-semibold tracking-[0.15em] uppercase text-sm transition-all duration-300 ${
-                  addedToCart
+                  atMaxQty
+                    ? 'bg-charcoal/10 text-charcoal/40 cursor-not-allowed'
+                    : addedToCart
                     ? 'bg-green-600 text-white'
                     : 'btn-gold'
                 }`}
               >
-                {addedToCart ? '✓ Added to Bag' : 'Add to Bag'}
+                {atMaxQty ? '✓ In Your Bag' : addedToCart ? '✓ Added to Bag' : 'Add to Bag'}
               </motion.button>
 
               {/* Trust indicators */}

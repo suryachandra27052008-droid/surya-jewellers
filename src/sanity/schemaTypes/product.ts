@@ -93,6 +93,14 @@ export const product = defineType({
       rows: 4,
     }),
     defineField({
+      name: 'stockQuantity',
+      title: 'Stock Quantity',
+      type: 'number',
+      description: 'Maximum number of pieces a customer can buy. Default is 1.',
+      initialValue: 1,
+      validation: (Rule) => Rule.required().integer().min(1),
+    }),
+    defineField({
       name: 'featured',
       title: 'Featured Product',
       type: 'boolean',

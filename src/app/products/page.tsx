@@ -33,7 +33,7 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState('newest');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [allProducts, setAllProducts] = useState<any[]>([]);
-  const addItem = useCartStore((s) => s.addItem);
+  const { addItem, items: cartItems } = useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
 
@@ -300,23 +300,32 @@ export default function ProductsPage() {
                           )}
                           {/* Quick Add - appears on hover */}
                           <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 p-3">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                addItem({
-                                  _id: product._id,
-                                  name: product.name,
-                                  price: product.price,
-                                  image: '',
-                                  slug: product.slug.current,
-                                  silverWeight: product.silverWeight,
-                                  mainStoneType: product.mainStoneType,
-                                });
-                              }}
-                              className="btn-gold w-full text-center text-xs py-2"
-                            >
-                              Add to Bag
-                            </button>
+                            {(() => {
+                              const cartItem = cartItems.find((i) => i._id === product._id);
+                              const atMax = cartItem ? cartItem.quantity >= (product.stockQuantity ?? 1) : false;
+                              return (
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (atMax) return;
+                                    addItem({
+                                      _id: product._id,
+                                      name: product.name,
+                                      price: product.price,
+                                      image: '',
+                                      slug: product.slug.current,
+                                      silverWeight: product.silverWeight,
+                                      mainStoneType: product.mainStoneType,
+                                      stockQuantity: product.stockQuantity ?? 1,
+                                    });
+                                  }}
+                                  disabled={atMax}
+                                  className={`w-full text-center text-xs py-2 ${atMax ? 'bg-charcoal/10 text-charcoal/40 cursor-not-allowed rounded' : 'btn-gold'}`}
+                                >
+                                  {atMax ? '✓ In Bag' : 'Add to Bag'}
+                                </button>
+                              );
+                            })()}
                           </div>
                         </div>
                       </Link>

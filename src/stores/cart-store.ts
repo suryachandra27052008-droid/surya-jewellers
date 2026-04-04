@@ -10,6 +10,7 @@ export interface CartItem {
   slug: string;
   silverWeight?: number;
   mainStoneType?: string;
+  stockQuantity?: number;
 }
 
 interface CartState {
@@ -34,12 +35,14 @@ export const useCartStore = create<CartState>()(
 
       addItem: (item) =>
         set((state) => {
+          const max = item.stockQuantity ?? 1;
           const existingItem = state.items.find((i) => i._id === item._id);
           if (existingItem) {
+            if (existingItem.quantity >= max) return { isOpen: true };
             return {
               items: state.items.map((i) =>
                 i._id === item._id
-                  ? { ...i, quantity: i.quantity + 1 }
+                  ? { ...i, quantity: Math.min(i.quantity + 1, max) }
                   : i
               ),
               isOpen: true,
@@ -61,9 +64,11 @@ export const useCartStore = create<CartState>()(
           items:
             quantity <= 0
               ? state.items.filter((i) => i._id !== id)
-              : state.items.map((i) =>
-                  i._id === id ? { ...i, quantity } : i
-                ),
+              : state.items.map((i) => {
+                  if (i._id !== id) return i;
+                  const max = i.stockQuantity ?? 1;
+                  return { ...i, quantity: Math.min(quantity, max) };
+                }),
         })),
 
       clearCart: () => set({ items: [] }),
