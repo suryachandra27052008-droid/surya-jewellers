@@ -8,24 +8,55 @@ import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
-// Demo products data (used when Sanity is not connected)
-
-
 const categories = ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Pendants', 'Studs'];
-const stoneTypes = ['All', 'Diamond', 'Ruby', 'Emerald', 'Sapphire'];
+const stoneTypes = [
+  'All', 'Diamond', 'Ruby', 'Emerald', 'Sapphire',
+  'Opal', 'Moonstone', 'Blue Topaz', 'Amethyst', 'Black Opal', 'Coloured Opal',
+  'Tourmaline', 'Yellow Sapphire', 'Aquamarine', 'Turquoise', 'Tanzanite',
+  'Coral', 'Morganite', 'Peridot', 'Tsavorite', 'Alexandrite', 'Spinel',
+];
 const sortOptions = [
   { label: 'Newest', value: 'newest' },
   { label: 'Price: Low → High', value: 'price-asc' },
   { label: 'Price: High → Low', value: 'price-desc' },
 ];
 
-// Stone type color map
 const stoneColors: Record<string, string> = {
   Diamond: '#E8E8E8',
   Ruby: '#E0115F',
   Emerald: '#50C878',
   Sapphire: '#0F52BA',
+  Opal: '#A8D8EA',
+  Moonstone: '#D6E4F0',
+  'Blue Topaz': '#4FC3F7',
+  Amethyst: '#9C27B0',
+  'Black Opal': '#212121',
+  'Coloured Opal': '#FF7043',
+  Tourmaline: '#E91E63',
+  'Yellow Sapphire': '#FDD835',
+  Aquamarine: '#00BCD4',
+  Turquoise: '#26C6DA',
+  Tanzanite: '#5C35B5',
+  Coral: '#FF6B6B',
+  Morganite: '#FFAB91',
+  Peridot: '#8BC34A',
+  Tsavorite: '#2E7D32',
+  Alexandrite: '#6A1B9A',
+  Spinel: '#C62828',
 };
+
+// Skeleton card shown while loading
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded overflow-hidden border border-cream-dark">
+      <div className="aspect-square bg-cream-dark animate-pulse" />
+      <div className="p-4 space-y-2">
+        <div className="h-4 bg-cream-dark rounded animate-pulse w-3/4" />
+        <div className="h-3 bg-cream-dark rounded animate-pulse w-1/2" />
+      </div>
+    </div>
+  );
+}
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -33,15 +64,24 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState('newest');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { addItem, items: cartItems } = useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+
+    // Prefetch: kick off the fetch immediately without waiting for mount delay
+    const controller = new AbortController();
     async function loadProducts() {
       try {
-        const res = await fetch('/api/admin/products');
+        const res = await fetch('/api/admin/products', {
+          signal: controller.signal,
+          // hint the browser this is a high-priority navigation resource
+          // @ts-ignore
+          priority: 'high',
+        });
         if (res.ok) {
           const data = await res.json();
           const apiProducts = data.products.map((p: any) => ({
@@ -56,33 +96,26 @@ export default function ProductsPage() {
             diamondColorClarity: p.diamondColorClarity || '',
             images: p.images && p.images.length > 0 ? p.images : [],
             inStock: p.inStock,
-            description: p.description || ''
+            description: p.description || '',
           }));
           setAllProducts(apiProducts.reverse());
         }
-      } catch (err) {
-        console.error('Failed to fetch API products', err);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') console.error('Failed to fetch products', err);
+      } finally {
+        setLoading(false);
       }
     }
     loadProducts();
+    return () => controller.abort();
   }, []);
 
   const filteredProducts = useMemo(() => {
-    let result = [...allProducts];
-
-    if (selectedCategory !== 'All') {
-      result = result.filter((p) => p.category.name === selectedCategory);
-    }
-    if (selectedStone !== 'All') {
-      result = result.filter((p) => p.mainStoneType === selectedStone);
-    }
-
-    if (sortBy === 'price-asc') {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price-desc') {
-      result.sort((a, b) => b.price - a.price);
-    }
-
+    let result = allProducts.filter((p) => p.inStock !== false);
+    if (selectedCategory !== 'All') result = result.filter((p) => p.category.name === selectedCategory);
+    if (selectedStone !== 'All') result = result.filter((p) => p.mainStoneType === selectedStone);
+    if (sortBy === 'price-asc') result.sort((a, b) => a.price - b.price);
+    else if (sortBy === 'price-desc') result.sort((a, b) => b.price - a.price);
     return result;
   }, [selectedCategory, selectedStone, sortBy, allProducts]);
 
@@ -91,9 +124,7 @@ export default function ProductsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <AnimatedSection className="text-center mb-12">
-          <span className="text-gold text-xs tracking-[0.4em] uppercase">
-            Our Catalog
-          </span>
+          <span className="text-gold text-xs tracking-[0.4em] uppercase">Our Catalog</span>
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl mt-4 text-charcoal gold-underline">
             Collections
           </h1>
@@ -126,49 +157,28 @@ export default function ProductsPage() {
                 className={`lg:w-64 flex-shrink-0 ${filtersOpen ? 'block' : 'hidden lg:block'}`}
               >
                 <div className="sticky top-28 space-y-8 bg-white p-6 rounded border border-cream-dark">
-                  {/* Category Filter */}
+                  {/* Category */}
                   <div>
-                    <h3 className="text-xs tracking-[0.2em] uppercase text-charcoal-muted mb-4 font-semibold">
-                      Category
-                    </h3>
+                    <h3 className="text-xs tracking-[0.2em] uppercase text-charcoal-muted mb-4 font-semibold">Category</h3>
                     <div className="space-y-2">
                       {categories.map((cat) => (
-                        <button
-                          key={cat}
-                          onClick={() => setSelectedCategory(cat)}
-                          className={`block w-full text-left text-sm px-3 py-2 rounded transition-all duration-200 ${
-                            selectedCategory === cat
-                              ? 'bg-gold/10 text-gold font-medium'
-                              : 'text-charcoal-muted hover:bg-cream hover:text-charcoal'
-                          }`}
-                        >
+                        <button key={cat} onClick={() => setSelectedCategory(cat)}
+                          className={`block w-full text-left text-sm px-3 py-2 rounded transition-all duration-200 ${selectedCategory === cat ? 'bg-gold/10 text-gold font-medium' : 'text-charcoal-muted hover:bg-cream hover:text-charcoal'}`}>
                           {cat}
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Stone Type Filter */}
+                  {/* Stone Type */}
                   <div>
-                    <h3 className="text-xs tracking-[0.2em] uppercase text-charcoal-muted mb-4 font-semibold">
-                      Stone Type
-                    </h3>
+                    <h3 className="text-xs tracking-[0.2em] uppercase text-charcoal-muted mb-4 font-semibold">Stone Type</h3>
                     <div className="space-y-2">
                       {stoneTypes.map((stone) => (
-                        <button
-                          key={stone}
-                          onClick={() => setSelectedStone(stone)}
-                          className={`flex items-center gap-2 w-full text-left text-sm px-3 py-2 rounded transition-all duration-200 ${
-                            selectedStone === stone
-                              ? 'bg-gold/10 text-gold font-medium'
-                              : 'text-charcoal-muted hover:bg-cream hover:text-charcoal'
-                          }`}
-                        >
+                        <button key={stone} onClick={() => setSelectedStone(stone)}
+                          className={`flex items-center gap-2 w-full text-left text-sm px-3 py-2 rounded transition-all duration-200 ${selectedStone === stone ? 'bg-gold/10 text-gold font-medium' : 'text-charcoal-muted hover:bg-cream hover:text-charcoal'}`}>
                           {stone !== 'All' && (
-                            <span
-                              className="w-3 h-3 rounded-full border border-black/10"
-                              style={{ backgroundColor: stoneColors[stone] }}
-                            />
+                            <span className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: stoneColors[stone] }} />
                           )}
                           {stone}
                         </button>
@@ -178,18 +188,11 @@ export default function ProductsPage() {
 
                   {/* Sort */}
                   <div>
-                    <h3 className="text-xs tracking-[0.2em] uppercase text-charcoal-muted mb-4 font-semibold">
-                      Sort By
-                    </h3>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      className="w-full text-sm px-3 py-2 border border-cream-dark rounded bg-white text-charcoal focus:border-gold focus:outline-none transition-colors"
-                    >
+                    <h3 className="text-xs tracking-[0.2em] uppercase text-charcoal-muted mb-4 font-semibold">Sort By</h3>
+                    <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
+                      className="w-full text-sm px-3 py-2 border border-cream-dark rounded bg-white text-charcoal focus:border-gold focus:outline-none transition-colors">
                       {sortOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
                       ))}
                     </select>
                   </div>
@@ -211,14 +214,8 @@ export default function ProductsPage() {
                           </span>
                         )}
                       </div>
-                      <button
-                        onClick={() => {
-                          setSelectedCategory('All');
-                          setSelectedStone('All');
-                          setSortBy('newest');
-                        }}
-                        className="text-xs text-charcoal-muted hover:text-gold mt-2 underline"
-                      >
+                      <button onClick={() => { setSelectedCategory('All'); setSelectedStone('All'); setSortBy('newest'); }}
+                        className="text-xs text-charcoal-muted hover:text-gold mt-2 underline">
                         Clear all filters
                       </button>
                     </div>
@@ -232,29 +229,39 @@ export default function ProductsPage() {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-6">
               <p className="text-sm text-charcoal-muted">
-                {filteredProducts.length} piece{filteredProducts.length !== 1 ? 's' : ''}
+                {loading ? 'Loading…' : `${filteredProducts.length} piece${filteredProducts.length !== 1 ? 's' : ''}`}
               </p>
             </div>
 
-            {filteredProducts.length === 0 ? (
+            {/* Skeleton grid while loading */}
+            {loading && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
+              </div>
+            )}
+
+            {/* Empty state (only after load completes) */}
+            {!loading && filteredProducts.length === 0 && (
               <div className="text-center py-20">
                 <p className="text-charcoal-muted font-serif text-xl mb-2">No pieces found</p>
                 <p className="text-sm text-charcoal-muted/60">Try adjusting your filters</p>
               </div>
-            ) : (
-              <motion.div
-                layout
-                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"
-              >
+            )}
+
+            {/* Product cards with staggered fade-in */}
+            {!loading && filteredProducts.length > 0 && (
+              <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 <AnimatePresence mode="popLayout">
                   {filteredProducts.map((product, index) => (
                     <motion.div
                       key={product._id}
                       layout
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 24 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ delay: index * 0.05 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.35, delay: Math.min(index * 0.06, 0.4), ease: 'easeOut' }}
                       className="product-card group bg-white rounded overflow-hidden border border-cream-dark hover:border-gold/20"
                     >
                       {/* Image */}
@@ -265,21 +272,22 @@ export default function ProductsPage() {
                               src={product.images[0]}
                               alt={product.name}
                               fill
-                              className="object-cover product-image"
+                              loading="lazy"
+                              placeholder="blur"
+                              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YwZWNlMyIvPjwvc3ZnPg=="
+                              className="object-cover product-image transition-transform duration-500 group-hover:scale-105"
                               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <div className="text-center">
-                                <span className="text-5xl opacity-20">
-                                  {product.category.name === 'Rings' ? '💍' :
-                                   product.category.name === 'Necklaces' ? '📿' :
-                                   product.category.name === 'Earrings' ? '✨' :
-                                   product.category.name === 'Bracelets' ? '⭐' :
-                                   product.category.name === 'Pendants' ? '🔮' :
-                                   product.category.name === 'Studs' ? '🌟' : '⭐'}
-                                </span>
-                              </div>
+                              <span className="text-5xl opacity-20">
+                                {product.category.name === 'Rings' ? '💍' :
+                                 product.category.name === 'Necklaces' ? '📿' :
+                                 product.category.name === 'Earrings' ? '✨' :
+                                 product.category.name === 'Bracelets' ? '⭐' :
+                                 product.category.name === 'Pendants' ? '🔮' :
+                                 product.category.name === 'Studs' ? '🌟' : '⭐'}
+                              </span>
                             </div>
                           )}
                           {/* Category badge */}
@@ -298,7 +306,7 @@ export default function ProductsPage() {
                               />
                             </div>
                           )}
-                          {/* Quick Add - appears on hover */}
+                          {/* Quick Add */}
                           <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 p-3">
                             {(() => {
                               const cartItem = cartItems.find((i) => i._id === product._id);
@@ -312,7 +320,7 @@ export default function ProductsPage() {
                                       _id: product._id,
                                       name: product.name,
                                       price: product.price,
-                                      image: '',
+                                      image: product.images?.[0] || '',
                                       slug: product.slug.current,
                                       silverWeight: product.silverWeight,
                                       mainStoneType: product.mainStoneType,

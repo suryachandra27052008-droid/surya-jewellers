@@ -37,6 +37,8 @@ function generateSKU(category: string) {
     Necklaces: 'N',
     Earrings: 'E',
     Bracelets: 'B',
+    Pendants: 'P',
+    Studs: 'ST',
   };
   const prefix = prefixes[category] || 'X';
   const num = String(Math.floor(100 + Math.random() * 900));
@@ -320,6 +322,8 @@ export default function AddProductPage() {
                 <option value="Necklaces">Necklaces</option>
                 <option value="Earrings">Earrings</option>
                 <option value="Bracelets">Bracelets</option>
+                <option value="Pendants">Pendants</option>
+                <option value="Studs">Studs</option>
               </select>
               {errors.category && (
                 <p className="text-xs text-red-500 mt-1">
@@ -417,6 +421,23 @@ export default function AddProductPage() {
                 <option value="Ruby">Ruby</option>
                 <option value="Emerald">Emerald</option>
                 <option value="Sapphire">Sapphire</option>
+                <option value="Opal">Opal</option>
+                <option value="Moonstone">Moonstone</option>
+                <option value="Blue Topaz">Blue Topaz</option>
+                <option value="Amethyst">Amethyst</option>
+                <option value="Black Opal">Black Opal</option>
+                <option value="Coloured Opal">Coloured Opal</option>
+                <option value="Tourmaline">Tourmaline</option>
+                <option value="Yellow Sapphire">Yellow Sapphire</option>
+                <option value="Aquamarine">Aquamarine</option>
+                <option value="Turquoise">Turquoise</option>
+                <option value="Tanzanite">Tanzanite</option>
+                <option value="Coral">Coral</option>
+                <option value="Morganite">Morganite</option>
+                <option value="Peridot">Peridot</option>
+                <option value="Tsavorite">Tsavorite</option>
+                <option value="Alexandrite">Alexandrite</option>
+                <option value="Spinel">Spinel</option>
               </select>
             </div>
 
