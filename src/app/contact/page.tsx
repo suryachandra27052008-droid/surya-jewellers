@@ -24,7 +24,7 @@ const storeDetails = [
       </svg>
     ),
     label: 'Phone',
-    value: '099839 39306\n9358842102',
+    value: '+91 99839 39306\n9358842102',
     link: 'tel:+919983939306',
     linkLabel: 'Call Now',
   },
@@ -46,7 +46,7 @@ const storeDetails = [
       </svg>
     ),
     label: 'WhatsApp',
-    value: '099839 39306',
+    value: '+91 99839 39306',
     link: 'https://wa.me/919983939306',
     linkLabel: 'Chat on WhatsApp',
   },

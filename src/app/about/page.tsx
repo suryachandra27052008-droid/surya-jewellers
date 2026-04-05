@@ -256,7 +256,7 @@ export default function AboutPage() {
                <Phone className="w-6 h-6 text-amber-400 mb-4" />
                <h4 className="text-lg font-serif mb-2">Call Us</h4>
                <p className="text-amber-100/70 font-light text-sm">
-                 099839 39306
+                 +91 99839 39306
                </p>
              </div>
 
