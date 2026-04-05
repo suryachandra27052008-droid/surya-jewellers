@@ -73,7 +73,7 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-white/60">
               <li className="flex items-center gap-2">
                 <span style={{ color: '#D4AF37' }}>✦</span>
-                BIS Hallmarked 92.5 Silver
+                Certificate of Authenticity
               </li>
               <li className="flex items-center gap-2">
                 <span style={{ color: '#D4AF37' }}>✦</span>
@@ -81,7 +81,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <span style={{ color: '#D4AF37' }}>✦</span>
-                Certificate of Authenticity
+                Skilled Artisans
               </li>
               <li className="flex items-center gap-2">
                 <span style={{ color: '#D4AF37' }}>✦</span>
@@ -94,7 +94,7 @@ export default function Footer() {
                 Contact: suryajewellersjaipur@gmail.com
               </p>
               <p className="text-xs text-white/40 mt-1">
-                Phone: 099839 39306
+                Phone: +91 99839 39306
               </p>
             </div>
           </div>
