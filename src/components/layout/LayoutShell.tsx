@@ -10,7 +10,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin');
   const isStudio = pathname.startsWith('/studio');
-  const isAuth = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up');
+  const isAuth = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up') || pathname.startsWith('/sso-callback');
 
   // Admin, Studio, and Auth routes get no storefront chrome
   if (isAdmin || isStudio || isAuth) {

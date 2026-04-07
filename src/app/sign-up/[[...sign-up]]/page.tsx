@@ -1,185 +1,417 @@
-import { SignUp } from '@clerk/nextjs';
-import Image from 'next/image';
-import Link from 'next/link';
+'use client';
 
-const clerkAppearance = {
-  variables: {
-    colorPrimary: '#D4AF37',
-    colorBackground: 'transparent',
-    colorText: 'rgba(255,255,255,0.92)',
-    colorTextSecondary: 'rgba(255,255,255,0.45)',
-    colorInputBackground: 'rgba(255,255,255,0.04)',
-    colorInputText: 'rgba(255,255,255,0.92)',
-    colorNeutral: '#555555',
-    borderRadius: '2px',
-    fontFamily: 'inherit',
-    fontSize: '14px',
-  },
-  elements: {
-    rootBox: 'w-full',
-    card: 'bg-transparent shadow-none border-0 p-0 gap-5',
-    headerTitle: 'font-serif text-white text-2xl tracking-wide text-left',
-    headerSubtitle: 'text-white/40 text-sm font-light text-left',
-    socialButtonsBlockButton:
-      'border border-white/12 bg-white/[0.04] text-white/75 hover:bg-white/[0.08] hover:border-gold/30 transition-all duration-300 rounded-sm h-11',
-    socialButtonsBlockButtonText: 'text-white/75 text-sm tracking-wide font-normal',
-    socialButtonsBlockButtonArrow: 'hidden',
-    dividerLine: 'bg-white/8',
-    dividerText: 'text-white/20 text-xs tracking-[0.2em] uppercase',
-    formFieldLabel: 'text-white/40 text-[11px] tracking-[0.18em] uppercase mb-1',
-    formFieldInput:
-      'bg-white/[0.04] border border-white/10 text-white/90 placeholder-white/15 focus:border-gold/50 focus:ring-0 focus:bg-white/[0.06] rounded-sm h-11 px-4 transition-all duration-200',
-    formButtonPrimary:
-      'bg-gradient-to-r from-gold to-gold-dark hover:from-gold-dark hover:to-gold text-charcoal tracking-[0.18em] uppercase text-[11px] font-semibold rounded-sm h-11 transition-all duration-300 shadow-lg shadow-gold/20',
-    footerActionLink: 'text-gold hover:text-gold-light transition-colors duration-200 font-normal',
-    footerActionText: 'text-white/35 text-sm',
-    identityPreviewText: 'text-white/70',
-    identityPreviewEditButton: 'text-gold hover:text-gold-light',
-    formFieldSuccessText: 'text-emerald-400/80 text-xs',
-    formFieldErrorText: 'text-red-400/80 text-xs',
-    alertText: 'text-white/55 text-xs',
-    formResendCodeLink: 'text-gold hover:text-gold-light',
-    otpCodeFieldInput: 'border-white/10 bg-white/[0.04] text-white rounded-sm',
-    footer: 'mt-2',
-    internal: 'gap-4',
-    formFieldRow: 'gap-4',
-  },
-};
+import { useState } from 'react';
+import { useSignUp } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+
+const GOLD = '#8B6914';
+const INPUT_BG = '#f0ebe3';
+const INPUT_BORDER = '#ddd5c8';
+const BG = '#f5f0eb';
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+      <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
+      <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+    </svg>
+  );
+}
+
+function FacebookIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2">
+      <path d="M24 12.073C24 5.403 18.627 0 12 0S0 5.403 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.269h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
+    </svg>
+  );
+}
+
+function EyeIcon({ open }: { open: boolean }) {
+  return open ? (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[18px] h-[18px]">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+    </svg>
+  ) : (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[18px] h-[18px]">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+}
+
+function inputFocusStyle(e: React.FocusEvent<HTMLInputElement>) {
+  e.target.style.borderColor = GOLD;
+  e.target.style.boxShadow = `0 0 0 3px rgba(139,105,20,0.1)`;
+}
+function inputBlurStyle(e: React.FocusEvent<HTMLInputElement>) {
+  e.target.style.borderColor = INPUT_BORDER;
+  e.target.style.boxShadow = 'none';
+}
+
+type Stage = 'form' | 'verify';
 
 export default function SignUpPage() {
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const router = useRouter();
+
+  const [stage, setStage] = useState<Stage>('form');
+
+  // Form fields
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // Verify fields
+  const [code, setCode] = useState('');
+
+  const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<'google' | 'facebook' | null>(null);
+  const [error, setError] = useState('');
+
+  async function handleSignUp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isLoaded) return;
+    setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (!agreeTerms) {
+      setError('Please agree to the Terms of Service to continue.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const nameParts = fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      await signUp.create({
+        firstName,
+        lastName,
+        emailAddress: email,
+        password,
+      });
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      setStage('verify');
+    } catch (err: any) {
+      const msg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || 'Could not create account. Please try again.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerify(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isLoaded) return;
+    setError('');
+    setLoading(true);
+    try {
+      const result = await signUp.attemptEmailAddressVerification({ code });
+      if (result.status === 'complete') {
+        await setActive({ session: result.createdSessionId });
+        router.push('/');
+      } else {
+        setError('Verification incomplete. Please try again.');
+      }
+    } catch (err: any) {
+      const msg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || 'Invalid verification code.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleOAuth(provider: 'oauth_google' | 'oauth_facebook') {
+    if (!isLoaded) return;
+    setOauthLoading(provider === 'oauth_google' ? 'google' : 'facebook');
+    try {
+      await signUp.authenticateWithRedirect({
+        strategy: provider,
+        redirectUrl: '/sso-callback',
+        redirectUrlComplete: '/',
+      });
+    } catch (err: any) {
+      setError('OAuth sign-up failed. Please try again.');
+      setOauthLoading(null);
+    }
+  }
+
+  const inputClass = "w-full rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none transition-all duration-200";
+  const inputStyle = { backgroundColor: INPUT_BG, border: `1px solid ${INPUT_BORDER}` };
+
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: '#080808' }}>
-
-      {/* ── Left Panel: Brand Story ─────────────────────────────────── */}
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ backgroundColor: BG }}>
       <div
-        className="hidden lg:flex lg:w-[52%] xl:w-[55%] flex-col relative overflow-hidden"
-        style={{
-          background: 'linear-gradient(160deg, #0d0d0d 0%, #111008 40%, #0a0a05 100%)',
-        }}
+        className="w-full max-w-md bg-white rounded-2xl px-8 py-10"
+        style={{ boxShadow: '0 4px 24px rgba(139,105,20,0.08), 0 1px 4px rgba(0,0,0,0.06)' }}
       >
-        {/* Subtle grid texture */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(212,175,55,1) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,1) 1px, transparent 1px)',
-            backgroundSize: '60px 60px',
-          }}
-        />
-
-        {/* Gold glow blobs */}
-        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%)' }} />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.05) 0%, transparent 70%)' }} />
-
-        {/* Thin gold border on right edge */}
-        <div className="absolute top-0 right-0 bottom-0 w-px"
-          style={{ background: 'linear-gradient(to bottom, transparent, rgba(212,175,55,0.25) 30%, rgba(212,175,55,0.25) 70%, transparent)' }} />
-
-        {/* Content */}
-        <div className="relative z-10 flex flex-col h-full px-14 py-12">
-
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <Image src="/logo_sj.webp" alt="Surya Jewellers" width={36} height={36}
-              className="opacity-90 group-hover:opacity-100 transition-opacity" />
-            <span className="font-serif text-white/80 text-lg tracking-wider group-hover:text-white transition-colors">
+        {/* Brand */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex flex-col items-center gap-2">
+            <Image src="/logo_sj.webp" alt="Surya Jewellers" width={40} height={40} className="opacity-90" />
+            <span className="text-[11px] tracking-[0.35em] font-semibold uppercase" style={{ color: GOLD }}>
               Surya Jewellers
             </span>
           </Link>
+        </div>
 
-          {/* Centre hero text */}
-          <div className="flex-1 flex flex-col justify-center max-w-md">
-            {/* Ornamental top line */}
-            <div className="flex items-center gap-3 mb-8">
-              <div className="h-px flex-1 max-w-[40px]" style={{ background: 'linear-gradient(to right, transparent, rgba(212,175,55,0.5))' }} />
-              <span className="text-[10px] tracking-[0.4em] uppercase" style={{ color: 'rgba(212,175,55,0.5)' }}>Join Us</span>
-              <div className="h-px flex-1 max-w-[40px]" style={{ background: 'linear-gradient(to left, transparent, rgba(212,175,55,0.5))' }} />
+        {/* ── Verification stage ── */}
+        {stage === 'verify' ? (
+          <>
+            <div className="mb-7">
+              <h1 className="font-serif text-[1.75rem] font-semibold text-gray-900 leading-tight">
+                Verify your email
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                We sent a 6-digit code to <span className="font-medium text-gray-700">{email}</span>
+              </p>
             </div>
 
-            <h1 className="font-serif text-white/90 leading-tight mb-6" style={{ fontSize: 'clamp(2rem, 3vw, 2.75rem)' }}>
-              Begin your<br />
-              <span style={{ color: '#D4AF37' }}>jewellery</span><br />
-              journey.
-            </h1>
+            {error && (
+              <div className="mb-5 px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
+                {error}
+              </div>
+            )}
 
-            <p className="text-white/35 text-sm leading-relaxed mb-10 max-w-xs">
-              Create an account to save your favourites, receive exclusive early access to new collections, and enjoy a seamless checkout experience.
-            </p>
+            <form onSubmit={handleVerify} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5" htmlFor="code">
+                  Verification code
+                </label>
+                <input
+                  id="code"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  required
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="000000"
+                  className={inputClass + " text-center text-lg tracking-[0.5em] font-mono"}
+                  style={inputStyle}
+                  onFocus={inputFocusStyle}
+                  onBlur={inputBlurStyle}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading || code.length < 6}
+                className="w-full py-2.5 rounded-lg text-sm font-semibold text-white tracking-wide transition-all duration-200 disabled:opacity-60"
+                style={{ backgroundColor: GOLD, boxShadow: '0 2px 8px rgba(139,105,20,0.25)' }}
+              >
+                {loading ? 'Verifying…' : 'Verify email'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setStage('form'); setError(''); setCode(''); }}
+                className="w-full text-sm text-gray-400 hover:text-gray-600 transition-colors py-1"
+              >
+                ← Go back
+              </button>
+            </form>
+          </>
+        ) : (
+          /* ── Sign Up form stage ── */
+          <>
+            <div className="mb-7">
+              <h1 className="font-serif text-[1.75rem] font-semibold text-gray-900 leading-tight">
+                Create an account
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">Join us to explore our exquisite collections</p>
+            </div>
 
-            {/* Member perks */}
-            <div className="space-y-4">
-              {[
-                { icon: '✦', label: 'Early access to new arrivals' },
-                { icon: '✦', label: 'Exclusive member-only offers' },
-                { icon: '✦', label: 'Order tracking & history' },
-                { icon: '✦', label: 'Saved wishlist & size preferences' },
-              ].map(({ icon, label }) => (
-                <div key={label} className="flex items-center gap-3">
-                  <span className="text-[10px]" style={{ color: 'rgba(212,175,55,0.6)' }}>{icon}</span>
-                  <span className="text-white/30 text-xs tracking-wide">{label}</span>
+            {error && (
+              <div className="mb-5 px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSignUp} className="space-y-4">
+              {/* Full Name */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5" htmlFor="fullName">
+                  Full name
+                </label>
+                <input
+                  id="fullName"
+                  type="text"
+                  autoComplete="name"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Priya Sharma"
+                  className={inputClass}
+                  style={inputStyle}
+                  onFocus={inputFocusStyle}
+                  onBlur={inputBlurStyle}
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5" htmlFor="email">
+                  Email address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className={inputClass}
+                  style={inputStyle}
+                  onFocus={inputFocusStyle}
+                  onBlur={inputBlurStyle}
+                />
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5" htmlFor="password">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Min. 8 characters"
+                    className={inputClass + " pr-11"}
+                    style={inputStyle}
+                    onFocus={inputFocusStyle}
+                    onBlur={inputBlurStyle}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    <EyeIcon open={showPassword} />
+                  </button>
                 </div>
-              ))}
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5" htmlFor="confirmPassword">
+                  Confirm password
+                </label>
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirm ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter password"
+                    className={inputClass + " pr-11"}
+                    style={inputStyle}
+                    onFocus={inputFocusStyle}
+                    onBlur={inputBlurStyle}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                  >
+                    <EyeIcon open={showConfirm} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Terms checkbox */}
+              <label className="flex items-start gap-2.5 cursor-pointer group pt-0.5">
+                <input
+                  type="checkbox"
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 cursor-pointer accent-[#8B6914] flex-shrink-0"
+                />
+                <span className="text-xs text-gray-500 leading-relaxed group-hover:text-gray-700 transition-colors">
+                  I agree to the{' '}
+                  <Link href="/terms" className="underline font-medium" style={{ color: GOLD }}>Terms of Service</Link>
+                  {' '}and{' '}
+                  <Link href="/privacy" className="underline font-medium" style={{ color: GOLD }}>Privacy Policy</Link>
+                </span>
+              </label>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loading || !isLoaded}
+                className="w-full py-2.5 rounded-lg text-sm font-semibold text-white tracking-wide transition-all duration-200 mt-1 disabled:opacity-60"
+                style={{ backgroundColor: GOLD, boxShadow: '0 2px 8px rgba(139,105,20,0.25)' }}
+                onMouseEnter={(e) => { if (!loading) (e.target as HTMLButtonElement).style.backgroundColor = '#7a5c12'; }}
+                onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.backgroundColor = GOLD; }}
+              >
+                {loading ? 'Creating account…' : 'Create account'}
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-6">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400">Or sign up with</span>
+              <div className="flex-1 h-px bg-gray-200" />
             </div>
-          </div>
 
-          {/* Bottom ornament */}
-          <div className="flex items-center gap-4">
-            <div className="h-px flex-1" style={{ background: 'linear-gradient(to right, rgba(212,175,55,0.15), transparent)' }} />
-            <span className="text-[10px] tracking-[0.3em] text-white/15 uppercase">Surya Jewellers</span>
-          </div>
-        </div>
-      </div>
+            {/* OAuth */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => handleOAuth('oauth_google')}
+                disabled={oauthLoading !== null || !isLoaded}
+                className="flex items-center justify-center gap-2.5 py-2.5 rounded-lg text-sm font-medium text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 disabled:opacity-60"
+              >
+                {oauthLoading === 'google' ? (
+                  <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                ) : (
+                  <GoogleIcon />
+                )}
+                Google
+              </button>
+              <button
+                onClick={() => handleOAuth('oauth_facebook')}
+                disabled={oauthLoading !== null || !isLoaded}
+                className="flex items-center justify-center gap-2.5 py-2.5 rounded-lg text-sm font-medium text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 disabled:opacity-60"
+              >
+                {oauthLoading === 'facebook' ? (
+                  <span className="w-4 h-4 border-2 border-gray-300 border-t-[#1877F2] rounded-full animate-spin" />
+                ) : (
+                  <FacebookIcon />
+                )}
+                Facebook
+              </button>
+            </div>
 
-      {/* ── Right Panel: Auth Form ──────────────────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 sm:px-10 py-16 relative overflow-hidden">
-
-        {/* Subtle glow behind form */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[480px] rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.04) 0%, transparent 70%)' }} />
-
-        {/* Mobile logo (only visible on small screens) */}
-        <div className="lg:hidden mb-10 text-center">
-          <Link href="/" className="inline-flex flex-col items-center gap-3">
-            <Image src="/logo_sj.webp" alt="Surya Jewellers" width={44} height={44} className="opacity-90" />
-            <span className="font-serif text-white/70 text-sm tracking-widest uppercase">Surya Jewellers</span>
-          </Link>
-          <div className="mt-4 h-px w-16 mx-auto" style={{ background: 'linear-gradient(to right, transparent, rgba(212,175,55,0.4), transparent)' }} />
-        </div>
-
-        <div className="relative z-10 w-full max-w-[400px]">
-
-          {/* Card container */}
-          <div
-            className="p-8 sm:p-10 rounded-sm"
-            style={{
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              backdropFilter: 'blur(12px)',
-              boxShadow: '0 0 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
-            }}
-          >
-            {/* Corner accents */}
-            <div className="absolute top-0 left-0 w-6 h-6 pointer-events-none"
-              style={{ borderTop: '1px solid rgba(212,175,55,0.4)', borderLeft: '1px solid rgba(212,175,55,0.4)' }} />
-            <div className="absolute top-0 right-0 w-6 h-6 pointer-events-none"
-              style={{ borderTop: '1px solid rgba(212,175,55,0.4)', borderRight: '1px solid rgba(212,175,55,0.4)' }} />
-            <div className="absolute bottom-0 left-0 w-6 h-6 pointer-events-none"
-              style={{ borderBottom: '1px solid rgba(212,175,55,0.4)', borderLeft: '1px solid rgba(212,175,55,0.4)' }} />
-            <div className="absolute bottom-0 right-0 w-6 h-6 pointer-events-none"
-              style={{ borderBottom: '1px solid rgba(212,175,55,0.4)', borderRight: '1px solid rgba(212,175,55,0.4)' }} />
-
-            <SignUp appearance={clerkAppearance} />
-          </div>
-
-          {/* Back to store link */}
-          <p className="text-center mt-6 text-white/20 text-xs tracking-wide">
-            <Link href="/" className="hover:text-gold/60 transition-colors duration-200">
-              ← Return to store
-            </Link>
-          </p>
-        </div>
+            {/* Sign in link */}
+            <p className="text-center text-sm text-gray-500 mt-7">
+              Already have an account?{' '}
+              <Link href="/sign-in" className="font-medium transition-colors" style={{ color: GOLD }}>
+                Sign in
+              </Link>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
