@@ -63,6 +63,8 @@ export default function ProductsPage() {
   const [selectedStone, setSelectedStone] = useState('All');
   const [sortBy, setSortBy] = useState('newest');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [stonesExpanded, setStonesExpanded] = useState(false);
+  const STONE_PREVIEW_COUNT = 5;
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { addItem, items: cartItems } = useCartStore();
@@ -174,7 +176,7 @@ export default function ProductsPage() {
                   <div>
                     <h3 className="text-xs tracking-[0.2em] uppercase text-charcoal-muted mb-4 font-semibold">Stone Type</h3>
                     <div className="space-y-2">
-                      {stoneTypes.map((stone) => (
+                      {(stonesExpanded ? stoneTypes : stoneTypes.slice(0, STONE_PREVIEW_COUNT)).map((stone) => (
                         <button key={stone} onClick={() => setSelectedStone(stone)}
                           className={`flex items-center gap-2 w-full text-left text-sm px-3 py-2 rounded transition-all duration-200 ${selectedStone === stone ? 'bg-gold/10 text-gold font-medium' : 'text-charcoal-muted hover:bg-cream hover:text-charcoal'}`}>
                           {stone !== 'All' && (
@@ -184,6 +186,18 @@ export default function ProductsPage() {
                         </button>
                       ))}
                     </div>
+                    {stoneTypes.length > STONE_PREVIEW_COUNT && (
+                      <button
+                        onClick={() => setStonesExpanded(!stonesExpanded)}
+                        className="mt-2 flex items-center gap-1 text-xs text-charcoal-muted hover:text-gold transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"
+                          className={`w-3 h-3 transition-transform duration-200 ${stonesExpanded ? 'rotate-180' : ''}`}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                        {stonesExpanded ? 'Show Less' : `Show ${stoneTypes.length - STONE_PREVIEW_COUNT} More`}
+                      </button>
+                    )}
                   </div>
 
                   {/* Sort */}

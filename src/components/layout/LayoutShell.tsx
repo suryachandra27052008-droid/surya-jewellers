@@ -6,10 +6,6 @@ import Footer from './Footer';
 import CartDrawer from './CartDrawer';
 import ShippingBanner from '@/components/ui/ShippingBanner';
 
-// Pages where the navbar should show WHITE text (dark background)
-const WHITE_NAV_EXACT = new Set(['/']);
-const WHITE_NAV_PREFIXES = ['/blog', '/about'];
-
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin');
@@ -20,24 +16,55 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  const isDarkPage =
-    WHITE_NAV_EXACT.has(pathname) ||
-    WHITE_NAV_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'));
   const showShippingBanner = pathname === '/' || pathname === '/checkout';
 
   // Storefront pages get the full navbar + footer
   return (
     <>
-      <Navbar isDarkPage={isDarkPage} />
-      {showShippingBanner && <ShippingBanner />}
+      {/* Fixed header: shipping banner (if active) sits above the navbar */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        {showShippingBanner && <ShippingBanner />}
+        <Navbar />
+      </div>
       <main className="flex-1">{children}</main>
       <Footer />
+      {/* Payment & Trust Marquee Banner */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 overflow-hidden" style={{ backgroundColor: '#1a1a1a', borderTop: '1px solid #2d2a1e' }}>
+        <div className="flex whitespace-nowrap animate-marquee py-2">
+          {[0, 1].map((copy) => (
+            <span key={copy} className="flex items-center gap-0 text-[11px] tracking-wide" style={{ color: '#c9a84c' }}>
+              {[
+                '🔒 Secure Payments',
+                '💳 Visa',
+                '💳 Mastercard',
+                '📱 UPI',
+                '👛 Paytm',
+                '📱 GPay',
+                '📱 PhonePe',
+                '🏦 NetBanking',
+                '💼 Wallets',
+                '🔐 SSL Secured',
+                '✦ 92.5 Sterling Silver',
+                '✦ Certified Gemstones',
+                '✦ Free Shipping',
+                '✦ Lifetime Maintenance',
+                '🌍 International Shipping',
+              ].map((item, i) => (
+                <span key={i} className="flex items-center">
+                  <span className="px-5">{item}</span>
+                  <span style={{ color: '#3d3520' }}>|</span>
+                </span>
+              ))}
+            </span>
+          ))}
+        </div>
+      </div>
       <CartDrawer />
       <a
         href="https://wa.me/919983939306"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg"
+        className="fixed bottom-10 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg"
         style={{ backgroundColor: '#25D366' }}
         aria-label="Chat on WhatsApp"
       >
