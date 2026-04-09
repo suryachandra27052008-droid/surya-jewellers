@@ -5,6 +5,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import CartDrawer from './CartDrawer';
 import ShippingBanner from '@/components/ui/ShippingBanner';
+import CursorTrail from '@/components/ui/CursorTrail';
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -61,6 +62,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
         </div>
       </div>
       <CartDrawer />
+      <CursorTrail />
       <a
         href="https://wa.me/919983939306"
         target="_blank"
