@@ -2,32 +2,23 @@
 
 import { useEffect, useRef } from 'react';
 
-interface Particle {
-  x: number;
-  y: number;
-  size: number;
-  alpha: number;
-  vx: number;
-  vy: number;
-  decay: number;
-}
+const TRAIL_LENGTH = 25;
 
 export default function CursorTrail() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    // Desktop only
     if (window.matchMedia('(pointer: coarse)').matches) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     let animationId: number;
-    const particles: Particle[] = [];
-    let mouse = { x: -999, y: -999 };
+    // Ring buffer of the last TRAIL_LENGTH cursor positions
+    const trail: { x: number; y: number }[] = [];
+    let mouse = { x: -9999, y: -9999 };
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -38,56 +29,41 @@ export default function CursorTrail() {
 
     const onMouseMove = (e: MouseEvent) => {
       mouse = { x: e.clientX, y: e.clientY };
-
-      // Spawn 2–3 particles per move event
-      const count = Math.floor(Math.random() * 2) + 2;
-      for (let i = 0; i < count; i++) {
-        particles.push({
-          x: mouse.x + (Math.random() - 0.5) * 6,
-          y: mouse.y + (Math.random() - 0.5) * 6,
-          size: Math.random() * 4 + 2,
-          alpha: Math.random() * 0.6 + 0.4,
-          vx: (Math.random() - 0.5) * 0.8,
-          vy: (Math.random() - 0.5) * 0.8 - 0.4,
-          decay: Math.random() * 0.018 + 0.012,
-        });
-      }
     };
-
     window.addEventListener('mousemove', onMouseMove);
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.alpha -= p.decay;
-        p.size *= 0.97;
+      // Push current position to trail
+      trail.push({ x: mouse.x, y: mouse.y });
+      if (trail.length > TRAIL_LENGTH) trail.shift();
 
-        if (p.alpha <= 0 || p.size < 0.3) {
-          particles.splice(i, 1);
-          continue;
-        }
+      const len = trail.length;
+      for (let i = 0; i < len; i++) {
+        // i=0 is oldest (tail), i=len-1 is newest (head)
+        const t = i / (TRAIL_LENGTH - 1);   // 0 → tail, 1 → head
+        const alpha = t * 0.85;              // fades toward tail
+        const radius = 1.5 + t * 4.5;       // shrinks toward tail
 
-        // Draw sparkle: small circle with a soft glow
+        const { x, y } = trail[i];
+
         ctx.save();
-        ctx.globalAlpha = p.alpha;
+        ctx.globalAlpha = alpha;
 
-        // Glow
-        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2);
-        gradient.addColorStop(0, 'rgba(201, 168, 76, 0.9)');
-        gradient.addColorStop(1, 'rgba(201, 168, 76, 0)');
-        ctx.fillStyle = gradient;
+        // Glow halo
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, radius * 2.8);
+        glow.addColorStop(0, 'rgba(201,168,76,0.7)');
+        glow.addColorStop(1, 'rgba(201,168,76,0)');
+        ctx.fillStyle = glow;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+        ctx.arc(x, y, radius * 2.8, 0, Math.PI * 2);
         ctx.fill();
 
-        // Core dot
+        // Bright core dot
         ctx.fillStyle = '#c9a84c';
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 0.5, 0, Math.PI * 2);
+        ctx.arc(x, y, radius * 0.55, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.restore();
