@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | Surya Jewellers",
   },
   description:
-    "Surya Jewellers, Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Handcrafted rings, necklaces, earrings with natural diamonds and precious gemstones. BIS Hallmarked.",
+    "Surya Jewellers, Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Handcrafted rings, necklaces, earrings with natural diamonds and precious gemstones. Certificate of Authenticity.",
   keywords: [
     "Surya Jewellers Jaipur",
     "92.5 sterling silver jewellery",
@@ -38,14 +38,17 @@ export const metadata: Metadata = {
     "ruby silver rings",
     "emerald necklaces",
     "sapphire earrings",
-    "BIS hallmarked silver",
+    "certified silver jewellery",
     "handcrafted jewellery",
   ],
+  verification: {
+    google: "-6zyoc8a4UjXayuNcv5Ij90FqUG8S8s9oGdd6W7gc3E",
+  },
   metadataBase: new URL("https://suryajewellers.shop"),
   openGraph: {
     title: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",
     description:
-      "Surya Jewellers, Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Handcrafted rings, necklaces, earrings with natural diamonds and precious gemstones. BIS Hallmarked.",
+      "Surya Jewellers, Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Handcrafted rings, necklaces, earrings with natural diamonds and precious gemstones. Certificate of Authenticity.",
     type: "website",
     url: "https://suryajewellers.shop",
     siteName: "Surya Jewellers",
@@ -55,7 +58,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",
     description:
-      "Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Natural diamonds & precious gemstones. BIS Hallmarked.",
+      "Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Natural diamonds & precious gemstones. Certificate of Authenticity.",
     images: ["/logo_sj.png"],
   },
 };
