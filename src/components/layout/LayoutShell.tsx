@@ -65,7 +65,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
         href="https://wa.me/919983939306"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-10 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg"
+        className="fixed bottom-28 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg"
         style={{ backgroundColor: '#25D366' }}
         aria-label="Chat on WhatsApp"
       >
