@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import Script from "next/script";
 import LayoutShell from "@/components/layout/LayoutShell";
 
 const playfair = Playfair_Display({
@@ -73,6 +74,11 @@ export default function RootLayout({
       <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
         <body className="min-h-screen flex flex-col antialiased">
           <LayoutShell>{children}</LayoutShell>
+          <Script
+            src="https://widget.kalcend.ai/widget.js"
+            data-config-id="MCDtb7d7EgVbuc17I72u"
+            strategy="lazyOnload"
+          />
         </body>
       </html>
     </ClerkProvider>
