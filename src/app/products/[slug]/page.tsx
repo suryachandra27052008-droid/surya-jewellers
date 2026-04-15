@@ -8,6 +8,7 @@ import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import TryOnButton from '@/components/TryOnButton';
 
 // Same demo data - in production this would come from Sanity
 
@@ -238,6 +239,11 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
+              {/* Virtual Try-On (Rings only) */}
+              {product.category === 'Rings' && (
+                <TryOnButton ringId={product._id} ringName={product.name} />
+              )}
+
               {/* Add to Cart */}
               <motion.button
                 onClick={handleAddToCart}
@@ -257,7 +263,7 @@ export default function ProductDetailPage() {
               {/* Trust indicators */}
               <div className="grid grid-cols-2 gap-3 pt-2">
                 {[
-                  { icon: '🛡️', text: 'BIS Hallmarked Silver' },
+                  { icon: '🛡️', text: 'Certificate of Authenticity' },
                   { icon: '📜', text: 'Certificate Included' },
                   { icon: '🔄', text: 'Easy Returns' },
                   { icon: '💎', text: 'Natural Stones' },
