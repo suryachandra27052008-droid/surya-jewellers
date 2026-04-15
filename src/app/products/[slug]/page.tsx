@@ -76,7 +76,7 @@ export default function ProductDetailPage() {
             ?? data.products.find((p: any) => p.slug === slug)
             ?? data.products.find((p: any) => toSlug(p.name) === slug);
           if (found) {
-            document.title = `${found.name} | Surya Jewellers`;
+            document.title = `${found.name || found.category || 'Product'} | Surya Jewellers`;
             setDynamicProduct({
               _id: found._id,
               name: found.name,
@@ -335,7 +335,7 @@ export default function ProductDetailPage() {
             <span>/</span>
             <Link href="/products" className="hover:text-gold transition-colors">Collections</Link>
             <span>/</span>
-            <span className="text-charcoal">{product.name}</span>
+            <span className="text-charcoal">{product.name || product.category}</span>
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -407,7 +407,7 @@ export default function ProductDetailPage() {
 
                 {/* Name */}
                 <h1 className="font-serif text-3xl sm:text-4xl text-charcoal">
-                  {product.name}
+                  {product.name || `${product.mainStoneType !== 'None' ? product.mainStoneType + ' ' : ''}${product.category} Piece`}
                 </h1>
 
                 {/* Price */}
