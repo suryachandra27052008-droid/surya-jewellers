@@ -119,13 +119,29 @@ export default function CheckoutPage() {
         currency: order.currency,
         name: 'Surya Jewellers',
         description: 'Sterling Silver Jewelry Purchase',
+        image: 'https://suryajewellers.shop/icon.png',
         order_id: order.id,
+        notes: {
+          website: 'https://suryajewellers.shop',
+        },
         handler: async function (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) {
-          // Verify payment
+          // Verify payment and save order
           const verifyRes = await fetch('/api/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(response),
+            body: JSON.stringify({
+              ...response,
+              items: items.map((item) => ({
+                _id: item._id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+              })),
+              customer: form,
+              subtotal,
+              shipping,
+              total,
+            }),
           });
 
           const result = await verifyRes.json();

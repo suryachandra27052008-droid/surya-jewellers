@@ -46,7 +46,7 @@ export default function InventoryPage() {
             category: p.category,
             mainStoneType: p.mainStoneType || 'None',
             silverWeight: p.silverWeight || 0,
-            status: p.inStock ? 'In Stock' : 'Out of Stock',
+            status: p.inStock ? 'In Stock' : 'Sold Out',
             emoji: '🆕'
           }));
           // API products listed first
@@ -125,7 +125,7 @@ export default function InventoryPage() {
   const statusStyles: Record<string, string> = {
     'In Stock': 'bg-emerald-50 text-emerald-700',
     'Low Stock': 'bg-amber-50 text-amber-700',
-    'Out of Stock': 'bg-red-50 text-red-700',
+    'Sold Out': 'bg-red-50 text-red-700',
   };
 
   return (

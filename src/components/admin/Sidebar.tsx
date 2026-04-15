@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   Gem,
   BarChart3,
+  ShoppingBag,
   Menu,
   X,
 } from 'lucide-react';
@@ -20,6 +21,11 @@ const navItems = [
     label: 'Dashboard',
     href: '/admin',
     icon: LayoutDashboard,
+  },
+  {
+    label: 'Orders',
+    href: '/admin/orders',
+    icon: ShoppingBag,
   },
   {
     label: 'Inventory',
