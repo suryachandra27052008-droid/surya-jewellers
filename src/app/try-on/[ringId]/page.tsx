@@ -172,7 +172,7 @@ export default function GeminiTryOnPage() {
         text: `This is a jewelry try-on app. The first image is a customer's hand. The second image is a silver ring with gemstone. Please describe in vivid detail how this exact ring would look worn on the customer's finger - which finger suits it best, how it would sit, how the gemstone would catch light on their hand. Make it sound luxurious and elegant. Keep it to 3-4 sentences.`,
       });
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
       const res = await fetch(endpoint, {
         method: 'POST',
