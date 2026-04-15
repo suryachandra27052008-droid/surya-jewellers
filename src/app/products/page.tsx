@@ -89,7 +89,7 @@ export default function ProductsPage() {
           const apiProducts = data.products.map((p: any) => ({
             _id: p._id,
             name: p.name,
-            slug: { current: p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') },
+            slug: { current: p.slug || p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') },
             price: p.price,
             category: { name: p.category || 'Rings', slug: { current: (p.category || 'rings').toLowerCase() } },
             mainStoneType: p.mainStoneType || 'None',
