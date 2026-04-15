@@ -91,7 +91,7 @@ export default function ProductDetailPage() {
   // Build try-on URL once product + sku are known
   useEffect(() => {
     if (product?.sku) {
-      setTryOnUrl(`${window.location.origin}/try-on/${encodeURIComponent(product.sku)}`);
+      setTryOnUrl(`https://suryajewellers.shop/try-on/${encodeURIComponent(product.sku)}`);
     }
   }, [product]);
 
