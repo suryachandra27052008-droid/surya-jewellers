@@ -8,8 +8,6 @@ import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
-import TryOnButton from '@/components/TryOnButton';
-
 // Same demo data - in production this would come from Sanity
 
 
@@ -37,6 +35,7 @@ export default function ProductDetailPage() {
   const product = dynamicProduct;
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [showTryOn, setShowTryOn] = useState(false);
   const { addItem, items } = useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
 
@@ -52,6 +51,7 @@ export default function ProductDetailPage() {
           const found = data.products.find((p: any) => p.slug === slug)
             ?? data.products.find((p: any) => toSlug(p.name) === slug);
           if (found) {
+            document.title = `${found.name} | Surya Jewellers`;
             setDynamicProduct({
               _id: found._id,
               name: found.name,
@@ -258,7 +258,23 @@ export default function ProductDetailPage() {
               </motion.button>
 
               {/* Virtual Try-On */}
-              <TryOnButton itemId={product._id} itemName={product.name} />
+              <button
+                onClick={() => { setShowTryOn(true); alert('Try On coming soon!'); }}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  marginTop: '12px',
+                  background: 'transparent',
+                  border: '1px solid #c9a84c',
+                  color: '#c9a84c',
+                  fontFamily: 'Cinzel, serif',
+                  fontSize: '14px',
+                  letterSpacing: '2px',
+                  cursor: 'pointer',
+                }}
+              >
+                ✦ VIRTUAL TRY ON
+              </button>
 
               {/* Trust indicators */}
               <div className="grid grid-cols-2 gap-3 pt-2">
