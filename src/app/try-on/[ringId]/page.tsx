@@ -143,55 +143,69 @@ export default function GeminiTryOnPage() {
         throw new Error('Gemini API key not configured. Add NEXT_PUBLIC_GEMINI_API_KEY to your environment variables.');
       }
 
-      const parts: any[] = [
-        {
-          inlineData: {
-            mimeType: handMimeType,
-            data: handB64,
-          },
-        },
-      ];
+      // Strip data URL prefix if present
+      const handPhotoBase64 = handB64.includes(',') ? handB64.split(',')[1] : handB64;
 
-      // Fetch ring image as base64 and insert as second part
+      // Fetch ring image as base64
+      let ringImageBase64 = '';
       const ringImageUrl = product?.images?.[0];
       if (ringImageUrl) {
         try {
-          const { base64: ringB64, mimeType: ringMime } = await fetchImageAsBase64(ringImageUrl);
-          parts.push({
-            inlineData: {
-              mimeType: ringMime,
-              data: ringB64,
-            },
-          });
+          const { base64 } = await fetchImageAsBase64(ringImageUrl);
+          ringImageBase64 = base64;
         } catch {
           // Continue without ring image if cross-origin fetch fails
         }
       }
 
-      parts.push({
-        text: `This is a jewelry try-on app. The first image is a customer's hand. The second image is a silver ring with gemstone. Please describe in vivid detail how this exact ring would look worn on the customer's finger - which finger suits it best, how it would sit, how the gemstone would catch light on their hand. Make it sound luxurious and elegant. Keep it to 3-4 sentences.`,
-      });
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: `You are a luxury jewelry consultant for Surya Jewellers.
+              A customer is trying on a ring virtually.
+              Look at their hand photo and the ring image.
+              Describe in 3 elegant sentences how this ring would look on their hand —
+              which finger suits it best, how the gemstone catches light,
+              how it complements their hand. Make it sound luxurious.`
+                  },
+                  {
+                    inline_data: {
+                      mime_type: "image/jpeg",
+                      data: handPhotoBase64
+                    }
+                  },
+                  ...(ringImageBase64 ? [{
+                    inline_data: {
+                      mime_type: "image/jpeg",
+                      data: ringImageBase64
+                    }
+                  }] : [])
+                ]
+              }
+            ]
+          })
+        }
+      );
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts }],
-        }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData?.error?.message || `Gemini API error (${res.status})`);
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || `Gemini API error (${response.status})`);
       }
 
-      const data = await res.json();
-      const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-      if (!text) throw new Error('No response received from Gemini. Please try again.');
+      const data = await response.json();
+      const description = data.candidates[0].content.parts[0].text;
+      if (!description) throw new Error('No response received from Gemini. Please try again.');
 
-      setAiText(text);
+      setAiText(description);
       setStage('result');
     } catch (err: any) {
       setErrorMsg(err.message || 'Analysis failed. Please try again.');
