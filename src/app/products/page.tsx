@@ -86,10 +86,17 @@ export default function ProductsPage() {
         });
         if (res.ok) {
           const data = await res.json();
+          const buildUniqueSlug = (p: any) => {
+            const stone = (p.mainStoneType && p.mainStoneType !== 'None' ? p.mainStoneType : 'silver').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const cat = (p.category || 'jewellery').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const sku = String(p.sku || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || p._id.slice(-6);
+            return `${stone}-${cat}-${sku}`.replace(/-+/g, '-');
+          };
           const apiProducts = data.products.map((p: any) => ({
             _id: p._id,
             name: p.name,
-            slug: { current: p.slug || p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') },
+            sku: p.sku,
+            slug: { current: buildUniqueSlug(p) },
             price: p.price,
             category: { name: p.category || 'Rings', slug: { current: (p.category || 'rings').toLowerCase() } },
             mainStoneType: p.mainStoneType || 'None',
