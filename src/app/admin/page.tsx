@@ -5,7 +5,7 @@ import {
   Package,
   DollarSign,
   TrendingUp,
-  AlertTriangle,
+  ShoppingBag,
   ArrowUpRight,
   PlusCircle,
 } from 'lucide-react';
@@ -13,15 +13,27 @@ import Link from 'next/link';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [orderCount, setOrderCount] = useState(0);
+  const [avgOrderValue, setAvgOrderValue] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await fetch('/api/admin/products');
-        if (res.ok) {
-          const data = await res.json();
+        const [productsRes, ordersRes] = await Promise.all([
+          fetch('/api/admin/products'),
+          fetch('/api/admin/orders'),
+        ]);
+        if (productsRes.ok) {
+          const data = await productsRes.json();
           setProducts(data.products || []);
+        }
+        if (ordersRes.ok) {
+          const data = await ordersRes.json();
+          setTotalRevenue(data.totalRevenue || 0);
+          setOrderCount(data.count || 0);
+          setAvgOrderValue(data.avgOrderValue || 0);
         }
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
@@ -32,42 +44,43 @@ export default function AdminDashboard() {
     loadData();
   }, []);
 
+  const fmt = (n: number) => `₹${Math.round(n).toLocaleString('en-IN')}`;
+
   const stats = [
     {
       label: 'Total Products',
       value: products.length.toString(),
-      change: 'Live focus',
+      change: 'In catalogue',
       icon: Package,
       color: 'bg-blue-50 text-blue-600',
       iconColor: 'text-blue-500',
     },
     {
+      label: 'Total Orders',
+      value: orderCount.toString(),
+      change: 'Confirmed payments',
+      icon: ShoppingBag,
+      color: 'bg-purple-50 text-purple-600',
+      iconColor: 'text-purple-500',
+    },
+    {
       label: 'Total Revenue',
-      value: '₹0',
-      change: '0% this month',
+      value: fmt(totalRevenue),
+      change: 'All time',
       icon: DollarSign,
       color: 'bg-emerald-50 text-emerald-600',
       iconColor: 'text-emerald-500',
     },
     {
       label: 'Avg. Order Value',
-      value: '₹0',
-      change: '0% this month',
+      value: orderCount > 0 ? fmt(avgOrderValue) : '—',
+      change: orderCount > 0 ? 'Per order' : 'No orders yet',
       icon: TrendingUp,
       color: 'bg-amber-50 text-amber-600',
       iconColor: 'text-amber-500',
     },
-    {
-      label: 'Low Stock Items',
-      value: '0',
-      change: 'All clear',
-      icon: AlertTriangle,
-      color: 'bg-red-50 text-red-600',
-      iconColor: 'text-red-500',
-    },
   ];
 
-  // Show up to 5 most recent products
   const recentProducts = products.slice(0, 5);
 
   return (
@@ -107,7 +120,7 @@ export default function AdminDashboard() {
                 <ArrowUpRight className="w-4 h-4 text-gray-300" />
               </div>
               <p className="text-2xl font-bold text-gray-900">
-                {isLoading ? '...' : stat.value}
+                {isLoading ? '…' : stat.value}
               </p>
               <p className="text-xs text-gray-500 mt-1">{stat.change}</p>
               <p className="text-xs text-gray-400 mt-0.5">{stat.label}</p>
@@ -119,9 +132,7 @@ export default function AdminDashboard() {
       {/* Recent Products Table */}
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-900">
-            Recent Products
-          </h2>
+          <h2 className="text-sm font-semibold text-gray-900">Recent Products</h2>
           <Link
             href="/admin/inventory"
             className="text-xs font-medium text-amber-600 hover:text-amber-700 transition-colors"
@@ -156,9 +167,7 @@ export default function AdminDashboard() {
                     </div>
                   </td>
                   <td className="px-6 py-3.5">
-                    <span className="text-sm text-gray-500 font-mono">
-                      {product.sku}
-                    </span>
+                    <span className="text-sm text-gray-500 font-mono">{product.sku}</span>
                   </td>
                   <td className="px-6 py-3.5">
                     <span className="text-sm font-medium text-gray-900">
@@ -173,7 +182,8 @@ export default function AdminDashboard() {
                           : 'bg-red-50 text-red-700'
                       }`}
                     >
-                      {product.inStock ? 'In Stock' : 'Out of Stock'}
+                      {product.inStock ? 'In Stock' : 'Sold Out'}
+
                     </span>
                   </td>
                 </tr>

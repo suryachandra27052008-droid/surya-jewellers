@@ -2,20 +2,26 @@
 
 import { motion } from 'motion/react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Hero() {
   return (
-    <section className="relative min-h-[88vh] flex items-center justify-center overflow-hidden">
-      {/* Background with gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#16213e]" />
+    <section className="relative min-h-[82vh] flex items-center justify-center overflow-hidden">
+      {/* Background image */}
+      <Image
+        src="/hero-bg.jpg.jpeg"
+        alt="Surya Jewellers hero background"
+        fill
+        className="object-cover object-center"
+        priority
+        fetchPriority="high"
+      />
 
-      {/* Decorative shimmer elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-gold/5 blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/3 right-1/4 w-96 h-96 rounded-full bg-gold/3 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-gold/10" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full border border-gold/5" />
-      </div>
+      {/* Dark overlay — 45% opacity */}
+      <div className="absolute inset-0 bg-black/45" />
+
+      {/* Subtle gold vignette at bottom for blending into next section */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/30 to-transparent" />
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
@@ -29,7 +35,7 @@ export default function Hero() {
         >
           <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#c9a84c]" />
           <span
-            className="text-xs font-semibold tracking-[4px] uppercase"
+            className="text-sm sm:text-base font-semibold tracking-[4px] uppercase"
             style={{ color: '#c9a84c', fontVariant: 'small-caps' }}
           >
             ✦ Jewellery by Surya Jewellers ✦
@@ -42,7 +48,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="font-serif text-4xl sm:text-5xl md:text-7xl text-white leading-tight mb-6"
+          className="font-serif text-4xl sm:text-5xl md:text-6xl text-white leading-tight mb-6"
         >
           Crafted in Pure
           <br />
@@ -56,14 +62,14 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="text-white/60 text-sm sm:text-base md:text-lg max-w-2xl mx-auto mb-10 leading-relaxed"
+          className="text-white/70 text-sm sm:text-base md:text-lg max-w-2xl mx-auto mb-10 leading-relaxed"
         >
           Exquisite jewelry adorned with natural diamonds and precious stones.
           <br className="hidden sm:block" />
           Each piece — a testament to timeless artistry and uncompromising quality.
         </motion.p>
 
-        {/* CTA Buttons */}
+        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -80,10 +86,10 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.2 }}
-          className="mt-10 flex flex-wrap justify-center gap-8 text-white/30 text-xs tracking-[0.15em] uppercase"
+          className="mt-10 flex flex-wrap justify-center gap-8 text-white/40 text-xs tracking-[0.15em] uppercase"
         >
           <span className="flex items-center gap-2">
-            <span className="text-gold text-sm">✦</span> BIS Hallmarked
+            <span className="text-gold text-sm">✦</span> Certificate of Authenticity
           </span>
           <span className="flex items-center gap-2">
             <span className="text-gold text-sm">✦</span> Natural Diamonds
@@ -99,7 +105,7 @@ export default function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2"
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     'Jaipur silver jewellery manufacturer',
     'Sanjay Chandra jeweller',
     'handcrafted silver jewellery Jaipur',
-    'BIS hallmarked silver',
+    'certified silver jewellery',
   ],
   openGraph: {
     title: 'About Surya Jewellers | Est. 2003, Jaipur',

@@ -31,6 +31,9 @@ export async function POST(request: Request) {
       amount: amount * 100, // Amount in paise
       currency: 'INR',
       receipt: `receipt_${Date.now()}`,
+      notes: {
+        website: 'https://suryajewellers.shop',
+      },
     });
 
     return NextResponse.json(order);
