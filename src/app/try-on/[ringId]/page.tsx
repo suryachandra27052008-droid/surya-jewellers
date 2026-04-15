@@ -1,259 +1,509 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
-type CameraStatus = 'idle' | 'requesting' | 'active' | 'denied' | 'unsupported';
+type Stage = 'loading' | 'ready' | 'analyzing' | 'result' | 'error';
 
-export default function TryOnPage() {
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function readFileAsDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target?.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function fetchImageAsBase64(url: string): Promise<{ base64: string; mimeType: string }> {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  const mimeType = blob.type || 'image/jpeg';
+  const base64 = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      resolve(dataUrl.split(',')[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+  return { base64, mimeType };
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number
+): number {
+  const paragraphs = text.split('\n');
+  let currentY = y;
+  for (const para of paragraphs) {
+    const words = para.trim().split(' ');
+    let line = '';
+    for (const word of words) {
+      const test = line + (line ? ' ' : '') + word;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        ctx.fillText(line, x, currentY);
+        line = word;
+        currentY += lineHeight;
+      } else {
+        line = test;
+      }
+    }
+    if (line) {
+      ctx.fillText(line, x, currentY);
+      currentY += lineHeight;
+    }
+    currentY += lineHeight * 0.3; // paragraph spacing
+  }
+  return currentY;
+}
+
+// ── Component ──────────────────────────────────────────────────────────────
+
+export default function GeminiTryOnPage() {
   const params = useParams();
-  const ringId = decodeURIComponent(params.ringId as string);
+  const sku = decodeURIComponent(params.ringId as string);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const animFrameRef = useRef<number>(0);
+  const [stage, setStage] = useState<Stage>('loading');
+  const [product, setProduct] = useState<any>(null);
+  const [handPhotoUrl, setHandPhotoUrl] = useState('');
+  const [aiText, setAiText] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const [status, setStatus] = useState<CameraStatus>('idle');
-  const [ringName, setRingName] = useState<string>('');
-  const [ringImage, setRingImage] = useState<string>('');
-  const [overlayPos, setOverlayPos] = useState({ x: 0.5, y: 0.6 });
-  const [overlayScale, setOverlayScale] = useState(1);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Keep hand + ring data for save-card use
+  const handBase64Ref = useRef('');
+  const handMimeRef = useRef('image/jpeg');
 
-  // Fetch ring info
+  // ── Fetch product by SKU ───────────────────────────────────────────────
   useEffect(() => {
-    async function fetchRing() {
+    async function fetchProduct() {
       try {
         const res = await fetch('/api/admin/products');
-        if (!res.ok) return;
-        const data = await res.json();
-        const ring =
-          data.products?.find((p: any) => p._id === ringId) ||
-          data.products?.find(
-            (p: any) =>
-              p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === ringId
-          );
-        if (ring) {
-          setRingName(ring.name);
-          setRingImage(ring.images?.[0] || '');
+        if (!res.ok) throw new Error('fetch failed');
+        const { products } = await res.json();
+        const found = products.find((p: any) => p.sku === sku);
+        if (found) {
+          setProduct(found);
+          setStage('ready');
+        } else {
+          setErrorMsg('Ring not found. Please scan the QR code again.');
+          setStage('error');
         }
       } catch {
-        // silently fail — still show camera
+        setErrorMsg('Could not load ring details. Please check your connection.');
+        setStage('error');
       }
     }
-    fetchRing();
-  }, [ringId]);
+    fetchProduct();
+  }, [sku]);
 
-  const startCamera = useCallback(async () => {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setStatus('unsupported');
-      return;
-    }
-    setStatus('requesting');
+  // ── File input change ──────────────────────────────────────────────────
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset so the same file can be selected again
+    e.target.value = '';
+
+    const mime = file.type || 'image/jpeg';
+    handMimeRef.current = mime;
+
+    const dataUrl = await readFileAsDataURL(file);
+    setHandPhotoUrl(dataUrl);
+    handBase64Ref.current = dataUrl.split(',')[1];
+
+    await runGemini(handBase64Ref.current, mime);
+  };
+
+  // ── Gemini API call ────────────────────────────────────────────────────
+  const runGemini = async (handB64: string, handMimeType: string) => {
+    setStage('analyzing');
+    setAiText('');
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+        throw new Error('Gemini API key not configured. Add NEXT_PUBLIC_GEMINI_API_KEY to your environment variables.');
       }
-      setStatus('active');
-    } catch {
-      setStatus('denied');
-    }
-  }, []);
 
-  // Draw loop: video → canvas + ring overlay
-  useEffect(() => {
-    if (status !== 'active') return;
+      const parts: any[] = [
+        {
+          inlineData: {
+            mimeType: handMimeType,
+            data: handB64,
+          },
+        },
+      ];
 
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const ringImg = new Image();
-    ringImg.crossOrigin = 'anonymous';
-    if (ringImage) ringImg.src = ringImage;
-
-    let loaded = false;
-    ringImg.onload = () => { loaded = true; };
-
-    function draw() {
-      if (!video || !canvas || !ctx) return;
-      if (video.readyState >= 2) {
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-
-        // Mirror for front camera feel, but keep environment camera normal
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        // Overlay ring
-        const size = Math.min(canvas.width, canvas.height) * 0.25 * overlayScale;
-        const cx = canvas.width * overlayPos.x;
-        const cy = canvas.height * overlayPos.y;
-
-        if (loaded && ringImage) {
-          ctx.globalAlpha = 0.85;
-          ctx.drawImage(ringImg, cx - size / 2, cy - size / 2, size, size);
-          ctx.globalAlpha = 1;
-        } else {
-          // Placeholder ring SVG drawn as path
-          ctx.save();
-          ctx.strokeStyle = '#C9A84C';
-          ctx.lineWidth = 6;
-          ctx.shadowColor = '#C9A84C';
-          ctx.shadowBlur = 12;
-          ctx.beginPath();
-          ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(cx, cy, size / 2 - 10, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.restore();
+      // Fetch ring image as base64 and insert as second part
+      const ringImageUrl = product?.images?.[0];
+      if (ringImageUrl) {
+        try {
+          const { base64: ringB64, mimeType: ringMime } = await fetchImageAsBase64(ringImageUrl);
+          parts.push({
+            inlineData: {
+              mimeType: ringMime,
+              data: ringB64,
+            },
+          });
+        } catch {
+          // Continue without ring image if cross-origin fetch fails
         }
-
-        // Guide label
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.roundRect(canvas.width / 2 - 130, canvas.height - 52, 260, 36, 8);
-        ctx.fill();
-        ctx.fillStyle = '#fff';
-        ctx.font = '14px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Position ring over your finger', canvas.width / 2, canvas.height - 28);
       }
-      animFrameRef.current = requestAnimationFrame(draw);
+
+      parts.push({
+        text: `This is a jewelry try-on app. The first image is a customer's hand. The second image is a silver ring with gemstone. Please describe in vivid detail how this exact ring would look worn on the customer's finger - which finger suits it best, how it would sit, how the gemstone would catch light on their hand. Make it sound luxurious and elegant. Keep it to 3-4 sentences.`,
+      });
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts }],
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || `Gemini API error (${res.status})`);
+      }
+
+      const data = await res.json();
+      const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+      if (!text) throw new Error('No response received from Gemini. Please try again.');
+
+      setAiText(text);
+      setStage('result');
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Analysis failed. Please try again.');
+      setStage('error');
+    }
+  };
+
+  // ── Save result card as image ──────────────────────────────────────────
+  const saveCard = async () => {
+    const W = 800;
+    const PADDING = 40;
+    const PHOTO_H = 360;
+    const TEXT_START = PHOTO_H + 120;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    // Height calculated after text wrap, set later
+    const ctxTemp = canvas.getContext('2d')!;
+    ctxTemp.font = 'italic 16px Georgia, serif';
+    let textLines = 0;
+    const words = aiText.split(' ');
+    let line = '';
+    for (const word of words) {
+      const test = line + (line ? ' ' : '') + word;
+      if (ctxTemp.measureText(test).width > W - PADDING * 2 && line) {
+        textLines++;
+        line = word;
+      } else {
+        line = test;
+      }
+    }
+    if (line) textLines++;
+    const H = TEXT_START + textLines * 28 + 100;
+    canvas.height = H;
+
+    const ctx = canvas.getContext('2d')!;
+
+    // Background
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, W, H);
+
+    // Top gold border
+    ctx.strokeStyle = '#c9a84c';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(PADDING, 24); ctx.lineTo(W - PADDING, 24); ctx.stroke();
+
+    // Title
+    ctx.fillStyle = '#c9a84c';
+    ctx.font = '14px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = '3px';
+    ctx.fillText('✦  VIRTUAL TRY ON  —  SURYA JEWELLERS  ✦', W / 2, 50);
+
+    // Photos: hand on left, ring on right
+    const PHOTO_W = (W - PADDING * 3) / 2;
+    const PHOTO_Y = 70;
+
+    if (handPhotoUrl) {
+      try {
+        const handImg = await loadImage(handPhotoUrl);
+        ctx.drawImage(handImg, PADDING, PHOTO_Y, PHOTO_W, PHOTO_H);
+      } catch { /* skip */ }
     }
 
-    animFrameRef.current = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(animFrameRef.current);
-  }, [status, ringImage, overlayPos, overlayScale]);
+    if (product?.images?.[0]) {
+      try {
+        const ringImg = await loadImage(product.images[0]);
+        ctx.drawImage(ringImg, PADDING * 2 + PHOTO_W, PHOTO_Y, PHOTO_W, PHOTO_H);
+      } catch { /* skip */ }
+    }
 
-  // Cleanup stream on unmount
-  useEffect(() => {
-    return () => {
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      cancelAnimationFrame(animFrameRef.current);
-    };
-  }, []);
+    // Ring name below photos
+    ctx.fillStyle = '#c9a84c';
+    ctx.font = 'bold 14px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(product?.name || 'Surya Jewellers Ring', W / 2, PHOTO_Y + PHOTO_H + 30);
 
-  const handleCanvasTouch = useCallback(
-    (e: React.TouchEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      const touch = e.touches[0];
-      setOverlayPos({
-        x: (touch.clientX - rect.left) / rect.width,
-        y: (touch.clientY - rect.top) / rect.height,
-      });
-    },
-    []
-  );
+    // Gold divider
+    ctx.strokeStyle = '#c9a84c55';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(PADDING, PHOTO_Y + PHOTO_H + 50); ctx.lineTo(W - PADDING, PHOTO_Y + PHOTO_H + 50); ctx.stroke();
 
+    // AI description
+    ctx.fillStyle = '#f0ece3';
+    ctx.font = 'italic 16px Georgia, serif';
+    ctx.textAlign = 'left';
+    wrapText(ctx, aiText, PADDING, TEXT_START, W - PADDING * 2, 28);
+
+    // Bottom gold border
+    ctx.strokeStyle = '#c9a84c';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(PADDING, H - 24); ctx.lineTo(W - PADDING, H - 24); ctx.stroke();
+
+    // Download
+    const a = document.createElement('a');
+    a.download = `surya-jewellers-try-on-${product?.name?.replace(/\s+/g, '-') || 'ring'}.jpg`;
+    a.href = canvas.toDataURL('image/jpeg', 0.93);
+    a.click();
+  };
+
+  // ── Render helpers ─────────────────────────────────────────────────────
+
+  const goldBtn = {
+    padding: '16px 32px',
+    background: '#c9a84c',
+    color: '#000',
+    border: 'none',
+    fontFamily: 'Cinzel, serif',
+    fontSize: '13px',
+    letterSpacing: '2px',
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+  } as const;
+
+  const outlineBtn = {
+    padding: '12px 24px',
+    background: 'transparent',
+    color: '#c9a84c',
+    border: '1px solid #c9a84c',
+    fontFamily: 'Cinzel, serif',
+    fontSize: '12px',
+    letterSpacing: '2px',
+    cursor: 'pointer',
+  } as const;
+
+  // ── Main render ────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif' }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-black/80">
-        <Link href="/products" className="text-gold text-sm">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #c9a84c22' }}>
+        <Link href="/products" style={{ color: '#c9a84c', textDecoration: 'none', fontSize: '13px', letterSpacing: '1px', fontFamily: 'Cinzel, serif' }}>
           ← Back
         </Link>
-        <h1 className="font-serif text-white text-base truncate max-w-[200px]">
-          {ringName || 'Virtual Try-On'}
-        </h1>
-        <div className="w-12" />
+        <span style={{ color: '#c9a84c', fontFamily: 'Cinzel, serif', fontSize: '12px', letterSpacing: '3px' }}>
+          SURYA JEWELLERS
+        </span>
+        <div style={{ width: 60 }} />
       </div>
 
-      {/* Camera / canvas */}
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-        {/* Hidden video element */}
-        <video
-          ref={videoRef}
-          className="hidden"
-          playsInline
-          muted
-          autoPlay
-        />
+      {/* Body */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 20px', gap: '32px' }}>
 
-        {status === 'active' ? (
-          <canvas
-            ref={canvasRef}
-            className="w-full h-full object-contain"
-            onTouchMove={handleCanvasTouch}
-            onTouchStart={handleCanvasTouch}
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-6 px-8 text-center">
-            {status === 'idle' && (
-              <>
-                <div className="text-6xl">💍</div>
-                <p className="text-white text-lg font-serif">
-                  {ringName ? `Try on "${ringName}"` : 'Virtual Ring Try-On'}
-                </p>
-                <p className="text-white/60 text-sm">
-                  Hold your hand up to the camera and position the ring overlay on your finger.
-                </p>
-                <button
-                  onClick={startCamera}
-                  className="px-8 py-3 bg-gold text-white font-semibold tracking-widest uppercase text-sm rounded"
-                >
-                  Start Camera
-                </button>
-              </>
+        {/* ── LOADING ── */}
+        {stage === 'loading' && (
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ width: 40, height: 40, border: '2px solid #c9a84c33', borderTop: '2px solid #c9a84c', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+            <p style={{ color: '#c9a84c99', fontFamily: 'Cinzel, serif', fontSize: '13px', letterSpacing: '2px' }}>
+              Loading ring...
+            </p>
+          </div>
+        )}
+
+        {/* ── ERROR ── */}
+        {stage === 'error' && (
+          <div style={{ textAlign: 'center', maxWidth: 360 }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>💍</div>
+            <p style={{ color: '#ef4444', fontSize: '14px', marginBottom: '24px', lineHeight: 1.6 }}>{errorMsg}</p>
+            <button
+              onClick={() => { setStage('ready'); setErrorMsg(''); }}
+              style={outlineBtn}
+            >
+              TRY AGAIN
+            </button>
+          </div>
+        )}
+
+        {/* ── READY ── */}
+        {stage === 'ready' && product && (
+          <div style={{ width: '100%', maxWidth: 480, textAlign: 'center' }}>
+            {/* Ring image */}
+            {product.images?.[0] && (
+              <div style={{ width: 200, height: 200, margin: '0 auto 24px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #c9a84c33' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={product.images[0]}
+                  alt={product.name || 'Ring'}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
             )}
 
-            {status === 'requesting' && (
-              <p className="text-white/70 text-sm animate-pulse">Requesting camera access…</p>
-            )}
+            {/* Gold divider */}
+            <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, #c9a84c66, transparent)', margin: '0 auto 20px', maxWidth: 300 }} />
 
-            {status === 'denied' && (
-              <>
-                <p className="text-red-400 text-sm">Camera access was denied.</p>
-                <p className="text-white/60 text-xs">
-                  Please allow camera permissions in your browser settings, then reload.
-                </p>
-                <button
-                  onClick={startCamera}
-                  className="mt-4 px-6 py-2 border border-gold text-gold text-sm rounded"
-                >
-                  Try Again
-                </button>
-              </>
-            )}
+            <p style={{ color: '#c9a84c', fontFamily: 'Cinzel, serif', fontSize: '11px', letterSpacing: '3px', marginBottom: '8px' }}>
+              {product.category?.toUpperCase() || 'RING'}
+            </p>
+            <h1 style={{ color: '#fff', fontFamily: 'Cormorant Garamond, Georgia, serif', fontSize: '24px', fontWeight: 400, marginBottom: '8px' }}>
+              {product.name || 'Surya Jewellers Ring'}
+            </h1>
+            <p style={{ color: '#ffffff55', fontSize: '13px', marginBottom: '32px' }}>
+              {product.mainStoneType && product.mainStoneType !== 'None' ? product.mainStoneType + ' · ' : ''}
+              Sterling Silver
+            </p>
 
-            {status === 'unsupported' && (
-              <p className="text-white/60 text-sm">
-                Camera is not supported on this device or browser.
+            {/* Gold divider */}
+            <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, #c9a84c66, transparent)', margin: '0 auto 32px', maxWidth: 300 }} />
+
+            <p style={{ color: '#ffffff88', fontSize: '14px', lineHeight: 1.7, marginBottom: '32px' }}>
+              Take a photo of your hand and our AI stylist will describe how this ring would look on you.
+            </p>
+
+            <button style={goldBtn} onClick={() => fileInputRef.current?.click()}>
+              📸 Take Photo of Your Hand
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: 'none' }}
+              onChange={onFileChange}
+            />
+          </div>
+        )}
+
+        {/* ── ANALYZING ── */}
+        {stage === 'analyzing' && (
+          <div style={{ textAlign: 'center', maxWidth: 360 }}>
+            {/* Hand photo preview */}
+            {handPhotoUrl && (
+              <div style={{ width: 200, height: 200, margin: '0 auto 24px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #c9a84c33' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={handPhotoUrl} alt="Your hand" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ width: 20, height: 20, border: '2px solid #c9a84c33', borderTop: '2px solid #c9a84c', borderRadius: '50%', animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+              <p style={{ color: '#c9a84c', fontFamily: 'Cinzel, serif', fontSize: '13px', letterSpacing: '2px' }}>
+                ✦ Styling your ring...
               </p>
-            )}
+            </div>
+            <p style={{ color: '#ffffff44', fontSize: '12px' }}>
+              Our AI stylist is analyzing your hand
+            </p>
+          </div>
+        )}
+
+        {/* ── RESULT ── */}
+        {stage === 'result' && (
+          <div style={{ width: '100%', maxWidth: 520, textAlign: 'center' }}>
+            {/* Photos side by side */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+              {handPhotoUrl && (
+                <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #c9a84c33', aspectRatio: '1' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={handPhotoUrl} alt="Your hand" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              )}
+              {product?.images?.[0] && (
+                <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #c9a84c33', aspectRatio: '1' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={product.images[0]} alt={product.name || 'Ring'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              )}
+            </div>
+
+            {/* Top gold divider */}
+            <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, #c9a84c, transparent)', marginBottom: '20px' }} />
+
+            {/* Ring name */}
+            <p style={{ color: '#c9a84c', fontFamily: 'Cinzel, serif', fontSize: '11px', letterSpacing: '3px', marginBottom: '6px' }}>
+              {product?.category?.toUpperCase() || 'RING'}
+            </p>
+            <h2 style={{ color: '#fff', fontFamily: 'Cormorant Garamond, Georgia, serif', fontSize: '20px', fontWeight: 400, marginBottom: '16px' }}>
+              {product?.name}
+            </h2>
+
+            {/* AI Description */}
+            <p style={{
+              color: '#f0ece3',
+              fontFamily: 'Cormorant Garamond, Georgia, serif',
+              fontSize: '17px',
+              fontStyle: 'italic',
+              lineHeight: 1.8,
+              textAlign: 'left',
+              padding: '20px 0',
+            }}>
+              {aiText}
+            </p>
+
+            {/* Bottom gold divider */}
+            <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, #c9a84c, transparent)', marginBottom: '24px' }} />
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button style={goldBtn} onClick={saveCard}>
+                📸 Save
+              </button>
+              <button
+                style={outlineBtn}
+                onClick={() => {
+                  setStage('ready');
+                  setHandPhotoUrl('');
+                  setAiText('');
+                  handBase64Ref.current = '';
+                }}
+              >
+                ↺ Try Again
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Controls (scale slider) */}
-      {status === 'active' && (
-        <div className="bg-black/80 px-6 py-4 flex flex-col gap-2">
-          <label className="text-white/60 text-xs text-center">Ring Size</label>
-          <input
-            type="range"
-            min={0.4}
-            max={2.5}
-            step={0.05}
-            value={overlayScale}
-            onChange={(e) => setOverlayScale(parseFloat(e.target.value))}
-            className="w-full accent-gold"
-          />
-          <p className="text-white/40 text-xs text-center">
-            Touch the camera to reposition the ring
-          </p>
-        </div>
-      )}
+      {/* Spin keyframe */}
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }
