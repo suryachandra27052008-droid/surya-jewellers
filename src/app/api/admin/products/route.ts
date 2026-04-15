@@ -14,11 +14,12 @@ const slugify = (text: string) =>
 
 export async function GET() {
   try {
-    // Fetch products from Sanity
-    const products = await client.fetch(`
+    // Fetch products from Sanity — use writeClient (no CDN) so inStock changes are instant
+    const products = await writeClient.fetch(`
       *[_type == "product"] | order(_createdAt desc) {
         _id,
         name,
+        "slug": slug.current,
         sku,
         price,
         compareAtPrice,
@@ -30,6 +31,7 @@ export async function GET() {
         "images": images[].asset->url,
         description,
         inStock,
+        stockQuantity,
         featured,
         _createdAt,
         _updatedAt

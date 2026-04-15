@@ -4,17 +4,17 @@ import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
 interface TryOnButtonProps {
-  ringId: string;
-  ringName: string;
+  itemId: string;
+  itemName: string;
 }
 
-export default function TryOnButton({ ringId, ringName }: TryOnButtonProps) {
+export default function TryOnButton({ itemId, itemName }: TryOnButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [tryOnUrl, setTryOnUrl] = useState('');
 
   useEffect(() => {
-    setTryOnUrl(`${window.location.origin}/try-on/${encodeURIComponent(ringId)}`);
-  }, [ringId]);
+    setTryOnUrl(`${window.location.origin}/try-on/${encodeURIComponent(itemId)}`);
+  }, [itemId]);
 
   return (
     <>
@@ -37,7 +37,7 @@ export default function TryOnButton({ ringId, ringName }: TryOnButtonProps) {
             <h3 className="font-serif text-2xl text-charcoal mb-2">Virtual Try-On</h3>
             <p className="text-sm text-charcoal-muted mb-6">
               Scan this QR code with your phone to try on <br />
-              <span className="font-semibold text-charcoal">{ringName}</span>
+              <span className="font-semibold text-charcoal">{itemName}</span>
             </p>
 
             <div className="flex justify-center mb-6">

@@ -46,9 +46,11 @@ export default function ProductDetailPage() {
         const res = await fetch('/api/admin/products');
         if (res.ok) {
           const data = await res.json();
-          const found = data.products.find((p: any) => 
-            p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug
-          );
+          // Match by Sanity slug first (authoritative), then fall back to name-derived slug
+          const toSlug = (name: string) =>
+            name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          const found = data.products.find((p: any) => p.slug === slug)
+            ?? data.products.find((p: any) => toSlug(p.name) === slug);
           if (found) {
             setDynamicProduct({
               _id: found._id,
@@ -239,11 +241,6 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              {/* Virtual Try-On (Rings only) */}
-              {product.category === 'Rings' && (
-                <TryOnButton ringId={product._id} ringName={product.name} />
-              )}
-
               {/* Add to Cart */}
               <motion.button
                 onClick={handleAddToCart}
@@ -259,6 +256,9 @@ export default function ProductDetailPage() {
               >
                 {atMaxQty ? '✓ In Your Bag' : addedToCart ? '✓ Added to Bag' : 'Add to Bag'}
               </motion.button>
+
+              {/* Virtual Try-On */}
+              <TryOnButton itemId={product._id} itemName={product.name} />
 
               {/* Trust indicators */}
               <div className="grid grid-cols-2 gap-3 pt-2">
