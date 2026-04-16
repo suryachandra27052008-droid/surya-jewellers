@@ -22,7 +22,19 @@
       "mcp__claude_ai_Vercel__get_runtime_logs",
       "mcp__claude_ai_Vercel__get_project",
       "mcp__claude_ai_Vercel__list_deployments",
-      "Bash(vercel env:*)"
+      "Bash(vercel env:*)",
+      "Bash(npx next:*)",
+      "Bash(grep -n \"glass\" src/app/globals.css src/styles/*.css)",
+      "mcp__claude_ai_Figma__get_design_context",
+      "mcp__claude_ai_Figma__get_screenshot",
+      "Bash(kill %1)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(k\\) for k in d.get\\('exports',{}\\).keys\\(\\)]\")",
+      "Bash(mkdir -p /c/Users/surya/.gemini/antigravity/scratch/surya-jewellers/src/app/try-on/\\\\[ringId\\\\])",
+      "Bash(mkdir -p /c/Users/surya/.gemini/antigravity/scratch/surya-jewellers/public/rings)",
+      "Bash(git commit:*)",
+      "Bash(ls /c/Users/surya/.gemini/antigravity/scratch/surya-jewellers/sanity*)",
+      "Bash(grep -n \"slug\\\\|projectId\" /c/Users/surya/.gemini/antigravity/scratch/surya-jewellers/src/lib/sanity/client.ts /c/Users/surya/.gemini/antigravity/scratch/surya-jewellers/src/app/products/[slug]/page.tsx)",
+      "Bash(git checkout:*)"
     ]
   }
 }
