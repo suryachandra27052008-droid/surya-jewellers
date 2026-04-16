@@ -9,6 +9,7 @@ export default function TryOnPage() {
 
   const [state, setState] = useState<'start' | 'processing' | 'result'>('start');
   const [result, setResult] = useState<string | null>(null);
+  const [resultBlob, setResultBlob] = useState<Blob | null>(null);
   const [product, setProduct] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -50,6 +51,15 @@ export default function TryOnPage() {
       canvas.height = handImg.height;
       ctx.drawImage(handImg, 0, 0);
 
+      const finalize = () => {
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          setResultBlob(blob);
+          setResult(URL.createObjectURL(blob));
+          setState('result');
+        }, 'image/jpeg', 0.9);
+      };
+
       if (ringImage) {
         const ringImg = new Image();
         ringImg.crossOrigin = 'anonymous';
@@ -60,28 +70,25 @@ export default function TryOnPage() {
           ctx.globalAlpha = 0.92;
           ctx.drawImage(ringImg, x, y, ringSize, ringSize);
           ctx.globalAlpha = 1.0;
-          setResult(canvas.toDataURL('image/jpeg', 0.9));
-          setState('result');
+          finalize();
         };
-        ringImg.onerror = () => {
-          setResult(canvas.toDataURL('image/jpeg', 0.9));
-          setState('result');
-        };
+        ringImg.onerror = () => finalize();
         ringImg.src = ringImage;
       } else {
-        setResult(canvas.toDataURL('image/jpeg', 0.9));
-        setState('result');
+        finalize();
       }
     };
     handImg.src = handDataUrl;
   };
 
   const savePhoto = () => {
-    if (!result) return;
+    if (!resultBlob) return;
+    const url = URL.createObjectURL(resultBlob);
     const a = document.createElement('a');
-    a.href = result;
+    a.href = url;
     a.download = `surya-jewellers-tryon-${sku}.jpg`;
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -195,8 +202,10 @@ export default function TryOnPage() {
           </button>
           <button
             onClick={() => {
+              if (result) URL.revokeObjectURL(result);
               setState('start');
               setResult(null);
+              setResultBlob(null);
               if (inputRef.current) inputRef.current.value = '';
             }}
             style={{
