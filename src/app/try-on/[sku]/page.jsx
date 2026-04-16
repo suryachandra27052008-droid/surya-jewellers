@@ -9,7 +9,6 @@ export default function TryOnPage() {
   const { sku: rawSku } = useParams();
   const router = useRouter();
   const sku = decodeURIComponent(rawSku);
-
   const [product, setProduct] = useState(null);
 
   useEffect(() => {
@@ -27,10 +26,11 @@ export default function TryOnPage() {
 
   const steps = [
     'Save the ring image above',
-    'Open Bylo.ai (button above)',
+    'Click Try On Free With AI',
     'Upload a photo of your hand',
     'Upload the saved ring image',
-    'Click Generate ✦',
+    'Type: "Place this ring on my ring finger"',
+    'Click Generate — done!',
   ];
 
   return (
@@ -42,41 +42,31 @@ export default function TryOnPage() {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      padding: '36px 20px 40px',
+      padding: '36px 20px 48px',
     }}>
       <div style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px' }}>
 
-        {/* Top label */}
         <p style={{ margin: 0, fontSize: '11px', letterSpacing: '3px', color: '#999' }}>
           SURYA JEWELLERS ✦ VIRTUAL TRY ON
         </p>
 
-        {/* Ring image */}
         {ringImage
           ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={ringImage}
               alt={ringName}
-              style={{
-                width: 150, height: 150,
-                objectFit: 'cover',
-                borderRadius: '8px',
-                border: `1px solid ${G}`,
-                marginTop: '4px',
-              }}
+              style={{ width: 150, height: 150, objectFit: 'cover', borderRadius: '8px', border: `1px solid ${G}` }}
             />
           )
           : <div style={{ width: 150, height: 150, border: `1px solid ${G}33`, borderRadius: '8px' }} />
         }
 
-        {/* Product name */}
         <p style={{ margin: 0, fontSize: '15px', textAlign: 'center', lineHeight: 1.5 }}>
           {ringName}
         </p>
 
-        {/* Buttons */}
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button
             onClick={() => ringImage && window.open(ringImage, '_blank')}
             disabled={!ringImage}
@@ -93,7 +83,7 @@ export default function TryOnPage() {
           </button>
 
           <button
-            onClick={() => window.open('https://bylo.ai/features/jewelry-ai-filter', '_blank')}
+            onClick={() => window.open('https://www.pixa.com/create/virtual-ring-try-on', '_blank')}
             style={{
               width: '100%', padding: '15px',
               background: 'transparent', color: G,
@@ -102,11 +92,10 @@ export default function TryOnPage() {
               letterSpacing: '2px', cursor: 'pointer',
             }}
           >
-            ✦ TRY ON WITH AI →
+            ✦ TRY ON FREE WITH AI →
           </button>
         </div>
 
-        {/* Steps */}
         <div style={{ width: '100%', marginTop: '8px' }}>
           {steps.map((step, i) => (
             <div
@@ -125,22 +114,22 @@ export default function TryOnPage() {
               }}>
                 {i + 1}
               </span>
-              <p style={{ margin: 0, fontSize: '12px', color: '#bbb', lineHeight: 1.6 }}>
-                {step}
-              </p>
+              <p style={{ margin: 0, fontSize: '12px', color: '#bbb', lineHeight: 1.6 }}>{step}</p>
             </div>
           ))}
         </div>
 
-        {/* Back */}
+        <p style={{ margin: '8px 0 0', fontSize: '11px', color: '#555', textAlign: 'center', letterSpacing: '0.5px' }}>
+          Powered by Pixa.com — Free, no subscription needed
+        </p>
+
         <button
           onClick={() => router.back()}
           style={{
-            marginTop: '12px',
             background: 'none', border: 'none',
             color: G, fontFamily: 'Cinzel, serif',
             fontSize: '12px', letterSpacing: '2px',
-            cursor: 'pointer', padding: '8px 0',
+            cursor: 'pointer', padding: '6px 0',
           }}
         >
           ← BACK
