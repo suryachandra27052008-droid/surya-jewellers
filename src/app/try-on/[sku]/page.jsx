@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
+// pixa.com try-on
 const G = '#c9a84c';
 
 export default function TryOnPage() {
