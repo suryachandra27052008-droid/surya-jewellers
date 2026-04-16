@@ -34,7 +34,8 @@
       "Bash(git commit:*)",
       "Bash(ls /c/Users/surya/.gemini/antigravity/scratch/surya-jewellers/sanity*)",
       "Bash(grep -n \"slug\\\\|projectId\" /c/Users/surya/.gemini/antigravity/scratch/surya-jewellers/src/lib/sanity/client.ts /c/Users/surya/.gemini/antigravity/scratch/surya-jewellers/src/app/products/[slug]/page.tsx)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(npm uninstall *)"
     ]
   }
 }

@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'motion/react';
-import { QRCodeSVG } from 'qrcode.react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
@@ -40,8 +39,6 @@ export default function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
-  const [showTryOn, setShowTryOn] = useState(false);
-  const [tryOnUrl, setTryOnUrl] = useState('');
 
   const { addItem, items } = useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
@@ -88,12 +85,6 @@ export default function ProductDetailPage() {
     fetchDynamic();
   }, [slug]);
 
-  // Build try-on URL once product + sku are known
-  useEffect(() => {
-    if (product?.sku) {
-      setTryOnUrl(`https://suryajewellers.shop/try-on/${encodeURIComponent(product.sku)}`);
-    }
-  }, [product]);
 
   if (isLoading) {
     return <div className="pt-32 pb-16 text-center text-charcoal-muted">Loading piece...</div>;
@@ -113,7 +104,6 @@ export default function ProductDetailPage() {
 
   const cartItem = items.find((i) => i._id === product._id);
   const atMaxQty = cartItem ? cartItem.quantity >= (product.stockQuantity ?? 1) : false;
-  const isRing = product.category?.toLowerCase().includes('ring');
 
   const handleAddToCart = () => {
     if (atMaxQty) return;
@@ -270,26 +260,6 @@ export default function ProductDetailPage() {
                   {atMaxQty ? '✓ In Your Bag' : addedToCart ? '✓ Added to Bag' : 'Add to Bag'}
                 </motion.button>
 
-                {/* Virtual Try-On — rings only */}
-                {isRing && (
-                  <button
-                    onClick={() => setShowTryOn(true)}
-                    style={{
-                      width: '100%',
-                      padding: '16px',
-                      marginTop: '12px',
-                      background: 'transparent',
-                      border: '1px solid #c9a84c',
-                      color: '#c9a84c',
-                      fontFamily: 'Cinzel, serif',
-                      fontSize: '14px',
-                      letterSpacing: '2px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    ✦ VIRTUAL TRY ON
-                  </button>
-                )}
 
                 {/* Trust indicators */}
                 <div className="grid grid-cols-2 gap-3 pt-2">
@@ -311,95 +281,6 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* ── QR Code Try-On Modal ─────────────────────────────────────────── */}
-      {showTryOn && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
-          onClick={() => setShowTryOn(false)}
-        >
-          <div
-            className="max-w-sm w-full rounded-lg p-8 text-center"
-            style={{ background: '#0a0a0a', border: '1px solid #c9a84c44' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div />
-              <span
-                style={{
-                  fontFamily: 'Cinzel, serif',
-                  color: '#c9a84c',
-                  fontSize: '13px',
-                  letterSpacing: '3px',
-                }}
-              >
-                ✦ VIRTUAL TRY ON
-              </span>
-              <button
-                onClick={() => setShowTryOn(false)}
-                style={{ color: '#c9a84c', background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}
-              >
-                ×
-              </button>
-            </div>
-
-            <p style={{ color: '#ffffff99', fontSize: '13px', marginBottom: '8px' }}>
-              Scan with your phone to try on
-            </p>
-            <p
-              style={{
-                color: '#fff',
-                fontFamily: 'Cormorant Garamond, Georgia, serif',
-                fontSize: '18px',
-                fontStyle: 'italic',
-                marginBottom: '24px',
-              }}
-            >
-              {product.name}
-            </p>
-
-            {/* Gold divider */}
-            <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, #c9a84c66, transparent)', marginBottom: '24px' }} />
-
-            {/* QR Code */}
-            <div
-              style={{
-                display: 'inline-flex',
-                padding: '16px',
-                background: '#fff',
-                borderRadius: '8px',
-                marginBottom: '16px',
-              }}
-            >
-              {tryOnUrl ? (
-                <QRCodeSVG
-                  value={tryOnUrl}
-                  size={200}
-                  fgColor="#0a0a0a"
-                  bgColor="#ffffff"
-                  level="M"
-                />
-              ) : (
-                <div style={{ width: 200, height: 200, background: '#f5f5f5' }} />
-              )}
-            </div>
-
-            {/* Gold divider */}
-            <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, #c9a84c66, transparent)', marginBottom: '16px' }} />
-
-            <p style={{ color: '#c9a84c66', fontSize: '11px', marginBottom: '12px', wordBreak: 'break-all' }}>
-              {tryOnUrl}
-            </p>
-
-            <a
-              href={tryOnUrl}
-              style={{ color: '#c9a84c', fontSize: '13px', textDecoration: 'none', letterSpacing: '1px' }}
-            >
-              Open on this device →
-            </a>
-          </div>
-        </div>
-      )}
     </>
   );
 }
