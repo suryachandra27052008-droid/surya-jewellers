@@ -233,36 +233,35 @@ export async function POST(request: Request) {
       let imagePath = '';
       let imageBase64 = '';
 
+      console.log(`[upload-products] extracting image${imageIndex}, BLOB token present: ${!!process.env.BLOB_READ_WRITE_TOKEN}`);
       for (const ext of ['jpeg', 'jpg', 'png']) {
         const imgFile = zip.file(`xl/media/image${imageIndex}.${ext}`);
         if (imgFile) {
           console.log(`[upload-products] found xl/media/image${imageIndex}.${ext}`);
-          const imgBuf = await imgFile.async('nodebuffer');
+
+          // Use arraybuffer — works universally in Next.js App Router
+          const imgArrayBuffer = await imgFile.async('arraybuffer');
+          const imgBuf = Buffer.from(imgArrayBuffer);
           const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
           const blobExt = ext === 'jpg' ? 'jpeg' : ext;
-          const blobName = `products/${sku || `product_${i + 1}`}.${blobExt}`;
+          const blobKey = `products/${sku || `product_${i + 1}`}.${blobExt}`;
 
-          // Upload to Vercel Blob
-          const token = process.env.BLOB_READ_WRITE_TOKEN;
-          console.log(`[upload-products] BLOB_READ_WRITE_TOKEN present: ${!!token}, length: ${token?.length ?? 0}`);
-          if (token) {
-            try {
-              console.log(`[upload-products] uploading to blob: ${blobName}, buffer size: ${imgBuf.length}`);
-              const blob = await put(blobName, imgBuf, {
-                access: 'public',
-                contentType: mime,
-                token,
-              });
-              imagePath = blob.url;
-              console.log(`[upload-products] blob upload SUCCESS: ${blob.url}`);
-            } catch (blobErr: any) {
-              console.error('[upload-products] blob upload FAILED:', blobErr?.message, blobErr?.stack);
-            }
-          } else {
-            console.log('[upload-products] BLOB_READ_WRITE_TOKEN not set — skipping blob, preview only');
+          console.log(`[upload-products] uploading to blob: key=${blobKey} size=${imgBuf.length} bytes`);
+          try {
+            // SDK reads BLOB_READ_WRITE_TOKEN from env automatically;
+            // pass token explicitly so it also works during local dev
+            const blob = await put(blobKey, imgArrayBuffer, {
+              access: 'public',
+              contentType: mime,
+              token: process.env.BLOB_READ_WRITE_TOKEN,
+            });
+            imagePath = blob.url;
+            console.log(`[upload-products] blob upload SUCCESS: ${blob.url}`);
+          } catch (blobErr: any) {
+            console.error('[upload-products] blob upload FAILED:', blobErr?.message);
           }
 
-          // Always provide base64 for the preview table in the browser
+          // Always include base64 so the browser preview table shows even if blob fails
           imageBase64 = `data:${mime};base64,${imgBuf.toString('base64')}`;
           break;
         }
