@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { client } from '@/lib/sanity/client';
+import { writeClient } from '@/lib/sanity/client';
 import ProductDetailClient, { type ProductData } from './ProductDetailClient';
 
 const buildUniqueSlug = (p: {
@@ -35,14 +35,23 @@ const PRODUCT_QUERY = `
   }
 `;
 
+// Allow dynamic rendering for products added after build (e.g. via bulk upload)
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
   try {
-    const products = await client.fetch<{ _id: string; mainStoneType?: string; category?: string; sku?: string }[]>(
+    const products = await writeClient.fetch<{ _id: string; mainStoneType?: string; category?: string; sku?: string }[]>(
       `*[_type == "product"]{ _id, mainStoneType, "category": category->name, sku }`,
       {},
       { next: { revalidate: 3600 } }
     );
-    return products.map((p) => ({ slug: buildUniqueSlug(p) }));
+    // Generate both the computed slug AND the raw SKU as valid static paths
+    const params: { slug: string }[] = [];
+    for (const p of products) {
+      params.push({ slug: buildUniqueSlug(p) });
+      if (p.sku) params.push({ slug: p.sku });
+    }
+    return params;
   } catch {
     return [];
   }
@@ -53,13 +62,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   let products: any[] = [];
   try {
-    products = await client.fetch(PRODUCT_QUERY, {}, { next: { revalidate: 300 } });
+    // Use writeClient (no CDN) so products uploaded after the last build are
+    // immediately visible without waiting for CDN cache expiry.
+    products = await writeClient.fetch(PRODUCT_QUERY, {}, { next: { revalidate: 60 } });
   } catch {
     // fall through to not-found
   }
 
+  const slugLower = slug.toLowerCase();
   const raw = products.find((p: any) => buildUniqueSlug(p) === slug)
     ?? products.find((p: any) => p.slug === slug)
+    // Direct SKU match — enables /products/RNG17288 style URLs
+    ?? products.find((p: any) => (p.sku || '').toLowerCase() === slugLower)
     ?? products.find((p: any) =>
         (p.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === slug
       );

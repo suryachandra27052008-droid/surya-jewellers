@@ -23,7 +23,7 @@ interface Order {
   paidAt: string;
 }
 
-const STATUS_OPTIONS = ['paid', 'confirmed', 'shipped', 'delivered', 'pending', 'failed'];
+const STATUS_OPTIONS = ['paid', 'confirmed', 'shipped', 'delivered', 'pending', 'failed', 'cancelled'];
 
 const STATUS_STYLES: Record<string, string> = {
   paid: 'bg-emerald-50 text-emerald-700',
@@ -32,6 +32,7 @@ const STATUS_STYLES: Record<string, string> = {
   delivered: 'bg-teal-50 text-teal-700',
   pending: 'bg-amber-50 text-amber-700',
   failed: 'bg-red-50 text-red-700',
+  cancelled: 'bg-gray-100 text-gray-500',
 };
 
 export default function OrdersPage() {
