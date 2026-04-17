@@ -48,7 +48,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center group">
             <Image
               src="/logo_sj.webp"
-              alt="Surya Jewellers"
+              alt="Surya Jewellers — 92.5 Sterling Silver Jewellery Jaipur"
               height={44}
               width={144}
               style={{ height: '44px', width: 'auto' }}
