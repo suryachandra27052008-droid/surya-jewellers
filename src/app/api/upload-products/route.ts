@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
 import JSZip from 'jszip';
+import { put } from '@vercel/blob';
 
 // App Router route handlers do NOT need bodyParser config — that is Pages Router only.
 
@@ -203,14 +201,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // ── 5. Ensure public/products/ exists ─────────────────────────────────────
-    const productsDir = join(process.cwd(), 'public', 'products');
-    if (!existsSync(productsDir)) {
-      await mkdir(productsDir, { recursive: true });
-      console.log('[upload-products] created', productsDir);
-    }
-
-    // ── 6. Extract 5 products from rows 3–7 ──────────────────────────────────
+    // ── 5. Extract 5 products from rows 3–7 ──────────────────────────────────
     const products = [];
 
     for (let i = 0; i < 5; i++) {
@@ -237,7 +228,7 @@ export async function POST(request: Request) {
       const categoryLabel = category.replace(/s$/, '');
       const name = stoneName ? `${stoneName} ${categoryLabel}` : `Silver ${categoryLabel}`;
 
-      // ── 7. Extract embedded image ─────────────────────────────────────────
+      // ── 7. Extract embedded image and upload to Vercel Blob ──────────────
       const imageIndex = i + 1; // image1 → row 3, image2 → row 4 …
       let imagePath = '';
       let imageBase64 = '';
@@ -247,16 +238,33 @@ export async function POST(request: Request) {
         if (imgFile) {
           console.log(`[upload-products] found xl/media/image${imageIndex}.${ext}`);
           const imgBuf = await imgFile.async('nodebuffer');
-          const filename = `${sku || `product_${i + 1}`}.${ext === 'jpg' ? 'jpeg' : ext}`;
-          await writeFile(join(productsDir, filename), imgBuf);
-          imagePath = `/products/${filename}`;
           const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
+          const blobExt = ext === 'jpg' ? 'jpeg' : ext;
+          const blobName = `products/${sku || `product_${i + 1}`}.${blobExt}`;
+
+          // Upload to Vercel Blob (falls back to base64 if token not configured)
+          if (process.env.BLOB_READ_WRITE_TOKEN) {
+            try {
+              const blob = await put(blobName, imgBuf, {
+                access: 'public',
+                contentType: mime,
+              });
+              imagePath = blob.url;
+              console.log(`[upload-products] blob url:`, blob.url);
+            } catch (blobErr: any) {
+              console.error('[upload-products] blob upload failed:', blobErr?.message);
+            }
+          } else {
+            console.log('[upload-products] BLOB_READ_WRITE_TOKEN not set, using base64 preview only');
+          }
+
+          // Always provide base64 for the preview table in the browser
           imageBase64 = `data:${mime};base64,${imgBuf.toString('base64')}`;
           break;
         }
       }
 
-      if (!imagePath) {
+      if (!imagePath && !imageBase64) {
         console.log(`[upload-products] no image found for image${imageIndex} (row ${rowNum})`);
       }
 
