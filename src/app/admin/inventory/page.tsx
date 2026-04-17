@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   PlusCircle,
@@ -11,6 +11,9 @@ import {
   ChevronRight,
   Filter,
   ArrowUpDown,
+  Upload,
+  CheckCircle,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 interface Product {
@@ -25,11 +28,92 @@ interface Product {
   emoji: string;
 }
 
+interface ParsedProduct {
+  index: number;
+  sku: string;
+  category: string;
+  stoneName: string;
+  silverWeight: number;
+  diamondWeight: number;
+  price: number;
+  name: string;
+  imagePath: string;
+  imageBase64: string;
+}
+
 
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
+
+  // Bulk upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [bulkFile, setBulkFile] = useState<File | null>(null);
+  const [bulkParsing, setBulkParsing] = useState(false);
+  const [bulkProducts, setBulkProducts] = useState<ParsedProduct[]>([]);
+  const [bulkConfirming, setBulkConfirming] = useState(false);
+  const [bulkSuccess, setBulkSuccess] = useState(false);
+  const [bulkError, setBulkError] = useState<string | null>(null);
+
+  const handleBulkParse = async () => {
+    if (!bulkFile) return;
+    setBulkParsing(true);
+    setBulkError(null);
+    setBulkProducts([]);
+    setBulkSuccess(false);
+    try {
+      const formData = new FormData();
+      formData.append('file', bulkFile);
+      const res = await fetch('/api/upload-products', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Parse failed');
+      setBulkProducts(data.products);
+    } catch (err: any) {
+      setBulkError(err.message || 'Failed to parse Excel file');
+    } finally {
+      setBulkParsing(false);
+    }
+  };
+
+  const handleBulkConfirm = async () => {
+    setBulkConfirming(true);
+    setBulkError(null);
+    try {
+      const res = await fetch('/api/admin/products/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products: bulkProducts }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      setBulkSuccess(true);
+      setBulkProducts([]);
+      setBulkFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      // Refresh product list
+      const productsRes = await fetch('/api/admin/products');
+      if (productsRes.ok) {
+        const pData = await productsRes.json();
+        const mapped = pData.products.map((p: any) => ({
+          _id: p._id,
+          name: p.name,
+          sku: p.sku,
+          price: p.price,
+          category: p.category,
+          mainStoneType: p.mainStoneType || 'None',
+          silverWeight: p.silverWeight || 0,
+          status: p.inStock ? 'In Stock' : 'Sold Out',
+          emoji: '🆕',
+        }));
+        setProducts(mapped.reverse());
+      }
+    } catch (err: any) {
+      setBulkError(err.message || 'Failed to upload products');
+    } finally {
+      setBulkConfirming(false);
+    }
+  };
   
   useEffect(() => {
     async function loadProducts() {
@@ -145,6 +229,132 @@ export default function InventoryPage() {
           <PlusCircle className="w-4 h-4" />
           Add Product
         </Link>
+      </div>
+
+      {/* Bulk Upload via Excel */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <FileSpreadsheet className="w-5 h-5 text-amber-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Bulk Upload via Excel</h2>
+          <span className="text-xs text-gray-400 ml-1">(first 5 products)</span>
+        </div>
+
+        {bulkSuccess ? (
+          <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+            <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+            <p className="text-sm font-medium text-emerald-700">
+              5 products uploaded successfully! Inventory list refreshed.
+            </p>
+            <button
+              onClick={() => setBulkSuccess(false)}
+              className="ml-auto text-xs text-emerald-600 hover:underline"
+            >
+              Upload more
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx"
+                className="hidden"
+                onChange={(e) => {
+                  setBulkFile(e.target.files?.[0] || null);
+                  setBulkProducts([]);
+                  setBulkError(null);
+                }}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 bg-gray-50 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                {bulkFile ? bulkFile.name : 'Choose .xlsx file'}
+              </button>
+
+              <button
+                onClick={handleBulkParse}
+                disabled={!bulkFile || bulkParsing}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {bulkParsing ? 'Parsing...' : 'Parse Excel'}
+              </button>
+            </div>
+
+            {bulkError && (
+              <p className="mt-3 text-sm text-red-600 bg-red-50 rounded-lg px-4 py-2 border border-red-100">
+                {bulkError}
+              </p>
+            )}
+
+            {bulkProducts.length > 0 && (
+              <div className="mt-5">
+                <p className="text-sm font-medium text-gray-700 mb-3">
+                  Preview — {bulkProducts.length} products found
+                </p>
+                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider">
+                      <tr>
+                        <th className="px-4 py-2.5 text-left font-medium">Image</th>
+                        <th className="px-4 py-2.5 text-left font-medium">SKU</th>
+                        <th className="px-4 py-2.5 text-left font-medium">Name</th>
+                        <th className="px-4 py-2.5 text-left font-medium">Stone</th>
+                        <th className="px-4 py-2.5 text-left font-medium">Category</th>
+                        <th className="px-4 py-2.5 text-left font-medium">Price (₹)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {bulkProducts.map((p) => (
+                        <tr key={p.index} className="bg-white">
+                          <td className="px-4 py-2.5">
+                            {p.imageBase64 ? (
+                              <img
+                                src={p.imageBase64}
+                                alt={p.name}
+                                className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs border border-gray-200">
+                                No img
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-2.5 font-mono text-gray-600">{p.sku || '—'}</td>
+                          <td className="px-4 py-2.5 font-medium text-gray-900">{p.name}</td>
+                          <td className="px-4 py-2.5 text-gray-600">{p.stoneName || '—'}</td>
+                          <td className="px-4 py-2.5 text-gray-600">{p.category}</td>
+                          <td className="px-4 py-2.5 font-semibold text-gray-900">
+                            {p.price ? `₹${p.price.toLocaleString('en-IN')}` : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mt-4 flex items-center gap-3">
+                  <button
+                    onClick={handleBulkConfirm}
+                    disabled={bulkConfirming}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    {bulkConfirming ? 'Uploading to Sanity...' : 'Confirm Upload'}
+                  </button>
+                  <button
+                    onClick={() => { setBulkProducts([]); setBulkFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                    className="px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Toolbar */}
