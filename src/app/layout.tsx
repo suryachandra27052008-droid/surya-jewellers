@@ -121,6 +121,22 @@ const websiteSchema = {
   },
 };
 
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Surya Jewellers',
+  url: 'https://suryajewellers.shop',
+  logo: 'https://suryajewellers.shop/logo_sj.png',
+  sameAs: [],
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: '+91-99839-39306',
+    contactType: 'customer service',
+    areaServed: 'IN',
+    availableLanguage: ['English', 'Hindi'],
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -137,6 +153,10 @@ export default function RootLayout({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
           />
           <LayoutShell>{children}</LayoutShell>
           <Script

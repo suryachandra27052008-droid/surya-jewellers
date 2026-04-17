@@ -97,7 +97,7 @@ export default function ProductDetailClient({ product }: { product: ProductData 
                 {product.images && product.images.length > 0 ? (
                   <Image
                     src={product.images[selectedImageIndex]}
-                    alt={product.name || product.category}
+                    alt={`${product.mainStoneType !== 'None' ? product.mainStoneType + ' ' : ''}${product.name} in 92.5 Sterling Silver — Surya Jewellers Jaipur`}
                     fill
                     className="object-cover transition-transform duration-700 hover:scale-105"
                     sizes="(max-width: 768px) 100vw, 50vw"
@@ -135,7 +135,7 @@ export default function ProductDetailClient({ product }: { product: ProductData 
                     >
                       <Image
                         src={img}
-                        alt={`${product.name || product.category} view ${i + 1}`}
+                        alt={`${product.name} view ${i + 1} — ${product.category} in 92.5 Sterling Silver`}
                         fill
                         className="object-cover"
                         sizes="80px"
