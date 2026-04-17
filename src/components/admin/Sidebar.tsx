@@ -13,6 +13,7 @@ import {
   ShoppingBag,
   Menu,
   X,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -36,6 +37,11 @@ const navItems = [
     label: 'Add Product',
     href: '/admin/add-product',
     icon: PlusCircle,
+  },
+  {
+    label: 'Bulk Upload',
+    href: '/admin/bulk-upload',
+    icon: FileSpreadsheet,
   },
   {
     label: 'Analytics',
