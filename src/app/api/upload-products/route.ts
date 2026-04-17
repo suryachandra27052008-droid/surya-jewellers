@@ -242,20 +242,24 @@ export async function POST(request: Request) {
           const blobExt = ext === 'jpg' ? 'jpeg' : ext;
           const blobName = `products/${sku || `product_${i + 1}`}.${blobExt}`;
 
-          // Upload to Vercel Blob (falls back to base64 if token not configured)
-          if (process.env.BLOB_READ_WRITE_TOKEN) {
+          // Upload to Vercel Blob
+          const token = process.env.BLOB_READ_WRITE_TOKEN;
+          console.log(`[upload-products] BLOB_READ_WRITE_TOKEN present: ${!!token}, length: ${token?.length ?? 0}`);
+          if (token) {
             try {
+              console.log(`[upload-products] uploading to blob: ${blobName}, buffer size: ${imgBuf.length}`);
               const blob = await put(blobName, imgBuf, {
                 access: 'public',
                 contentType: mime,
+                token,
               });
               imagePath = blob.url;
-              console.log(`[upload-products] blob url:`, blob.url);
+              console.log(`[upload-products] blob upload SUCCESS: ${blob.url}`);
             } catch (blobErr: any) {
-              console.error('[upload-products] blob upload failed:', blobErr?.message);
+              console.error('[upload-products] blob upload FAILED:', blobErr?.message, blobErr?.stack);
             }
           } else {
-            console.log('[upload-products] BLOB_READ_WRITE_TOKEN not set, using base64 preview only');
+            console.log('[upload-products] BLOB_READ_WRITE_TOKEN not set — skipping blob, preview only');
           }
 
           // Always provide base64 for the preview table in the browser
