@@ -46,6 +46,9 @@ export const metadata: Metadata = {
     google: "-6zyoc8a4UjXayuNcv5Ij90FqUG8S8s9oGdd6W7gc3E",
   },
   metadataBase: new URL("https://suryajewellers.shop"),
+  alternates: {
+    canonical: "https://suryajewellers.shop",
+  },
   openGraph: {
     title: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",
     description:
@@ -64,6 +67,60 @@ export const metadata: Metadata = {
   },
 };
 
+const localBusinessSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'JewelryStore',
+  name: 'Surya Jewellers',
+  url: 'https://suryajewellers.shop',
+  logo: 'https://suryajewellers.shop/logo_sj.png',
+  image: 'https://suryajewellers.shop/logo_sj.png',
+  description:
+    'Handcrafted 92.5 sterling silver jewellery with certified natural gemstones. Family-owned since 2003, based in Jaipur.',
+  telephone: '+91-99839-39306',
+  email: 'suryajewellersjaipur@gmail.com',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'B-169 Anandpuri, Moti Doongri Rd, near Naila House',
+    addressLocality: 'Jaipur',
+    addressRegion: 'Rajasthan',
+    postalCode: '302004',
+    addressCountry: 'IN',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: 26.904809860527966,
+    longitude: 75.82120473955301,
+  },
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      opens: '10:00',
+      closes: '20:00',
+    },
+  ],
+  priceRange: '₹₹',
+  currenciesAccepted: 'INR',
+  paymentAccepted: 'Cash, Credit Card, UPI, Debit Card',
+  founder: [
+    { '@type': 'Person', name: 'Sanjay Chandra' },
+    { '@type': 'Person', name: 'Pooja Chandra' },
+  ],
+  foundingDate: '2003',
+};
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Surya Jewellers',
+  url: 'https://suryajewellers.shop',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: 'https://suryajewellers.shop/products?q={search_term_string}',
+    'query-input': 'required name=search_term_string',
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -73,6 +130,14 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
         <body className="min-h-screen flex flex-col antialiased">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+          />
           <LayoutShell>{children}</LayoutShell>
           <Script
             src="https://widget.kalcend.ai/widget.js"

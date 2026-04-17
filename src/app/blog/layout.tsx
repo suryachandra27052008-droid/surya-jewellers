@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     'natural diamond guide',
     'Jaipur jewellery blog',
   ],
+  alternates: {
+    canonical: 'https://suryajewellers.shop/blog',
+  },
   openGraph: {
     title: 'The Journal | Surya Jewellers',
     description:

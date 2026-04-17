@@ -15,6 +15,8 @@ export interface BlogPost {
   readTime: string;
   date: string;
   pinned?: boolean;
+  author: string;
+  authorRole: string;
   content: Section[];
 }
 
@@ -24,6 +26,8 @@ export const posts: BlogPost[] = [
     category: 'Size Guide',
     title: 'Ring & Bracelet Size Guide',
     subtitle: 'Find your perfect fit — Indian and US ring sizes, bracelet sizing, and a simple at-home measuring guide',
+    author: 'Pooja Chandra',
+    authorRole: 'Co-Founder, Surya Jewellers',
     excerpt:
       'Not sure of your ring size? Use our complete size chart covering Indian sizes, US equivalents, and inner diameter in mm — plus a simple paper-strip method you can do at home in two minutes.',
     readTime: '3 min read',
@@ -121,6 +125,8 @@ export const posts: BlogPost[] = [
     category: 'Care & Maintenance',
     title: 'How to Care for 92.5 Sterling Silver Jewellery',
     subtitle: 'A complete guide to keeping your silver pieces radiant for a lifetime',
+    author: 'Sanjay Chandra',
+    authorRole: 'Founder & Master Craftsman, Surya Jewellers',
     excerpt:
       'Sterling silver is a living metal — it breathes, reacts, and over time tells the story of the hands that wore it. With the right care, your 92.5 silver pieces will only grow more beautiful.',
     readTime: '5 min read',
@@ -211,6 +217,8 @@ export const posts: BlogPost[] = [
     category: 'Education',
     title: 'A Guide to Natural Gemstones — Diamonds, Rubies, Emeralds & Sapphires',
     subtitle: 'Understanding the stones that make fine jewellery truly precious',
+    author: 'Sanjay Chandra',
+    authorRole: 'Founder & Master Craftsman, Surya Jewellers',
     excerpt:
       'Every gemstone carries within it millions of years of the Earth\'s history. Before you choose a piece of jewellery, know the stone it holds — its character, its rarity, and what makes it worth treasuring.',
     readTime: '7 min read',
@@ -317,6 +325,8 @@ export const posts: BlogPost[] = [
     category: 'Our Story',
     title: 'Behind the Scenes: Our Jaipur Workshop & the One Piece, One Design Philosophy',
     subtitle: 'A journey into the studio where each piece of Surya Jewellery is born',
+    author: 'Sanjay Chandra',
+    authorRole: 'Founder & Master Craftsman, Surya Jewellers',
     excerpt:
       'Step into our workshop on the edge of Jaipur\'s old city, where morning light falls across workbenches worn smooth by decades of craft, and where 90% of what we create exists as a single piece — never to be replicated.',
     readTime: '6 min read',
@@ -406,6 +416,8 @@ export const posts: BlogPost[] = [
     category: 'Style Guide',
     title: 'How to Style Silver Jewellery for Every Occasion',
     subtitle: 'From morning meetings to moonlit evenings — silver for every moment',
+    author: 'Pooja Chandra',
+    authorRole: 'Co-Founder, Surya Jewellers',
     excerpt:
       'Silver is the most versatile metal in a woman\'s jewellery wardrobe. Its cool, bright tone works with more colours, fabrics, and occasions than any other metal. The question is not whether to wear silver — it is how.',
     readTime: '5 min read',

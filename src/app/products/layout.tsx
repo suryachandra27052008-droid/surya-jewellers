@@ -13,6 +13,9 @@ export const metadata: Metadata = {
     'handcrafted jewellery Jaipur',
     'one of a kind jewellery',
   ],
+  alternates: {
+    canonical: 'https://suryajewellers.shop/products',
+  },
   openGraph: {
     title: 'Collections | Surya Jewellers — 92.5 Sterling Silver',
     description:
