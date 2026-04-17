@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     'handcrafted silver jewellery Jaipur',
     'certified silver jewellery',
   ],
+  alternates: {
+    canonical: 'https://suryajewellers.shop/about',
+  },
   openGraph: {
     title: 'About Surya Jewellers | Est. 2003, Jaipur',
     description:

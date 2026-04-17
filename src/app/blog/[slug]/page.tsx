@@ -56,6 +56,17 @@ export default function BlogPostPage() {
             <span className="text-white/20 text-xs">{post.date}</span>
           </div>
 
+          {/* Author byline */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <span className="w-6 h-6 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center text-xs text-gold font-semibold">
+              {post.author.charAt(0)}
+            </span>
+            <div className="text-left">
+              <span className="text-white/70 text-xs font-medium">{post.author}</span>
+              <span className="text-white/30 text-xs"> · {post.authorRole}</span>
+            </div>
+          </div>
+
           {/* Title */}
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-white leading-tight mb-5">
             {post.title}

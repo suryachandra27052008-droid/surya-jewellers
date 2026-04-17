@@ -24,7 +24,7 @@ const storeDetails = [
       </svg>
     ),
     label: 'Phone',
-    value: '+91 99839 39306\n9358842102',
+    value: '+91 99839 39306',
     link: 'tel:+919983939306',
     linkLabel: 'Call Now',
   },
