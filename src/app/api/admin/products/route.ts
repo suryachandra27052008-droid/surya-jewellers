@@ -29,6 +29,7 @@ export async function GET() {
         totalCaratWeight,
         diamondColorClarity,
         secondaryStoneType,
+        csWeight,
         barcode,
         "images": images[].asset->url,
         description,

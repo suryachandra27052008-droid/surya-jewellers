@@ -29,6 +29,7 @@ const PRODUCT_QUERY = `
     totalCaratWeight,
     diamondColorClarity,
     secondaryStoneType,
+    csWeight,
     barcode,
     "images": images[].asset->url,
     description,
@@ -108,6 +109,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     stockQuantity: raw.stockQuantity ?? 1,
     images: raw.images || [],
     secondaryStoneType: raw.secondaryStoneType || '',
+    csWeight: raw.csWeight || 0,
     barcode: raw.barcode || '',
   };
 

@@ -60,6 +60,7 @@ export interface ProductData {
   totalCaratWeight: number;
   diamondColorClarity: string;
   secondaryStoneType?: string;
+  csWeight?: number;
   barcode?: string;
   description: string;
   inStock: boolean;
@@ -118,7 +119,10 @@ export default function ProductDetailClient({
       ? [{ label: 'Secondary Stone', value: product.secondaryStoneType }]
       : []),
     ...(product.totalCaratWeight > 0
-      ? [{ label: 'Total Carat Weight', value: `${product.totalCaratWeight} ct` }]
+      ? [{ label: 'Diamond Weight', value: `${product.totalCaratWeight} ct` }]
+      : []),
+    ...(product.csWeight && product.csWeight > 0
+      ? [{ label: 'Colored Stone Wt (ct)', value: `${product.csWeight} ct` }]
       : []),
     ...(product.diamondColorClarity
       ? [{ label: 'Color & Clarity', value: product.diamondColorClarity }]

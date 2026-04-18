@@ -25,8 +25,8 @@ interface BulkProduct {
   sku: string;
   barcode?: string;
   category: string;
-  stones?: string[];    // all stones: ["Coral", "Emrald", "Ruby"]
-  stoneName: string;    // first stone (backward compat)
+  stones?: string[];
+  stoneName: string;
   secondaryStone?: string;
   silverWeight: number;
   diamondWeight: number;
@@ -148,6 +148,7 @@ export async function POST(request: Request) {
             ? product.stones.slice(1).join(', ')
             : (product.secondaryStone || undefined),
           barcode: product.barcode || undefined,
+          csWeight: product.csWeight || undefined,
           totalCaratWeight: product.diamondWeight || undefined,
           images: uploadedImages,
           description: '',

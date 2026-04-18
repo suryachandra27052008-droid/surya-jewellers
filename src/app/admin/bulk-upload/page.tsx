@@ -38,6 +38,8 @@ interface CellDebug {
 interface DebugInfo {
   sharedStringsTotal: number;
   first30SharedStrings: string[];
+  detectedHeaderRow: number;
+  detectedColumns: Record<string, string>;
   row1Cells: CellDebug[];
   row2Cells: CellDebug[];
   row3Cells: CellDebug[];
@@ -238,10 +240,24 @@ export default function BulkUploadPage() {
             <span>🔍</span>
             <span>Parser Debug Info — click to expand</span>
             <span className="ml-auto text-gray-500 text-xs">
-              {debugInfo.sharedStringsTotal} shared strings · {debugInfo.row2Cells.length} cells in row 2
+              {debugInfo.sharedStringsTotal} shared strings · header row {debugInfo.detectedHeaderRow} · {debugInfo.row2Cells.length} cells in row 2
             </span>
           </summary>
           <div className="px-5 pb-5 space-y-4 font-mono text-xs text-gray-300">
+            {/* Detected columns */}
+            <div>
+              <p className="text-yellow-400 mb-1 mt-3">Auto-detected column mapping (header row {debugInfo.detectedHeaderRow}):</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(debugInfo.detectedColumns).map(([field, letter]) => (
+                  <span key={field} className="px-2 py-0.5 rounded bg-gray-800 border border-gray-600">
+                    <span className="text-cyan-400">{letter}</span>
+                    <span className="text-gray-500 mx-1">→</span>
+                    <span className="text-green-400">{field}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+
             {/* Shared strings */}
             <div>
               <p className="text-yellow-400 mb-1 mt-3">sharedStrings[0..29] — SKU/stone values are looked up here by index:</p>
