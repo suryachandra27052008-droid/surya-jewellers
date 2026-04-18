@@ -313,13 +313,22 @@ export async function POST(request: Request) {
       // Category: first shared-string cell in the row (col B)
       const rawCategory = (ssInRow[0] ?? col(sheet, rowNum, colMap.category)).trim();
 
-      // SKU: find the shared-string in this row that matches the SKU format
-      // (2-5 uppercase letters + 4-8 digits, e.g. EAR08923, PND11208, RNG17288).
-      // This is immune to column shifts and to "SILVER" or metal cells being
-      // picked up instead of the actual SKU.
+      // SKU: two-pass search so we handle both cases:
+      //  Pass 1 — cell has t="s": ssInRow already has the resolved string
+      //  Pass 2 — cell lacks t="s" (image shift): rawVal is a numeric ss index;
+      //           scan all cells in the row, treat small integers as ss indices
       const SKU_PATTERN = /^[A-Z]{2,5}\d{4,8}$/i;
-      const sku = ssInRow.find(s => SKU_PATTERN.test(s.trim()))?.trim()
-                ?? col(sheet, rowNum, colMap.sku).trim();
+      let sku = ssInRow.find(s => SKU_PATTERN.test(s.trim()))?.trim() ?? '';
+      if (!sku) {
+        for (const cellValue of (sheet.get(rowNum)?.values() ?? [])) {
+          if (sku) break;
+          if (/^\d+$/.test(cellValue)) {
+            const candidate = (ss[parseInt(cellValue, 10)] ?? '').trim();
+            if (SKU_PATTERN.test(candidate)) sku = candidate;
+          }
+        }
+      }
+      sku = sku || '--';
 
       // Stones: first shared-string that is not the category, not a SKU, and
       // not a metal name (SILVER / GOLD etc.)
@@ -329,16 +338,24 @@ export async function POST(request: Request) {
         return t && t !== rawCategory && !SKU_PATTERN.test(t) && !METAL_RE.test(t);
       })?.trim() ?? col(sheet, rowNum, colMap.stoneName).trim();
 
-      // Numeric fields — gross/silver/price use shift-fallback (may be 1 col left of header).
-      // diamondWeight and csWeight use DIRECT lookup only: when Excel omits a zero-value cell
-      // the fallback would bleed into the adjacent column and return a wrong non-zero value.
-      const grossWeight   = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.grossWeight))  || 0;
-      const silverWeight  = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.silverWeight)) || 0;
-      const price         = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.price))        || 0;
-      const diaWt  = parseFloat(col(sheet, rowNum, colMap.diamondWeight) || '0');
-      const diamondWeight = diaWt > 0 ? diaWt : 0;
-      const csWt   = parseFloat(col(sheet, rowNum, colMap.csWeight) || '0');
-      const csWeight      = csWt > 0 ? csWt : 0;
+      // Numeric fields
+      const grossWeight  = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.grossWeight))  || 0;
+      const silverWeight = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.silverWeight)) || 0;
+      const price        = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.price))        || 0;
+
+      // Diamond & CS weight — use colWithShiftFallback for each.
+      // Then apply semantic validation: if the row has no diamond stones but the
+      // diamond-weight column has a non-zero value, that value is actually CS weight
+      // (column shift in data rows where embedded image pushes cells left).
+      const rawDiaWt = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.diamondWeight) || '0');
+      const rawCsWt  = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.csWeight) || '0');
+      const stones = parseStones(rawStones);
+      const hasDiamond = stones.some(s => /diamond/i.test(s));
+      // If diamond col has a value but item has no diamond stones, treat it as CS weight
+      const diamondWeight = hasDiamond ? (rawDiaWt > 0 ? rawDiaWt : 0) : 0;
+      const csWeight = rawCsWt > 0
+        ? rawCsWt
+        : (!hasDiamond && rawDiaWt > 0 ? rawDiaWt : 0);
 
       // Barcode may be string or numeric
       const barcode = col(sheet, rowNum, colMap.barcode).trim()
@@ -352,9 +369,9 @@ export async function POST(request: Request) {
         ` ssInRow=${JSON.stringify(ssInRow.slice(0, 5))} ssIdx=${JSON.stringify(ssIdxInRow.slice(0, 5))}`
       );
 
-      const category   = normaliseCategory(rawCategory);
-      const stones     = parseStones(rawStones);
-      const stoneName  = stones[0] || '';
+      const category  = normaliseCategory(rawCategory);
+      // stones already computed above for diamond/CS semantic check
+      const stoneName = stones[0] || '';
       const catLabel   = category.replace(/s$/, '');
       const stoneLabel = stones.slice(0, 2).join(' ');
       const name       = stoneLabel ? `${stoneLabel} ${catLabel}` : `Silver ${catLabel}`;

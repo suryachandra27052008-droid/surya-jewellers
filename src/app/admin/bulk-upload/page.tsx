@@ -415,11 +415,16 @@ export default function BulkUploadPage() {
                     <td className="px-4 py-3 max-w-[180px]">
                       <span className="text-sm font-medium text-gray-900">{p.name}</span>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {[
-                          p.silverWeight > 0 ? `${p.silverWeight}g silver` : '',
-                          p.diamondWeight > 0 ? `${p.diamondWeight}ct diamond` : '',
-                          p.csWeight > 0 ? `${p.csWeight}ct colored stones` : '',
-                        ].filter(Boolean).join(' · ')}
+                        {(() => {
+                          const silverWt = parseFloat(String(p.silverWeight || 0));
+                          const diaWt = parseFloat(String(p.diamondWeight || 0));
+                          const csWt = parseFloat(String(p.csWeight || 0));
+                          const parts: string[] = [];
+                          if (silverWt > 0) parts.push(`${silverWt}g silver`);
+                          if (diaWt > 0) parts.push(`${diaWt}ct diamond`);
+                          if (csWt > 0) parts.push(`${csWt}ct colored stones`);
+                          return parts.join(' · ') || '—';
+                        })()}
                       </p>
                     </td>
                     <td className="px-4 py-3">
