@@ -101,7 +101,7 @@ export default function BulkUploadPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Bulk Upload</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Import products from your Excel sheet — processes the first 5 data rows with embedded images
+          Import products from your Excel sheet — processes up to 10 data rows with embedded images
         </p>
       </div>
 
@@ -163,7 +163,7 @@ export default function BulkUploadPage() {
             {parsing ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Processing…
+                Processing up to 10 products…
               </>
             ) : (
               <>
@@ -198,7 +198,7 @@ export default function BulkUploadPage() {
               <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">O</span> Price (₹)</span>
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              Row 1 = header. Row 2 = first product (image1.jpeg), row 3 = second (image2.jpeg), etc.
+              Row 1 = header. Row 2 = first product (image1.jpeg), row 3 = second (image2.jpeg), etc. Up to 10 products processed.
             </p>
           </div>
         )}
