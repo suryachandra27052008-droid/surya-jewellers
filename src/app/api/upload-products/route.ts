@@ -213,20 +213,25 @@ export async function POST(request: Request) {
         continue;
       }
 
-      // Column mapping (0-based): B=1, D=3, M=12, R=17, AD=29, AI=34
-      const rawCategory   = cell(sheet, rowNum, 1).trim();   // B
-      const sku           = cell(sheet, rowNum, 3).trim();   // D
-      const silverWeight  = parseFloat(cell(sheet, rowNum, 12)) || 0; // M
-      const diamondWeight = parseFloat(cell(sheet, rowNum, 17)) || 0; // R
-      const rawStone      = cell(sheet, rowNum, 29).trim();  // AD
-      const price         = parseFloat(cell(sheet, rowNum, 34)) || 0; // AI
+      // Column mapping (0-based): B=1, D=3, M=12, R=17, AA=26, AB=27, AD=29, AH=33, AI=34, AJ=35
+      const rawCategory    = cell(sheet, rowNum, 1).trim();   // B (sharedString)
+      const sku            = cell(sheet, rowNum, 3).trim();   // D (sharedString)
+      const silverWeight   = parseFloat(cell(sheet, rowNum, 12)) || 0; // M
+      const diamondWeight  = parseFloat(cell(sheet, rowNum, 17)) || 0; // R
+      const csWeight       = parseFloat(cell(sheet, rowNum, 26)) || 0; // AA
+      const rawSecondary   = cell(sheet, rowNum, 27).trim();  // AB (sharedString - colored stone name)
+      const rawStone       = cell(sheet, rowNum, 29).trim();  // AD (sharedString - main stone)
+      const barcode        = cell(sheet, rowNum, 33).trim();  // AH
+      const price          = parseFloat(cell(sheet, rowNum, 34)) || 0; // AI
+      const totalRS        = parseFloat(cell(sheet, rowNum, 35)) || 0; // AJ (MRP)
 
-      console.log(`[upload-products] row ${rowNum}: sku="${sku}" cat="${rawCategory}" stone="${rawStone}" price=${price}`);
+      console.log(`[upload-products] row ${rowNum}: sku="${sku}" cat="${rawCategory}" stone="${rawStone}" secondary="${rawSecondary}" barcode="${barcode}" price=${price} totalRS=${totalRS} csWeight=${csWeight}`);
 
       const category = CATEGORY_MAP[rawCategory] || rawCategory || 'Rings';
       const stoneName = titleCase(rawStone);
+      const secondaryStone = titleCase(rawSecondary);
       const categoryLabel = category.replace(/s$/, '');
-      const name = stoneName ? `${stoneName} ${categoryLabel}` : `Silver ${categoryLabel}`;
+      const name = stoneName ? `${stoneName} ${categoryLabel}` : (secondaryStone ? `${secondaryStone} ${categoryLabel}` : `Silver ${categoryLabel}`);
 
       // ── 7. Extract embedded image and upload to Vercel Blob ──────────────
       const imageIndex = i + 1; // image1 → row 3, image2 → row 4 …
@@ -271,7 +276,7 @@ export async function POST(request: Request) {
         console.log(`[upload-products] no image found for image${imageIndex} (row ${rowNum})`);
       }
 
-      products.push({ index: i, sku, category, stoneName, silverWeight, diamondWeight, price, name, imagePath, imageBase64 });
+      products.push({ index: i, sku, category, stoneName, secondaryStone, silverWeight, diamondWeight, csWeight, price, totalRS, barcode, name, imagePath, imageBase64 });
     }
 
     console.log(`[upload-products] returning ${products.length} products`);

@@ -25,9 +25,11 @@ interface BulkProduct {
   sku: string;
   category: string;
   stoneName: string;
+  secondaryStone?: string;
   silverWeight: number;
   diamondWeight: number;
   price: number;
+  barcode?: string;
   name: string;
   imagePath: string;   // Vercel Blob URL (or empty)
   imageBase64: string; // data:image/jpeg;base64,... — always present for Sanity upload
@@ -139,6 +141,8 @@ export async function POST(request: Request) {
           category: { _type: 'reference', _ref: category._id },
           silverWeight: product.silverWeight,
           mainStoneType: mapStoneType(product.stoneName),
+          secondaryStoneType: mapStoneType(product.secondaryStone || '') || (product.secondaryStone ? product.secondaryStone : undefined),
+          barcode: product.barcode || undefined,
           totalCaratWeight: product.diamondWeight || undefined,
           images: uploadedImages,
           description: '',

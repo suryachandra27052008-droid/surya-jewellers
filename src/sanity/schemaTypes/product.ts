@@ -73,6 +73,17 @@ export const product = defineType({
       description: 'e.g., G/VS1, F/VVS2',
     }),
     defineField({
+      name: 'secondaryStoneType',
+      title: 'Secondary Stone Type',
+      type: 'string',
+      description: 'e.g., Yellow Sapphire, Coral',
+    }),
+    defineField({
+      name: 'barcode',
+      title: 'Barcode',
+      type: 'string',
+    }),
+    defineField({
       name: 'images',
       title: 'Product Images',
       type: 'array',
