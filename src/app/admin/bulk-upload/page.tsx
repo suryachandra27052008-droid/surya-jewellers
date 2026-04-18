@@ -416,9 +416,9 @@ export default function BulkUploadPage() {
                       <span className="text-sm font-medium text-gray-900">{p.name}</span>
                       <p className="text-xs text-gray-400 mt-0.5">
                         {[
-                          p.silverWeight ? `${p.silverWeight}g silver` : '',
-                          p.diamondWeight ? `${p.diamondWeight}ct diamond` : '',
-                          p.csWeight ? `${p.csWeight}ct colored stones` : '',
+                          p.silverWeight > 0 ? `${p.silverWeight}g silver` : '',
+                          p.diamondWeight > 0 ? `${p.diamondWeight}ct diamond` : '',
+                          p.csWeight > 0 ? `${p.csWeight}ct colored stones` : '',
                         ].filter(Boolean).join(' · ')}
                       </p>
                     </td>
