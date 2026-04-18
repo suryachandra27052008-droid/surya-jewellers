@@ -417,12 +417,12 @@ export default function BulkUploadPage() {
                       <p className="text-xs text-gray-400 mt-0.5">
                         {(() => {
                           const silverWt = parseFloat(String(p.silverWeight || 0));
-                          const diaWt = parseFloat(String(p.diamondWeight || 0));
-                          const csWt = parseFloat(String(p.csWeight || 0));
+                          const diaWt    = parseFloat(String(p.diamondWeight || 0));
+                          const csWt     = parseFloat(String(p.csWeight || 0));
                           const parts: string[] = [];
-                          if (silverWt > 0) parts.push(`${silverWt}g silver`);
-                          if (diaWt > 0) parts.push(`${diaWt}ct diamond`);
-                          if (csWt > 0) parts.push(`${csWt}ct colored stones`);
+                          if (silverWt > 0) parts.push(silverWt + 'g silver');
+                          if (diaWt    > 0) parts.push(diaWt    + 'ct diamond');
+                          if (csWt     > 0) parts.push(csWt     + 'ct colored stones');
                           return parts.join(' · ') || '—';
                         })()}
                       </p>

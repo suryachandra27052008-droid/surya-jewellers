@@ -148,13 +148,13 @@ const HEADER_PATTERNS: { field: string; re: RegExp }[] = [
 const FALLBACK_COLS: Record<string, string> = {
   category:     'B',
   sku:          'D',
-  grossWeight:  'H',
-  silverWeight: 'M',
-  diamondWeight:'R',
-  csWeight:     'AA',
-  stoneName:    'AD',
-  barcode:      'AI',
-  price:        'AJ',
+  grossWeight:  'I',
+  silverWeight: 'J',
+  diamondWeight:'K',
+  csWeight:     'M',
+  stoneName:    'N',
+  barcode:      'E',
+  price:        'O',
 };
 
 function detectColumns(
@@ -343,15 +343,16 @@ export async function POST(request: Request) {
       const silverWeight = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.silverWeight)) || 0;
       const price        = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.price))        || 0;
 
-      // Diamond weight — direct col() only, no shift fallback.
-      // Excel omits cells with value 0, so an absent cell correctly gives 0.
-      // Using shift-fallback would bleed into the adjacent column when diamond=0.
-      const rawDiaWt = parseFloat(col(sheet, rowNum, colMap.diamondWeight) || '0');
+      // Diamond weight — read from detected column (should be K / "Diam Wt").
+      // No shift-fallback: Excel omits zero-value cells, so absent = 0.
+      // Shift-fallback would bleed into the neighbour column for zero-diamond rows.
+      const diaCol = colMap.diamondWeight || 'K';
+      const rawDiaWt = parseFloat(col(sheet, rowNum, diaCol) || '0');
       const diamondWeight = rawDiaWt > 0 ? rawDiaWt : 0;
 
-      // CS weight — use shift-fallback because in some files the data sits one
-      // column to the left of the detected header column.
-      const rawCsWt = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.csWeight) || '0');
+      // CS weight — try detected column (should be M / "CS Wt"), then one left.
+      const csCol = colMap.csWeight || 'M';
+      const rawCsWt = parseFloat(colWithShiftFallback(sheet, rowNum, csCol) || '0');
       const csWeight = rawCsWt > 0 ? rawCsWt : 0;
 
       // Barcode may be string or numeric
