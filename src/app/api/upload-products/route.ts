@@ -343,19 +343,16 @@ export async function POST(request: Request) {
       const silverWeight = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.silverWeight)) || 0;
       const price        = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.price))        || 0;
 
-      // Diamond & CS weight — use colWithShiftFallback for each.
-      // Then apply semantic validation: if the row has no diamond stones but the
-      // diamond-weight column has a non-zero value, that value is actually CS weight
-      // (column shift in data rows where embedded image pushes cells left).
-      const rawDiaWt = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.diamondWeight) || '0');
-      const rawCsWt  = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.csWeight) || '0');
-      const stones = parseStones(rawStones);
-      const hasDiamond = stones.some(s => /diamond/i.test(s));
-      // If diamond col has a value but item has no diamond stones, treat it as CS weight
-      const diamondWeight = hasDiamond ? (rawDiaWt > 0 ? rawDiaWt : 0) : 0;
-      const csWeight = rawCsWt > 0
-        ? rawCsWt
-        : (!hasDiamond && rawDiaWt > 0 ? rawDiaWt : 0);
+      // Diamond weight — direct col() only, no shift fallback.
+      // Excel omits cells with value 0, so an absent cell correctly gives 0.
+      // Using shift-fallback would bleed into the adjacent column when diamond=0.
+      const rawDiaWt = parseFloat(col(sheet, rowNum, colMap.diamondWeight) || '0');
+      const diamondWeight = rawDiaWt > 0 ? rawDiaWt : 0;
+
+      // CS weight — use shift-fallback because in some files the data sits one
+      // column to the left of the detected header column.
+      const rawCsWt = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.csWeight) || '0');
+      const csWeight = rawCsWt > 0 ? rawCsWt : 0;
 
       // Barcode may be string or numeric
       const barcode = col(sheet, rowNum, colMap.barcode).trim()
@@ -370,7 +367,7 @@ export async function POST(request: Request) {
       );
 
       const category  = normaliseCategory(rawCategory);
-      // stones already computed above for diamond/CS semantic check
+      const stones    = parseStones(rawStones);
       const stoneName = stones[0] || '';
       const catLabel   = category.replace(/s$/, '');
       const stoneLabel = stones.slice(0, 2).join(' ');
