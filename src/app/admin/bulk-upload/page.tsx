@@ -15,16 +15,32 @@ interface ParsedProduct {
   sku: string;
   barcode: string;
   category: string;
-  stones: string[];      // all stones: ["Coral", "Emrald", "Ruby"]
-  stoneName: string;     // first stone (backward compat)
+  stones: string[];
+  stoneName: string;
   silverWeight: number;
   diamondWeight: number;
-  pearlWeight: number;
+  pearlWeight?: number;
   csWeight: number;
+  grossWeight?: number;
   price: number;
   name: string;
   imagePath: string;
   imageBase64: string;
+}
+
+interface CellDebug {
+  ref: string;
+  type: string;
+  rawVal: string;
+  resolved: string;
+}
+
+interface DebugInfo {
+  sharedStringsTotal: number;
+  first30SharedStrings: string[];
+  row1Cells: CellDebug[];
+  row2Cells: CellDebug[];
+  row3Cells: CellDebug[];
 }
 
 export default function BulkUploadPage() {
@@ -32,6 +48,7 @@ export default function BulkUploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [parsing, setParsing] = useState(false);
   const [products, setProducts] = useState<ParsedProduct[]>([]);
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [success, setSuccess] = useState(false);
   const [successCount, setSuccessCount] = useState(0);
@@ -57,6 +74,7 @@ export default function BulkUploadPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to parse file');
       setProducts(data.products);
+      if (data.debugInfo) setDebugInfo(data.debugInfo);
     } catch (err: any) {
       setError(err.message || 'Could not read Excel file');
     } finally {
@@ -90,6 +108,7 @@ export default function BulkUploadPage() {
   const handleReset = () => {
     setFile(null);
     setProducts([]);
+    setDebugInfo(null);
     setError(null);
     setSuccess(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -212,6 +231,124 @@ export default function BulkUploadPage() {
         )}
       </div>
 
+      {/* Debug panel */}
+      {debugInfo && (
+        <details className="bg-gray-900 rounded-xl border border-gray-700 overflow-hidden">
+          <summary className="px-5 py-3 cursor-pointer text-sm font-mono text-green-400 hover:text-green-300 select-none flex items-center gap-2">
+            <span>🔍</span>
+            <span>Parser Debug Info — click to expand</span>
+            <span className="ml-auto text-gray-500 text-xs">
+              {debugInfo.sharedStringsTotal} shared strings · {debugInfo.row2Cells.length} cells in row 2
+            </span>
+          </summary>
+          <div className="px-5 pb-5 space-y-4 font-mono text-xs text-gray-300">
+            {/* Shared strings */}
+            <div>
+              <p className="text-yellow-400 mb-1 mt-3">sharedStrings[0..29] — SKU/stone values are looked up here by index:</p>
+              <div className="overflow-x-auto">
+                <table className="border-collapse">
+                  <thead>
+                    <tr className="text-gray-500">
+                      <th className="border border-gray-700 px-2 py-1 text-left">idx</th>
+                      <th className="border border-gray-700 px-2 py-1 text-left">value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {debugInfo.first30SharedStrings.map((s, i) => (
+                      <tr key={i} className="hover:bg-gray-800">
+                        <td className="border border-gray-700 px-2 py-0.5 text-green-500">{i}</td>
+                        <td className="border border-gray-700 px-2 py-0.5 text-white">{s || <em className="text-gray-600">(empty)</em>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Row 1 (headers) */}
+            <div>
+              <p className="text-yellow-400 mb-1">Row 1 — header row:</p>
+              <div className="overflow-x-auto">
+                <table className="border-collapse">
+                  <thead>
+                    <tr className="text-gray-500">
+                      <th className="border border-gray-700 px-2 py-1">ref</th>
+                      <th className="border border-gray-700 px-2 py-1">type</th>
+                      <th className="border border-gray-700 px-2 py-1">rawVal</th>
+                      <th className="border border-gray-700 px-2 py-1">resolved</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {debugInfo.row1Cells.map((c) => (
+                      <tr key={c.ref} className="hover:bg-gray-800">
+                        <td className="border border-gray-700 px-2 py-0.5 text-cyan-400">{c.ref}</td>
+                        <td className="border border-gray-700 px-2 py-0.5 text-purple-400">{c.type}</td>
+                        <td className="border border-gray-700 px-2 py-0.5 text-orange-300">{c.rawVal}</td>
+                        <td className="border border-gray-700 px-2 py-0.5 text-white font-bold">{c.resolved}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Row 2 (first data row) */}
+            <div>
+              <p className="text-yellow-400 mb-1">Row 2 — first data row (should contain EAR08923 etc):</p>
+              <div className="overflow-x-auto">
+                <table className="border-collapse">
+                  <thead>
+                    <tr className="text-gray-500">
+                      <th className="border border-gray-700 px-2 py-1">ref</th>
+                      <th className="border border-gray-700 px-2 py-1">type</th>
+                      <th className="border border-gray-700 px-2 py-1">rawVal</th>
+                      <th className="border border-gray-700 px-2 py-1">resolved</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {debugInfo.row2Cells.map((c) => (
+                      <tr key={c.ref} className={`hover:bg-gray-800 ${c.resolved.includes('EAR') || c.resolved.includes('PND') || c.resolved.includes('RNG') || c.resolved.includes('BR') ? 'bg-green-900/30' : ''}`}>
+                        <td className="border border-gray-700 px-2 py-0.5 text-cyan-400">{c.ref}</td>
+                        <td className="border border-gray-700 px-2 py-0.5 text-purple-400">{c.type}</td>
+                        <td className="border border-gray-700 px-2 py-0.5 text-orange-300">{c.rawVal}</td>
+                        <td className="border border-gray-700 px-2 py-0.5 text-white font-bold">{c.resolved}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Row 3 */}
+            <div>
+              <p className="text-yellow-400 mb-1">Row 3 — second data row:</p>
+              <div className="overflow-x-auto">
+                <table className="border-collapse">
+                  <thead>
+                    <tr className="text-gray-500">
+                      <th className="border border-gray-700 px-2 py-1">ref</th>
+                      <th className="border border-gray-700 px-2 py-1">type</th>
+                      <th className="border border-gray-700 px-2 py-1">rawVal</th>
+                      <th className="border border-gray-700 px-2 py-1">resolved</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {debugInfo.row3Cells.map((c) => (
+                      <tr key={c.ref} className="hover:bg-gray-800">
+                        <td className="border border-gray-700 px-2 py-0.5 text-cyan-400">{c.ref}</td>
+                        <td className="border border-gray-700 px-2 py-0.5 text-purple-400">{c.type}</td>
+                        <td className="border border-gray-700 px-2 py-0.5 text-orange-300">{c.rawVal}</td>
+                        <td className="border border-gray-700 px-2 py-0.5 text-white font-bold">{c.resolved}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </details>
+      )}
+
       {/* Preview table */}
       {products.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -262,9 +399,11 @@ export default function BulkUploadPage() {
                     <td className="px-4 py-3 max-w-[180px]">
                       <span className="text-sm font-medium text-gray-900">{p.name}</span>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {p.silverWeight ? `${p.silverWeight}g silver` : ''}
-                        {p.silverWeight && p.diamondWeight ? ' · ' : ''}
-                        {p.diamondWeight ? `${p.diamondWeight}ct diamond` : ''}
+                        {[
+                          p.silverWeight ? `${p.silverWeight}g silver` : '',
+                          p.diamondWeight ? `${p.diamondWeight}ct diamond` : '',
+                          p.csWeight ? `${p.csWeight}ct colored stones` : '',
+                        ].filter(Boolean).join(' · ')}
                       </p>
                     </td>
                     <td className="px-4 py-3">
