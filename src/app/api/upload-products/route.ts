@@ -313,18 +313,21 @@ export async function POST(request: Request) {
       // Category: first shared-string cell in the row (col B)
       const rawCategory = (ssInRow[0] ?? col(sheet, rowNum, colMap.category)).trim();
 
-      // SKU: the SKU cell (col D) is absent from the row XML when an embedded
-      // image occupies that column slot. The category cell holds raw ss index N,
-      // and Excel wrote the strings in order: category, SKU, stones — so
-      //   SKU    = ss[categoryRawIndex + 1]
-      //   stones = ss[categoryRawIndex + 2]
-      const categoryRawIdx = ssIdxInRow[0] ?? -1;
-      const sku = categoryRawIdx >= 0 && ss[categoryRawIdx + 1]
-        ? ss[categoryRawIdx + 1].trim()
-        : (ssInRow[1] ?? col(sheet, rowNum, colMap.sku)).trim();
-      const rawStones = categoryRawIdx >= 0 && ss[categoryRawIdx + 2]
-        ? ss[categoryRawIdx + 2].trim()
-        : (ssInRow[2] ?? col(sheet, rowNum, colMap.stoneName)).trim();
+      // SKU: find the shared-string in this row that matches the SKU format
+      // (2-5 uppercase letters + 4-8 digits, e.g. EAR08923, PND11208, RNG17288).
+      // This is immune to column shifts and to "SILVER" or metal cells being
+      // picked up instead of the actual SKU.
+      const SKU_PATTERN = /^[A-Z]{2,5}\d{4,8}$/i;
+      const sku = ssInRow.find(s => SKU_PATTERN.test(s.trim()))?.trim()
+                ?? col(sheet, rowNum, colMap.sku).trim();
+
+      // Stones: first shared-string that is not the category, not a SKU, and
+      // not a metal name (SILVER / GOLD etc.)
+      const METAL_RE = /^(silver|gold|platinum|rose\s*gold|sterling)$/i;
+      const rawStones = ssInRow.find(s => {
+        const t = s.trim();
+        return t && t !== rawCategory && !SKU_PATTERN.test(t) && !METAL_RE.test(t);
+      })?.trim() ?? col(sheet, rowNum, colMap.stoneName).trim();
 
       // Numeric fields — detected column with 1-left fallback
       const grossWeight   = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.grossWeight))   || 0;
@@ -342,7 +345,7 @@ export async function POST(request: Request) {
         `[upload-products] row ${rowNum}: sku="${sku}" cat="${rawCategory}"` +
         ` stones="${rawStones}" barcode="${barcode}" price=${price}` +
         ` silver=${silverWeight} diamond=${diamondWeight} cs=${csWeight}` +
-        ` ssInRow=${JSON.stringify(ssInRow.slice(0, 5))} ssIdx=${JSON.stringify(ssIdxInRow.slice(0, 5))} catRaw=${categoryRawIdx}`
+        ` ssInRow=${JSON.stringify(ssInRow.slice(0, 5))} ssIdx=${JSON.stringify(ssIdxInRow.slice(0, 5))}`
       );
 
       const category   = normaliseCategory(rawCategory);
