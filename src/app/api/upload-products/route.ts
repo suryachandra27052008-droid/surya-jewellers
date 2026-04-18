@@ -179,15 +179,41 @@ export async function POST(request: Request) {
     const sheet = parseSheet(sheetXml, ss);
     console.log('[upload-products] total rows parsed:', sheet.size);
 
-    // Debug: dump rows 1-4
-    for (let r = 1; r <= 4; r++) {
-      const rowMap = sheet.get(r);
-      if (rowMap) {
-        const obj: Record<string, string> = {};
-        rowMap.forEach((v, k) => { obj[k] = v; });
-        console.log(`[upload-products] row ${r}:`, JSON.stringify(obj));
+    // ── Build debugInfo returned to client ───────────────────────────────────
+    // Raw cell dump for rows 2 and 3 — shows ref, type, raw value, resolved value
+    function dumpRow(rowNum: number): { ref: string; type: string; rawVal: string; resolved: string }[] {
+      const cells: { ref: string; type: string; rawVal: string; resolved: string }[] = [];
+      // Re-scan raw XML for this row so we can show the raw <v> value alongside resolved
+      const rowPattern = new RegExp(`<row\\b[^>]*\\br="${rowNum}"[^>]*>([\\s\\S]*?)<\\/row>`);
+      const rowM = sheetXml.match(rowPattern);
+      if (!rowM) return cells;
+      const cellRe = /<c\b([^>]*)(?:\/>|>([\s\S]*?)<\/c>)/g;
+      let cm: RegExpExecArray | null;
+      while ((cm = cellRe.exec(rowM[1])) !== null) {
+        const attrs = cm[1];
+        const inner = cm[2] ?? '';
+        const refM = attrs.match(/\br="([A-Z]+\d+)"/);
+        const typeM = attrs.match(/\bt="([^"]+)"/);
+        const vM = inner.match(/<v>([^<]*)<\/v>/);
+        const ref = refM ? refM[1] : '?';
+        const type = typeM ? typeM[1] : '(numeric)';
+        const rawVal = vM ? vM[1] : '';
+        const colLetter = ref.replace(/\d+/g, '');
+        const resolved = sheet.get(rowNum)?.get(colLetter) ?? '';
+        cells.push({ ref, type, rawVal, resolved });
       }
+      return cells;
     }
+
+    const debugInfo = {
+      sharedStringsTotal: ss.length,
+      first30SharedStrings: ss.slice(0, 30),
+      row1Cells: dumpRow(1),
+      row2Cells: dumpRow(2),
+      row3Cells: dumpRow(3),
+    };
+
+    console.log('[upload-products] debugInfo.row2Cells:', JSON.stringify(debugInfo.row2Cells));
 
     // ── STEP 4: extract up to 10 products (rows 2–11) ───────────────────────
     // Row 1 = header. Row N → image(N-1).jpeg
@@ -281,7 +307,7 @@ export async function POST(request: Request) {
     }
 
     console.log(`[upload-products] returning ${products.length} products`);
-    return NextResponse.json({ success: true, products });
+    return NextResponse.json({ success: true, products, debugInfo });
 
   } catch (err: any) {
     console.error('[upload-products] FATAL:', err?.message, err?.stack);
