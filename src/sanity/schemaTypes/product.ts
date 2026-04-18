@@ -79,6 +79,12 @@ export const product = defineType({
       description: 'e.g., Yellow Sapphire, Coral',
     }),
     defineField({
+      name: 'csWeight',
+      title: 'Colored Stone Weight (ct)',
+      type: 'number',
+      validation: (Rule) => Rule.positive(),
+    }),
+    defineField({
       name: 'barcode',
       title: 'Barcode',
       type: 'string',
