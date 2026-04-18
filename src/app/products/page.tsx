@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { client } from '@/lib/sanity/client';
 import ProductsClient from './ProductsClient';
 
 export const metadata: Metadata = {
@@ -10,14 +11,35 @@ export const metadata: Metadata = {
   },
 };
 
-const itemListSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'ItemList',
-  name: 'Surya Jewellers — 92.5 Sterling Silver Jewellery Collections',
-  description:
-    'Handcrafted 92.5 sterling silver jewellery with natural gemstones. Made in Jaipur, India.',
-  url: 'https://suryajewellers.shop/products',
+const buildUniqueSlug = (p: {
+  mainStoneType?: string;
+  category?: string;
+  sku?: string;
+  _id: string;
+}) => {
+  const stone = (p.mainStoneType && p.mainStoneType !== 'None' ? p.mainStoneType : 'silver')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const cat = (p.category || 'jewellery').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const sku = String(p.sku || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || p._id.slice(-6);
+  return `${stone}-${cat}-${sku}`.replace(/-+/g, '-');
 };
+
+async function getProductListItems() {
+  try {
+    const products = await client.fetch<{ _id: string; mainStoneType?: string; category?: string; sku?: string }[]>(
+      `*[_type == "product" && defined(slug.current)]{ _id, mainStoneType, "category": category->name, sku }`,
+      {},
+      { next: { revalidate: 300 } }
+    );
+    return products.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://suryajewellers.shop/products/${buildUniqueSlug(p)}`,
+    }));
+  } catch {
+    return [];
+  }
+}
 
 const categoryDescriptions = [
   {
@@ -58,7 +80,19 @@ const categoryDescriptions = [
   },
 ];
 
-export default function ProductsPage() {
+export default async function ProductsPage() {
+  const itemListElements = await getProductListItems();
+
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Surya Jewellers — 92.5 Sterling Silver Jewellery Collections',
+    description: 'Handcrafted 92.5 sterling silver jewellery with natural gemstones. Made in Jaipur, India.',
+    url: 'https://suryajewellers.shop/products',
+    numberOfItems: itemListElements.length,
+    itemListElement: itemListElements,
+  };
+
   return (
     <>
       <script

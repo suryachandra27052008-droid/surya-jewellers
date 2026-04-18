@@ -15,6 +15,7 @@ export default function Hero() {
         className="object-cover object-center"
         priority
         fetchPriority="high"
+        sizes="100vw"
       />
 
       {/* Dark overlay — 45% opacity */}

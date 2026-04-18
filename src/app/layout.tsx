@@ -16,7 +16,7 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const cinzel = Cinzel({
@@ -53,9 +53,6 @@ export const metadata: Metadata = {
     google: "-6zyoc8a4UjXayuNcv5Ij90FqUG8S8s9oGdd6W7gc3E",
   },
   metadataBase: new URL("https://suryajewellers.shop"),
-  alternates: {
-    canonical: "https://suryajewellers.shop",
-  },
   openGraph: {
     title: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",
     description:
@@ -63,14 +60,14 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://suryajewellers.shop",
     siteName: "Surya Jewellers",
-    images: [{ url: "/logo_sj.png", width: 512, height: 512, alt: "Surya Jewellers" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Surya Jewellers — 92.5 Sterling Silver Jewellery, Jaipur" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",
     description:
       "Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Natural diamonds & precious gemstones. Certificate of Authenticity.",
-    images: ["/logo_sj.png"],
+    images: ["/opengraph-image"],
   },
 };
 
@@ -83,8 +80,9 @@ const localBusinessSchema = {
   image: 'https://suryajewellers.shop/logo_sj.png',
   description:
     'Handcrafted 92.5 sterling silver jewellery with certified natural gemstones. Family-owned since 2003, based in Jaipur.',
-  telephone: '+91-99839-39306',
+  telephone: '+91 99839 39306',
   email: 'suryajewellersjaipur@gmail.com',
+  hasMap: 'https://maps.google.com/?q=Surya+Jewellers,+B-169+Anandpuri,+Moti+Doongri+Rd,+Jaipur,+Rajasthan+302004',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'B-169 Anandpuri, Moti Doongri Rd, near Naila House',
@@ -123,7 +121,10 @@ const websiteSchema = {
   url: 'https://suryajewellers.shop',
   potentialAction: {
     '@type': 'SearchAction',
-    target: 'https://suryajewellers.shop/products?q={search_term_string}',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://suryajewellers.shop/products?q={search_term_string}',
+    },
     'query-input': 'required name=search_term_string',
   },
 };
@@ -134,10 +135,10 @@ const organizationSchema = {
   name: 'Surya Jewellers',
   url: 'https://suryajewellers.shop',
   logo: 'https://suryajewellers.shop/logo_sj.png',
-  sameAs: [],
+  foundingDate: '2003',
   contactPoint: {
     '@type': 'ContactPoint',
-    telephone: '+91-99839-39306',
+    telephone: '+91 99839 39306',
     contactType: 'customer service',
     areaServed: 'IN',
     availableLanguage: ['English', 'Hindi'],

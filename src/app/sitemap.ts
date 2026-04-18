@@ -9,6 +9,7 @@ const buildUniqueSlug = (p: {
   category?: string;
   sku?: string;
   _id: string;
+  _updatedAt?: string;
 }) => {
   const stone = (p.mainStoneType && p.mainStoneType !== 'None' ? p.mainStoneType : 'silver')
     .toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -17,42 +18,54 @@ const buildUniqueSlug = (p: {
   return `${stone}-${cat}-${sku}`.replace(/-+/g, '-');
 };
 
-async function getProductSlugs(): Promise<string[]> {
+function parseBlogDate(date: string): Date {
+  if (date === 'Pinned' || !date) return new Date('2025-01-01');
+  const d = new Date(date);
+  return isNaN(d.getTime()) ? new Date('2025-01-01') : d;
+}
+
+async function getProducts(): Promise<{ slug: string; updatedAt: Date }[]> {
   try {
-    const products = await client.fetch<{ _id: string; mainStoneType?: string; category?: string; sku?: string }[]>(
-      `*[_type == "product" && defined(slug.current)]{ _id, mainStoneType, "category": category->name, sku }`
+    const products = await client.fetch<{
+      _id: string;
+      mainStoneType?: string;
+      category?: string;
+      sku?: string;
+      _updatedAt?: string;
+    }[]>(
+      `*[_type == "product" && defined(slug.current)]{ _id, mainStoneType, "category": category->name, sku, _updatedAt }`
     );
-    return products.map(buildUniqueSlug);
+    return products.map((p) => ({
+      slug: buildUniqueSlug(p),
+      updatedAt: p._updatedAt ? new Date(p._updatedAt) : new Date('2025-01-01'),
+    }));
   } catch {
     return [];
   }
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const productSlugs = await getProductSlugs();
+  const products = await getProducts();
 
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: BASE_URL, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
-    { url: `${BASE_URL}/products`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${BASE_URL}/contact`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.6 },
-    { url: `${BASE_URL}/wholesale`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE_URL}/shipping`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.4 },
+    { url: BASE_URL, lastModified: new Date('2026-04-18') },
+    { url: `${BASE_URL}/products`, lastModified: new Date('2026-04-18') },
+    { url: `${BASE_URL}/collections`, lastModified: new Date('2026-04-18') },
+    { url: `${BASE_URL}/about`, lastModified: new Date('2025-06-01') },
+    { url: `${BASE_URL}/blog`, lastModified: new Date('2025-03-01') },
+    { url: `${BASE_URL}/contact`, lastModified: new Date('2025-01-01') },
+    { url: `${BASE_URL}/wholesale`, lastModified: new Date('2025-01-01') },
+    { url: `${BASE_URL}/shipping`, lastModified: new Date('2025-01-01') },
   ];
 
-  const productRoutes: MetadataRoute.Sitemap = productSlugs.map((slug) => ({
+  const productRoutes: MetadataRoute.Sitemap = products.map(({ slug, updatedAt }) => ({
     url: `${BASE_URL}/products/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
+    lastModified: updatedAt,
   }));
 
   const blogRoutes: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${BASE_URL}/blog/${post.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.6,
+    lastModified: parseBlogDate(post.date),
   }));
 
   return [...staticRoutes, ...productRoutes, ...blogRoutes];
