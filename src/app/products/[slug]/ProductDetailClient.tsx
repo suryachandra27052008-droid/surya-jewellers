@@ -150,12 +150,14 @@ export default function ProductDetailClient({
               <div className="aspect-square bg-gradient-to-br from-cream-dark to-cream rounded overflow-hidden relative border border-cream-dark shadow-inner">
                 {product.images && product.images.length > 0 ? (
                   <Image
+                    key={product.images[selectedImageIndex]}
                     src={product.images[selectedImageIndex]}
                     alt={`${product.mainStoneType !== 'None' ? product.mainStoneType + ' ' : ''}${product.name} in 92.5 Sterling Silver — Surya Jewellers Jaipur`}
                     fill
                     className="object-cover transition-transform duration-700 hover:scale-105"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
+                    unoptimized
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -188,11 +190,13 @@ export default function ProductDetailClient({
                       }`}
                     >
                       <Image
+                        key={img}
                         src={img}
                         alt={`${product.name} view ${i + 1} — ${product.category} in 92.5 Sterling Silver`}
                         fill
                         className="object-cover"
                         sizes="80px"
+                        unoptimized
                       />
                     </button>
                   ))}

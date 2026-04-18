@@ -38,7 +38,8 @@ const PRODUCT_QUERY = `
   }
 `;
 
-// Allow dynamic rendering for products added after build (e.g. via bulk upload)
+// Always fetch fresh product data so image updates from bulk upload are instant.
+export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
@@ -67,7 +68,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   try {
     // Use writeClient (no CDN) so products uploaded after the last build are
     // immediately visible without waiting for CDN cache expiry.
-    products = await writeClient.fetch(PRODUCT_QUERY, {}, { next: { revalidate: 60 } });
+    products = await writeClient.fetch(PRODUCT_QUERY, {}, { cache: 'no-store' });
   } catch {
     // fall through to not-found
   }
