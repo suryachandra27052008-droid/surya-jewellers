@@ -3,6 +3,20 @@ import FeaturedCollections from '@/components/home/FeaturedCollections';
 import Testimonials from '@/components/home/Testimonials';
 import TrustSection from '@/components/home/TrustSection';
 
+const aggregateRatingSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  '@id': 'https://suryajewellers.shop/#business',
+  name: 'Surya Jewellers',
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '5.0',
+    reviewCount: '6',
+    bestRating: '5',
+    worstRating: '1',
+  },
+};
+
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -53,6 +67,54 @@ const faqSchema = {
       acceptedAnswer: {
         '@type': 'Answer',
         text: 'Yes. Surya Jewellers has been supplying wholesale 92.5 sterling silver jewellery to retailers, boutiques, and exporters since 2003. Wholesale enquiries can be made via our Wholesale page or by emailing suryajewellersjaipur@gmail.com with your requirements and business details.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Where exactly is your Jaipur showroom located?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Our showroom is at B-169 Anandpuri, Moti Doongri Road, near Naila House, Jaipur, Rajasthan 302004. We are conveniently located in the Anandpuri area, close to the iconic Moti Doongri Fort. You can reach us by calling +91 99839 39306 or emailing suryajewellersjaipur@gmail.com to schedule a visit.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What gemstones are used in Surya Jewellers pieces?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'We use a wide range of certified natural gemstones in our 92.5 sterling silver jewellery. Our collection features natural diamonds, rubies, emeralds, sapphires, opals, moonstones, tanzanite, amethysts, garnets, and other precious and semi-precious stones. Every gemstone is ethically sourced and its type and carat weight are documented in the Certificate of Authenticity.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Do you offer custom or personalised jewellery?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. We accept custom and bespoke jewellery commissions. Approximately 90% of our designs are already one-piece, one-design creations, but we are happy to craft personalised pieces to your specifications. Custom orders can be initiated by contacting us at suryajewellersjaipur@gmail.com or calling +91 99839 39306. We will discuss design, gemstone selection, and timelines.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How should I care for my sterling silver jewellery?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'To maintain the lustre of your 92.5 sterling silver jewellery, store each piece individually in a soft pouch or airtight box to prevent oxidation. Clean with a soft silver-polishing cloth and avoid exposure to perfumes, chlorine, and harsh chemicals. Remove jewellery before swimming or bathing. Surya Jewellers also provides complimentary lifetime maintenance — simply bring your piece to our Jaipur showroom.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What payment methods do you accept?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'We accept all major payment methods including credit cards, debit cards, UPI, and net banking. At our Jaipur showroom we also accept cash. For online orders, payments are processed securely. Wholesale buyers may be eligible for invoice-based payment terms; please contact us for details.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How long does delivery take?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Domestic orders within India are typically delivered within 5–7 business days. International orders take 10–14 business days depending on the destination country. All orders are fully insured and tracked. You will receive a tracking number as soon as your order ships. Expedited shipping options may be available on request.',
       },
     },
   ],
@@ -137,6 +199,10 @@ export default function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingSchema) }}
       />
     </>
   );

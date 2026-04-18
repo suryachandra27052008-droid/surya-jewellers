@@ -56,6 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/contact`, lastModified: new Date('2025-01-01') },
     { url: `${BASE_URL}/wholesale`, lastModified: new Date('2025-01-01') },
     { url: `${BASE_URL}/shipping`, lastModified: new Date('2025-01-01') },
+    { url: `${BASE_URL}/jaipur-jewellery`, lastModified: new Date('2026-04-18') },
   ];
 
   const productRoutes: MetadataRoute.Sitemap = products.map(({ slug, updatedAt }) => ({

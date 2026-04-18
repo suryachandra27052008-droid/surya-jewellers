@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { writeClient } from '@/lib/sanity/client';
-import ProductDetailClient, { type ProductData } from './ProductDetailClient';
+import ProductDetailClient, { type ProductData, type RelatedProduct } from './ProductDetailClient';
 
 const buildUniqueSlug = (p: {
   mainStoneType?: string;
@@ -159,6 +159,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     ],
   };
 
+  const relatedProducts: RelatedProduct[] = products
+    .filter((p: any) => p._id !== raw._id && (p.category || 'Rings') === (raw.category || 'Rings'))
+    .slice(0, 3)
+    .map((p: any) => ({
+      _id: p._id,
+      name: p.name,
+      slug: buildUniqueSlug(p),
+      price: p.price,
+      images: p.images || [],
+      mainStoneType: p.mainStoneType || 'None',
+      category: p.category || 'Rings',
+    }));
+
   return (
     <>
       <script
@@ -169,7 +182,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <ProductDetailClient product={product} />
+      <ProductDetailClient product={product} relatedProducts={relatedProducts} />
     </>
   );
 }
