@@ -1,8 +1,5 @@
-'use client';
-
-import { motion } from 'motion/react';
 import Link from 'next/link';
-import { notFound, useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { getPost } from '../data';
 
 const categoryColors: Record<string, string> = {
@@ -12,10 +9,18 @@ const categoryColors: Record<string, string> = {
   'Style Guide': 'text-rose-400 border-rose-400/30 bg-rose-400/10',
 };
 
-export default function BlogPostPage() {
-  const params = useParams();
-  const slug = typeof params.slug === 'string' ? params.slug : params.slug?.[0];
-  const post = slug ? getPost(slug) : undefined;
+type Props = {
+  params: Promise<{ slug: string }>;
+};
+
+export async function generateStaticParams() {
+  const { posts } = await import('../data');
+  return posts.map((p) => ({ slug: p.slug }));
+}
+
+export default async function BlogPostPage({ params }: Props) {
+  const { slug } = await params;
+  const post = getPost(slug);
 
   if (!post) return notFound();
 
@@ -26,12 +31,7 @@ export default function BlogPostPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#0a0a0a]" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gold/5 blur-[100px] rounded-full" />
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 max-w-3xl mx-auto"
-        >
+        <div className="relative z-10 max-w-3xl mx-auto">
           {/* Back link */}
           <Link
             href="/blog"
@@ -75,17 +75,12 @@ export default function BlogPostPage() {
           <p className="text-white/45 text-base md:text-lg font-light leading-relaxed max-w-2xl mx-auto">
             {post.subtitle}
           </p>
-        </motion.div>
+        </div>
       </section>
 
       {/* Article Body */}
       <section className="max-w-2xl mx-auto px-4 sm:px-6 pb-32">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="border-t border-white/8 pt-12 space-y-6"
-        >
+        <div className="border-t border-white/8 pt-12 space-y-6">
           {post.content.map((section, i) => {
             if (section.type === 'paragraph') {
               return (
@@ -160,16 +155,10 @@ export default function BlogPostPage() {
             }
             return null;
           })}
-        </motion.div>
+        </div>
 
         {/* Bottom navigation */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="mt-20 pt-10 border-t border-white/8 flex flex-col sm:flex-row items-center justify-between gap-6"
-        >
+        <div className="mt-20 pt-10 border-t border-white/8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <Link
             href="/blog"
             className="flex items-center gap-2 text-white/35 hover:text-gold text-xs tracking-[0.2em] uppercase transition-colors duration-300"
@@ -182,7 +171,7 @@ export default function BlogPostPage() {
           <Link href="/products" className="btn-gold text-xs">
             Explore Collections
           </Link>
-        </motion.div>
+        </div>
       </section>
     </div>
   );

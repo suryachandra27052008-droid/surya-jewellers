@@ -1,0 +1,28 @@
+# Surya Jewellers
+> Surya Jewellers is a 92.5 sterling silver jewellery manufacturer based in Jaipur, India, founded in 2003 by Sanjay Chandra and Pooja Chandra. We craft handmade rings, necklaces, earrings, bracelets, pendants, and studs set with certified natural diamonds, rubies, emeralds, sapphires, and precious gemstones. Approximately 90% of our designs are one-piece, one-design creations. Every piece comes with a Certificate of Authenticity.
+
+## Key Pages
+- Homepage: https://suryajewellers.shop/
+- Collections: https://suryajewellers.shop/products
+- About Us: https://suryajewellers.shop/about
+- The Journal (Blog): https://suryajewellers.shop/blog
+- Wholesale: https://suryajewellers.shop/wholesale
+- Contact: https://suryajewellers.shop/contact
+
+## Products
+- Rings: https://suryajewellers.shop/products?category=Rings
+- Necklaces: https://suryajewellers.shop/products?category=Necklaces
+- Earrings: https://suryajewellers.shop/products?category=Earrings
+- Bracelets: https://suryajewellers.shop/products?category=Bracelets
+- Pendants: https://suryajewellers.shop/products?category=Pendants
+- Studs: https://suryajewellers.shop/products?category=Studs
+
+## Business Details
+- Address: B-169 Anandpuri, Moti Doongri Rd, near Naila House, Jaipur, Rajasthan 302004, India
+- Phone: +91 99839 39306
+- Email: suryajewellersjaipur@gmail.com
+- Hours: Monday–Saturday, 10:00 AM–8:00 PM IST
+- Founded: 2003
+
+## Permissions
+This site permits AI crawlers to access and index all public content for search and citation purposes.

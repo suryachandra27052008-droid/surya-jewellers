@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { client } from '@/lib/sanity/client';
+import { writeClient } from '@/lib/sanity/client';
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -35,10 +35,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let product: SanityProduct | null = null;
 
   try {
-    const products = await client.fetch<SanityProduct[]>(
+    const products = await writeClient.fetch<SanityProduct[]>(
       `*[_type == "product"]{ _id, name, description, "images": images[].asset->url, mainStoneType, "category": category->name, sku }`,
       {},
-      { next: { revalidate: 3600 } }
+      { next: { revalidate: 60 } }
     );
     product = products.find((p) => buildUniqueSlug(p) === slug)
       ?? products.find((p) => (p as any).slug === slug)

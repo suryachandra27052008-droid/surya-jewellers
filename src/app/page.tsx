@@ -36,7 +36,7 @@ const faqSchema = {
       name: 'What is your return policy?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'We offer a 7-day return and exchange policy on all unworn pieces in their original condition. Custom or personalised orders are non-returnable. Please contact us at suryajewellersjaipur@gmail.com or call +91-99839-39306 to initiate a return.',
+        text: 'We offer a 7-day return and exchange policy on all unworn pieces in their original condition. Custom or personalised orders are non-returnable. Please contact us at suryajewellersjaipur@gmail.com or call +91 99839 39306 to initiate a return.',
       },
     },
     {
