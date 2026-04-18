@@ -59,6 +59,8 @@ export interface ProductData {
   mainStoneType: string;
   totalCaratWeight: number;
   diamondColorClarity: string;
+  secondaryStoneType?: string;
+  barcode?: string;
   description: string;
   inStock: boolean;
   stockQuantity: number;
@@ -74,6 +76,9 @@ export default function ProductDetailClient({
 }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<number | null>(null);
+  const [sizeError, setSizeError] = useState(false);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   const { addItem, items } = useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
@@ -83,6 +88,11 @@ export default function ProductDetailClient({
 
   const handleAddToCart = () => {
     if (atMaxQty) return;
+    if (product.category === 'Rings' && !selectedSize) {
+      setSizeError(true);
+      return;
+    }
+    setSizeError(false);
     addItem({
       _id: product._id,
       name: product.name,
@@ -101,12 +111,20 @@ export default function ProductDetailClient({
     { label: 'SKU', value: product.sku },
     { label: 'Silver Purity', value: '92.5% Sterling Silver' },
     { label: 'Silver Weight', value: `${product.silverWeight}g` },
-    { label: 'Main Stone', value: product.mainStoneType },
-    { label: 'Total Carat Weight', value: `${product.totalCaratWeight} ct` },
+    ...(product.mainStoneType && product.mainStoneType !== 'None'
+      ? [{ label: 'Main Stone', value: product.mainStoneType }]
+      : []),
+    ...(product.secondaryStoneType
+      ? [{ label: 'Secondary Stone', value: product.secondaryStoneType }]
+      : []),
+    ...(product.totalCaratWeight > 0
+      ? [{ label: 'Total Carat Weight', value: `${product.totalCaratWeight} ct` }]
+      : []),
     ...(product.diamondColorClarity
       ? [{ label: 'Color & Clarity', value: product.diamondColorClarity }]
       : []),
     { label: 'Category', value: product.category },
+    ...(product.barcode ? [{ label: 'Barcode', value: product.barcode }] : []),
   ];
 
   return (
@@ -200,6 +218,43 @@ export default function ProductDetailClient({
 
               <div className="h-[1px] bg-gradient-to-r from-gold/40 via-gold/20 to-transparent" />
 
+              {/* Ring Size Selector */}
+              {product.category === 'Rings' && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-charcoal">Select Ring Size <span className="text-charcoal-muted font-normal">(Indian)</span></span>
+                    <button
+                      onClick={() => setShowSizeGuide(true)}
+                      className="text-xs underline hover:no-underline transition-all"
+                      style={{ color: '#c9a84c' }}
+                    >
+                      Size Guide
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {[5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => { setSelectedSize(size); setSizeError(false); }}
+                        className="w-10 h-10 text-sm font-medium transition-all duration-200 rounded-sm"
+                        style={{
+                          backgroundColor: selectedSize === size ? '#c9a84c' : 'transparent',
+                          borderWidth: '1.5px',
+                          borderStyle: 'solid',
+                          borderColor: '#c9a84c',
+                          color: selectedSize === size ? '#1a1209' : '#c9a84c',
+                        }}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                  {sizeError && (
+                    <p className="text-red-500 text-xs mt-2">Please select a ring size</p>
+                  )}
+                </div>
+              )}
+
               <div className="text-sm text-charcoal-muted leading-relaxed space-y-3">
                 {generateDescription(product).split('\n\n').map((para, i) => (
                   <p key={i}>{para}</p>
@@ -291,6 +346,83 @@ export default function ProductDetailClient({
           </section>
         )}
       </div>
+
+      {/* Size Guide Modal */}
+      {showSizeGuide && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.65)' }}
+          onClick={() => setShowSizeGuide(false)}
+        >
+          <div
+            className="bg-white rounded-lg max-w-md w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-serif text-xl text-charcoal">Ring Size Guide</h3>
+              <button
+                onClick={() => setShowSizeGuide(false)}
+                className="text-charcoal-muted hover:text-charcoal text-lg leading-none"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <h4 className="text-sm font-semibold text-charcoal mb-3">How to Measure at Home</h4>
+              <ol className="text-sm text-charcoal-muted space-y-2 list-decimal list-inside leading-relaxed">
+                <li>Cut a thin strip of paper or use a string.</li>
+                <li>Wrap it snugly around the base of your finger.</li>
+                <li>Mark where the strip meets or overlaps.</li>
+                <li>Measure that length in millimetres — this is your finger circumference.</li>
+                <li>Match to the table below to find your Indian ring size.</li>
+              </ol>
+              <p className="text-xs text-charcoal-muted mt-3 italic">
+                Tip: Measure in the evening when fingers are slightly larger.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold text-charcoal mb-3">Indian Size Conversion</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr style={{ background: '#f5f0e8' }}>
+                      <th className="border border-cream-dark px-3 py-2 text-left text-charcoal font-semibold">Indian Size</th>
+                      <th className="border border-cream-dark px-3 py-2 text-left text-charcoal font-semibold">Circumference (mm)</th>
+                      <th className="border border-cream-dark px-3 py-2 text-left text-charcoal font-semibold">Diameter (mm)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {([
+                      [5, 49.3, 15.7], [6, 51.9, 16.5], [7, 54.4, 17.3], [8, 57.0, 18.1],
+                      [9, 59.5, 18.9], [10, 62.1, 19.8], [11, 64.6, 20.6], [12, 67.2, 21.4],
+                      [13, 69.7, 22.2], [14, 72.3, 23.0], [15, 74.8, 23.8], [16, 77.4, 24.6],
+                      [17, 79.9, 25.4], [18, 82.5, 26.3], [19, 85.0, 27.0], [20, 87.6, 27.9],
+                    ] as [number, number, number][]).map(([indian, circ, diam]) => (
+                      <tr
+                        key={indian}
+                        style={{
+                          background: selectedSize === indian ? 'rgba(201,168,76,0.12)' : 'transparent',
+                        }}
+                      >
+                        <td className="border border-cream-dark px-3 py-2 font-medium text-charcoal">
+                          {indian}
+                          {selectedSize === indian && (
+                            <span className="ml-1.5 text-[0.6rem] font-normal" style={{ color: '#c9a84c' }}>← your size</span>
+                          )}
+                        </td>
+                        <td className="border border-cream-dark px-3 py-2 text-charcoal-muted">{circ}</td>
+                        <td className="border border-cream-dark px-3 py-2 text-charcoal-muted">{diam}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

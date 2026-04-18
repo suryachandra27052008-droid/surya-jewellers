@@ -184,6 +184,7 @@ export default function ProductsClient() {
             price: p.price,
             category: { name: p.category || 'Rings', slug: { current: (p.category || 'rings').toLowerCase() } },
             mainStoneType: p.mainStoneType || 'None',
+            secondaryStoneType: p.secondaryStoneType || '',
             silverWeight: p.silverWeight || 0,
             totalCaratWeight: p.totalCaratWeight || 0,
             diamondColorClarity: p.diamondColorClarity || '',
@@ -208,7 +209,7 @@ export default function ProductsClient() {
   const filteredProducts = useMemo(() => {
     let result = allProducts.filter((p) => p.inStock !== false);
     if (selectedCategory !== 'All') result = result.filter((p) => p.category.name === selectedCategory);
-    if (selectedStone !== 'All') result = result.filter((p) => p.mainStoneType === selectedStone);
+    if (selectedStone !== 'All') result = result.filter((p) => p.mainStoneType === selectedStone || p.secondaryStoneType === selectedStone);
     result = result.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1]);
     if (sortBy === 'price-asc') result.sort((a, b) => a.price - b.price);
     else if (sortBy === 'price-desc') result.sort((a, b) => b.price - a.price);
@@ -499,13 +500,22 @@ export default function ProductsClient() {
                               {product.category.name}
                             </span>
                           </div>
-                          {product.mainStoneType && product.mainStoneType !== 'None' && (
-                            <div className="absolute top-3 right-3">
-                              <span
-                                className="w-4 h-4 rounded-full block border-2 border-white shadow-sm"
-                                style={{ backgroundColor: stoneColors[product.mainStoneType] || '#ccc' }}
-                                title={product.mainStoneType}
-                              />
+                          {((product.mainStoneType && product.mainStoneType !== 'None') || product.secondaryStoneType) && (
+                            <div className="absolute top-3 right-3 flex flex-col gap-1">
+                              {product.mainStoneType && product.mainStoneType !== 'None' && (
+                                <span
+                                  className="w-4 h-4 rounded-full block border-2 border-white shadow-sm"
+                                  style={{ backgroundColor: stoneColors[product.mainStoneType] || '#ccc' }}
+                                  title={product.mainStoneType}
+                                />
+                              )}
+                              {product.secondaryStoneType && (
+                                <span
+                                  className="w-4 h-4 rounded-full block border-2 border-white shadow-sm"
+                                  style={{ backgroundColor: stoneColors[product.secondaryStoneType] || '#aaa' }}
+                                  title={product.secondaryStoneType}
+                                />
+                              )}
                             </div>
                           )}
                           <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 p-3">
@@ -545,6 +555,34 @@ export default function ProductsClient() {
                             {product.name}
                           </h3>
                         </Link>
+                        {((product.mainStoneType && product.mainStoneType !== 'None') || product.secondaryStoneType) && (
+                          <div className="flex gap-1 mt-1.5 flex-wrap">
+                            {product.mainStoneType && product.mainStoneType !== 'None' && (
+                              <span
+                                className="text-[0.6rem] px-1.5 py-0.5 rounded"
+                                style={{
+                                  background: `${stoneColors[product.mainStoneType] || '#ccc'}22`,
+                                  color: stoneColors[product.mainStoneType] || '#666',
+                                  border: `1px solid ${stoneColors[product.mainStoneType] || '#ccc'}55`,
+                                }}
+                              >
+                                {product.mainStoneType}
+                              </span>
+                            )}
+                            {product.secondaryStoneType && (
+                              <span
+                                className="text-[0.6rem] px-1.5 py-0.5 rounded"
+                                style={{
+                                  background: `${stoneColors[product.secondaryStoneType] || '#aaa'}22`,
+                                  color: stoneColors[product.secondaryStoneType] || '#666',
+                                  border: `1px solid ${stoneColors[product.secondaryStoneType] || '#aaa'}55`,
+                                }}
+                              >
+                                {product.secondaryStoneType}
+                              </span>
+                            )}
+                          </div>
+                        )}
                         <div className="flex items-center justify-between mt-2">
                           <p className="text-gold font-semibold tracking-wide">
                             {formatPrice(product.price, currency)}
