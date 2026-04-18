@@ -28,6 +28,7 @@
   --color-silver-shimmer: var(--silver-shimmer);
   --font-serif: var(--font-playfair);
   --font-sans: var(--font-inter);
+  --font-cinzel: var(--font-cinzel);
 }
 
 /* ===== Marquee animation ===== */
@@ -220,4 +221,105 @@ body {
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: 4px;
+}
+
+/* ===== Price Range Slider ===== */
+.price-range-slider {
+  position: relative;
+  height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.price-range-track {
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: #2a2a2a;
+  pointer-events: none;
+}
+
+.price-range-fill {
+  position: absolute;
+  height: 4px;
+  border-radius: 2px;
+  background: #c9a84c;
+  pointer-events: none;
+}
+
+.price-range-input {
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.price-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: all;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #c9a84c;
+  border: 2px solid #1a1a1a;
+  cursor: grab;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.price-range-input::-webkit-slider-thumb:hover,
+.price-range-input::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.25);
+  cursor: grabbing;
+}
+
+.price-range-input::-moz-range-thumb {
+  pointer-events: all;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #c9a84c;
+  border: 2px solid #1a1a1a;
+  cursor: grab;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+/* ===== Gold Sort Select ===== */
+.gold-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #111;
+  color: #c9a84c;
+  border: 1px solid #c9a84c;
+  font-family: var(--font-cinzel), serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+  border-radius: 2px;
+  width: 100%;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c9a84c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gold-select:hover,
+.gold-select:focus {
+  border-color: #e0c070;
+  box-shadow: 0 0 0 2px rgba(201,168,76,0.15);
+}
+
+.gold-select option {
+  background-color: #111;
+  color: #c9a84c;
 }
