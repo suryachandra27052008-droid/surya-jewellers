@@ -329,12 +329,16 @@ export async function POST(request: Request) {
         return t && t !== rawCategory && !SKU_PATTERN.test(t) && !METAL_RE.test(t);
       })?.trim() ?? col(sheet, rowNum, colMap.stoneName).trim();
 
-      // Numeric fields — detected column with 1-left fallback
-      const grossWeight   = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.grossWeight))   || 0;
-      const silverWeight  = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.silverWeight))  || 0;
-      const diamondWeight = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.diamondWeight)) || 0;
-      const csWeight      = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.csWeight))      || 0;
-      const price         = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.price))         || 0;
+      // Numeric fields — gross/silver/price use shift-fallback (may be 1 col left of header).
+      // diamondWeight and csWeight use DIRECT lookup only: when Excel omits a zero-value cell
+      // the fallback would bleed into the adjacent column and return a wrong non-zero value.
+      const grossWeight   = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.grossWeight))  || 0;
+      const silverWeight  = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.silverWeight)) || 0;
+      const price         = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.price))        || 0;
+      const diaWt  = parseFloat(col(sheet, rowNum, colMap.diamondWeight) || '0');
+      const diamondWeight = diaWt > 0 ? diaWt : 0;
+      const csWt   = parseFloat(col(sheet, rowNum, colMap.csWeight) || '0');
+      const csWeight      = csWt > 0 ? csWt : 0;
 
       // Barcode may be string or numeric
       const barcode = col(sheet, rowNum, colMap.barcode).trim()
