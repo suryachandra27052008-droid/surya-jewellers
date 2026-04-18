@@ -40,14 +40,23 @@ function parseSharedStrings(xml: string): string[] {
 
 // ─── Sheet parser ─────────────────────────────────────────────────────────────
 // Returns:
-//   sheet   — Map<rowNum, Map<colLetter, resolvedValue>>
-//   ssRows  — Map<rowNum, string[]> shared-string values in column order per row
+//   sheet       — Map<rowNum, Map<colLetter, resolvedValue>>
+//   ssRows      — Map<rowNum, string[]>  shared-string resolved values in column order
+//   ssIndexRows — Map<rowNum, number[]>  raw shared-string indices in column order
+//
+// The raw index list lets us find SKU = ss[categoryRawIndex + 1] even when
+// the SKU cell is absent from the row XML (embedded-image column shift).
 function parseSheet(
   xml: string,
   ss: string[]
-): { sheet: Map<number, Map<string, string>>; ssRows: Map<number, string[]> } {
+): {
+  sheet: Map<number, Map<string, string>>;
+  ssRows: Map<number, string[]>;
+  ssIndexRows: Map<number, number[]>;
+} {
   const sheet = new Map<number, Map<string, string>>();
   const ssRows = new Map<number, string[]>();
+  const ssIndexRows = new Map<number, number[]>();
   const rowBlocks = xml.split(/<row\b/);
   for (let b = 1; b < rowBlocks.length; b++) {
     const block = rowBlocks[b];
@@ -56,6 +65,7 @@ function parseSheet(
     const rowNum = parseInt(rowM[1], 10);
     const colMap = new Map<string, string>();
     const ssList: string[] = [];
+    const ssIdxList: number[] = [];
     const cellRe = /<c\b([^>]*)(?:\/>|>([\s\S]*?)<\/c>)/g;
     let cm: RegExpExecArray | null;
     while ((cm = cellRe.exec(block)) !== null) {
@@ -69,12 +79,15 @@ function parseSheet(
       const rawVal = vM ? vM[1] : '';
       let value: string;
       if (cType === 's') {
-        value = ss[parseInt(rawVal, 10)] ?? '';
+        const idx = parseInt(rawVal, 10);
+        value = ss[idx] ?? '';
         ssList.push(value);
+        ssIdxList.push(idx);
       } else if (cType === 'inlineStr') {
         const tM = inner.match(/<t[^>]*>([^<]*)<\/t>/);
         value = tM ? tM[1] : '';
         ssList.push(value);
+        ssIdxList.push(-1);
       } else {
         value = rawVal;
       }
@@ -82,8 +95,9 @@ function parseSheet(
     }
     sheet.set(rowNum, colMap);
     ssRows.set(rowNum, ssList);
+    ssIndexRows.set(rowNum, ssIdxList);
   }
-  return { sheet, ssRows };
+  return { sheet, ssRows, ssIndexRows };
 }
 
 function col(sheet: Map<number, Map<string, string>>, row: number, letter: string): string {
@@ -250,7 +264,7 @@ export async function POST(request: Request) {
     console.log('[upload-products] sheet XML length:', sheetXml.length);
 
     // ── Parse sheet ──────────────────────────────────────────────────────────
-    const { sheet, ssRows } = parseSheet(sheetXml, ss);
+    const { sheet, ssRows, ssIndexRows } = parseSheet(sheetXml, ss);
     console.log('[upload-products] rows parsed:', sheet.size);
 
     // ── Dynamic column detection — scan rows 1 and 2 for headers ────────────
@@ -270,6 +284,8 @@ export async function POST(request: Request) {
       row3Cells: dumpRow(sheetXml, sheet, 3),
       row2SharedStrings: ssRows.get(2) ?? [],
       row3SharedStrings: ssRows.get(3) ?? [],
+      row2SsIndices: ssIndexRows.get(2) ?? [],
+      row3SsIndices: ssIndexRows.get(3) ?? [],
     };
     console.log('[upload-products] row2 shared strings:', JSON.stringify(debugInfo.row2SharedStrings));
     console.log('[upload-products] row3 shared strings:', JSON.stringify(debugInfo.row3SharedStrings));
@@ -291,12 +307,24 @@ export async function POST(request: Request) {
         continue;
       }
 
-      const ssInRow = ssRows.get(rowNum) ?? [];
+      const ssInRow    = ssRows.get(rowNum) ?? [];
+      const ssIdxInRow = ssIndexRows.get(rowNum) ?? [];
 
-      // String fields — ordinal shared-string position (immune to column shifts)
-      const rawCategory   = (ssInRow[0] ?? col(sheet, rowNum, colMap.category)).trim();
-      const sku           = (ssInRow[1] ?? col(sheet, rowNum, colMap.sku)).trim();
-      const rawStones     = (ssInRow[2] ?? col(sheet, rowNum, colMap.stoneName)).trim();
+      // Category: first shared-string cell in the row (col B)
+      const rawCategory = (ssInRow[0] ?? col(sheet, rowNum, colMap.category)).trim();
+
+      // SKU: the SKU cell (col D) is absent from the row XML when an embedded
+      // image occupies that column slot. The category cell holds raw ss index N,
+      // and Excel wrote the strings in order: category, SKU, stones — so
+      //   SKU    = ss[categoryRawIndex + 1]
+      //   stones = ss[categoryRawIndex + 2]
+      const categoryRawIdx = ssIdxInRow[0] ?? -1;
+      const sku = categoryRawIdx >= 0 && ss[categoryRawIdx + 1]
+        ? ss[categoryRawIdx + 1].trim()
+        : (ssInRow[1] ?? col(sheet, rowNum, colMap.sku)).trim();
+      const rawStones = categoryRawIdx >= 0 && ss[categoryRawIdx + 2]
+        ? ss[categoryRawIdx + 2].trim()
+        : (ssInRow[2] ?? col(sheet, rowNum, colMap.stoneName)).trim();
 
       // Numeric fields — detected column with 1-left fallback
       const grossWeight   = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.grossWeight))   || 0;
@@ -314,7 +342,7 @@ export async function POST(request: Request) {
         `[upload-products] row ${rowNum}: sku="${sku}" cat="${rawCategory}"` +
         ` stones="${rawStones}" barcode="${barcode}" price=${price}` +
         ` silver=${silverWeight} diamond=${diamondWeight} cs=${csWeight}` +
-        ` ssInRow=${JSON.stringify(ssInRow.slice(0, 5))}`
+        ` ssInRow=${JSON.stringify(ssInRow.slice(0, 5))} ssIdx=${JSON.stringify(ssIdxInRow.slice(0, 5))} catRaw=${categoryRawIdx}`
       );
 
       const category   = normaliseCategory(rawCategory);
