@@ -88,7 +88,7 @@ export default function ProductDetailClient({
 
   const handleAddToCart = () => {
     if (atMaxQty) return;
-    if (product.category === 'Rings' && !selectedSize) {
+    if (/^rings?$/i.test(product.category) && !selectedSize) {
       setSizeError(true);
       return;
     }
@@ -218,39 +218,68 @@ export default function ProductDetailClient({
 
               <div className="h-[1px] bg-gradient-to-r from-gold/40 via-gold/20 to-transparent" />
 
-              {/* Ring Size Selector */}
-              {product.category === 'Rings' && (
+              {/* Ring Size Selector — shown for all Ring/Rings category products */}
+              {/^rings?$/i.test(product.category) && (
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-charcoal">Select Ring Size <span className="text-charcoal-muted font-normal">(Indian)</span></span>
-                    <button
-                      onClick={() => setShowSizeGuide(true)}
-                      className="text-xs underline hover:no-underline transition-all"
-                      style={{ color: '#c9a84c' }}
-                    >
-                      Size Guide
-                    </button>
-                  </div>
+                  <p
+                    className="mb-3"
+                    style={{
+                      fontFamily: 'var(--font-cinzel), serif',
+                      color: '#c9a84c',
+                      fontSize: '0.7rem',
+                      letterSpacing: '3px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Ring Size
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {[5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map((size) => (
                       <button
                         key={size}
+                        type="button"
                         onClick={() => { setSelectedSize(size); setSizeError(false); }}
-                        className="w-10 h-10 text-sm font-medium transition-all duration-200 rounded-sm"
                         style={{
+                          width: '40px',
+                          height: '40px',
+                          fontSize: '0.8rem',
+                          fontWeight: 500,
+                          border: '1.5px solid #c9a84c',
                           backgroundColor: selectedSize === size ? '#c9a84c' : 'transparent',
-                          borderWidth: '1.5px',
-                          borderStyle: 'solid',
-                          borderColor: '#c9a84c',
-                          color: selectedSize === size ? '#1a1209' : '#c9a84c',
+                          color: selectedSize === size ? '#111' : '#c9a84c',
+                          cursor: 'pointer',
+                          transition: 'all 0.18s',
+                          boxShadow: selectedSize === size ? '0 0 8px rgba(201,168,76,0.45)' : 'none',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedSize !== size) {
+                            e.currentTarget.style.boxShadow = '0 0 8px rgba(201,168,76,0.35)';
+                            e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.12)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedSize !== size) {
+                            e.currentTarget.style.boxShadow = 'none';
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }
                         }}
                       >
                         {size}
                       </button>
                     ))}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowSizeGuide(true)}
+                    className="mt-2 text-xs hover:underline transition-all"
+                    style={{ color: '#a08040' }}
+                  >
+                    Not sure of your size? View Size Guide
+                  </button>
                   {sizeError && (
-                    <p className="text-red-500 text-xs mt-2">Please select a ring size</p>
+                    <p className="mt-2 text-xs font-medium" style={{ color: '#c9a84c' }}>
+                      ⚠ Please select a ring size to continue
+                    </p>
                   )}
                 </div>
               )}
