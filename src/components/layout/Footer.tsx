@@ -49,6 +49,7 @@ export default function Footer() {
                 { href: '/blog/size-guide', label: 'Size Guide' },
                 { href: '/contact', label: 'Contact Us' },
                 { href: '/wholesale', label: 'Wholesale / B2B' },
+                { href: '/jaipur-jewellery', label: 'Jewellers in Jaipur' },
               ].map((link) => (
                 <li key={link.href}>
                   <Link
@@ -89,13 +90,32 @@ export default function Footer() {
               </li>
             </ul>
 
-            <div className="mt-8 pt-6 border-t border-white/10">
-              <p className="text-xs text-white/40">
-                Contact: suryajewellersjaipur@gmail.com
+            <div className="mt-8 pt-6 border-t border-white/10" itemScope itemType="https://schema.org/JewelryStore">
+              <p className="text-xs text-white/60 font-medium mb-2" style={{ color: '#D4AF37' }}>
+                Visit Us
               </p>
-              <p className="text-xs text-white/40 mt-1">
-                Phone: +91 99839 39306
-              </p>
+              <address className="not-italic text-xs text-white/50 leading-relaxed space-y-1">
+                <span itemProp="name" className="sr-only">Surya Jewellers</span>
+                <p itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
+                  <span itemProp="streetAddress">B-169 Anandpuri, Moti Doongri Rd</span>,{' '}
+                  <span itemProp="addressLocality">Jaipur</span>,{' '}
+                  <span itemProp="addressRegion">Rajasthan</span>{' '}
+                  <span itemProp="postalCode">302004</span>
+                </p>
+                <p>
+                  <a href="tel:+919983939306" itemProp="telephone" className="hover:text-gold transition-colors">
+                    +91 99839 39306
+                  </a>
+                </p>
+                <p>
+                  <a href="mailto:suryajewellersjaipur@gmail.com" itemProp="email" className="hover:text-gold transition-colors">
+                    suryajewellersjaipur@gmail.com
+                  </a>
+                </p>
+                <p itemProp="openingHours" content="Mo-Sa 10:00-20:00">
+                  Mon–Sat: 10 AM – 8 PM IST
+                </p>
+              </address>
             </div>
           </div>
         </div>

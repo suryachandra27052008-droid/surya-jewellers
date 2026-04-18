@@ -8,6 +8,32 @@ import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
+export interface RelatedProduct {
+  _id: string;
+  name: string;
+  slug: string;
+  price: number;
+  images: string[];
+  mainStoneType: string;
+  category: string;
+}
+
+function generateDescription(product: ProductData): string {
+  if (product.description) return product.description;
+  const stone = product.mainStoneType !== 'None' ? product.mainStoneType : null;
+  const caratText = product.totalCaratWeight > 0 ? ` (${product.totalCaratWeight} ct)` : '';
+  const clarityText = product.diamondColorClarity ? `, graded ${product.diamondColorClarity}` : '';
+  const stonePhrase = stone
+    ? `, set with a natural certified ${stone.toLowerCase()} gemstone${caratText}${clarityText}`
+    : '';
+  const weightText = product.silverWeight > 0 ? ` Weighing ${product.silverWeight}g` : '';
+  return `This ${product.name} is handcrafted in hallmarked 92.5 sterling silver${stonePhrase}.${weightText ? ' ' + weightText + ', it' : ' It'} is part of our ${product.category} collection, made at our Jaipur workshop by skilled artisans who carry forward generations of traditional silversmithing technique.
+
+The natural gemstone${stone ? 's are' : 's are'} ethically sourced and their type and carat weight are documented in the Certificate of Authenticity that accompanies every Surya Jewellers piece. You receive a piece of jewellery that is not only beautiful but also fully verified — 92.5 sterling silver purity, natural stone origin, and exact weight, all in writing.
+
+Whether worn daily or kept for special occasions, this ${product.category.toLowerCase().replace(/s$/, '')} is built to last. Surya Jewellers provides complimentary lifetime maintenance: bring your piece to our Jaipur showroom anytime for professional cleaning and polishing, free of charge. Founded in 2003, Surya Jewellers has been crafting fine silver jewellery from the gemstone capital of India for over two decades.`;
+}
+
 const categoryEmojis: Record<string, string> = {
   Rings: '💍',
   Necklaces: '📿',
@@ -39,7 +65,13 @@ export interface ProductData {
   images: string[];
 }
 
-export default function ProductDetailClient({ product }: { product: ProductData }) {
+export default function ProductDetailClient({
+  product,
+  relatedProducts = [],
+}: {
+  product: ProductData;
+  relatedProducts?: RelatedProduct[];
+}) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
 
@@ -168,9 +200,11 @@ export default function ProductDetailClient({ product }: { product: ProductData 
 
               <div className="h-[1px] bg-gradient-to-r from-gold/40 via-gold/20 to-transparent" />
 
-              <p className="text-sm text-charcoal-muted leading-relaxed">
-                {product.description}
-              </p>
+              <div className="text-sm text-charcoal-muted leading-relaxed space-y-3">
+                {generateDescription(product).split('\n\n').map((para, i) => (
+                  <p key={i}>{para}</p>
+                ))}
+              </div>
 
               {/* Specifications Table */}
               <div className="bg-cream rounded p-6">
@@ -220,6 +254,42 @@ export default function ProductDetailClient({ product }: { product: ProductData 
             </div>
           </AnimatedSection>
         </div>
+
+        {/* You may also like */}
+        {relatedProducts.length > 0 && (
+          <section className="mt-20 pt-16 border-t border-cream-dark">
+            <div className="text-center mb-10">
+              <span className="text-gold text-xs tracking-[0.4em] uppercase">From Our Collection</span>
+              <h2 className="font-serif text-2xl sm:text-3xl mt-3 text-charcoal">You May Also Like</h2>
+              <div className="h-[1px] w-16 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mt-4" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {relatedProducts.map((rp) => (
+                <Link key={rp._id} href={`/products/${rp.slug}`} className="group block">
+                  <div className="aspect-square bg-gradient-to-br from-cream-dark to-cream rounded overflow-hidden relative border border-cream-dark mb-3">
+                    {rp.images[0] ? (
+                      <Image
+                        src={rp.images[0]}
+                        alt={`${rp.mainStoneType !== 'None' ? rp.mainStoneType + ' ' : ''}${rp.name} — 92.5 Sterling Silver`}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-6xl opacity-20">💎</div>
+                    )}
+                  </div>
+                  <p className="text-xs text-charcoal-muted tracking-wide uppercase">{rp.category}</p>
+                  <p className="font-serif text-charcoal text-sm mt-0.5 group-hover:text-gold transition-colors">{rp.name}</p>
+                  <p className="text-sm font-medium text-charcoal mt-1">
+                    {formatPrice(rp.price, currency)}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
