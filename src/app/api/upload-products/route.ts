@@ -38,9 +38,16 @@ function parseSharedStrings(xml: string): string[] {
   return result;
 }
 
-// ─── Sheet parser — returns Map<rowNum, Map<colLetters, resolvedValue>> ────────
-function parseSheet(xml: string, ss: string[]): Map<number, Map<string, string>> {
+// ─── Sheet parser ─────────────────────────────────────────────────────────────
+// Returns:
+//   sheet   — Map<rowNum, Map<colLetter, resolvedValue>>
+//   ssRows  — Map<rowNum, string[]> shared-string values in column order per row
+function parseSheet(
+  xml: string,
+  ss: string[]
+): { sheet: Map<number, Map<string, string>>; ssRows: Map<number, string[]> } {
   const sheet = new Map<number, Map<string, string>>();
+  const ssRows = new Map<number, string[]>();
   const rowBlocks = xml.split(/<row\b/);
   for (let b = 1; b < rowBlocks.length; b++) {
     const block = rowBlocks[b];
@@ -48,6 +55,7 @@ function parseSheet(xml: string, ss: string[]): Map<number, Map<string, string>>
     if (!rowM) continue;
     const rowNum = parseInt(rowM[1], 10);
     const colMap = new Map<string, string>();
+    const ssList: string[] = [];
     const cellRe = /<c\b([^>]*)(?:\/>|>([\s\S]*?)<\/c>)/g;
     let cm: RegExpExecArray | null;
     while ((cm = cellRe.exec(block)) !== null) {
@@ -60,23 +68,57 @@ function parseSheet(xml: string, ss: string[]): Map<number, Map<string, string>>
       const vM = inner.match(/<v>([^<]*)<\/v>/);
       const rawVal = vM ? vM[1] : '';
       let value: string;
-      if (cType === 's') { value = ss[parseInt(rawVal, 10)] ?? ''; }
-      else if (cType === 'inlineStr') { const tM = inner.match(/<t[^>]*>([^<]*)<\/t>/); value = tM ? tM[1] : ''; }
-      else { value = rawVal; }
+      if (cType === 's') {
+        value = ss[parseInt(rawVal, 10)] ?? '';
+        ssList.push(value);
+      } else if (cType === 'inlineStr') {
+        const tM = inner.match(/<t[^>]*>([^<]*)<\/t>/);
+        value = tM ? tM[1] : '';
+        ssList.push(value);
+      } else {
+        value = rawVal;
+      }
       colMap.set(colLetters, value);
     }
     sheet.set(rowNum, colMap);
+    ssRows.set(rowNum, ssList);
   }
-  return sheet;
+  return { sheet, ssRows };
 }
 
 function col(sheet: Map<number, Map<string, string>>, row: number, letter: string): string {
   return sheet.get(row)?.get(letter) ?? '';
 }
 
+// ─── Column letter arithmetic ─────────────────────────────────────────────────
+function colLetterToNum(letter: string): number {
+  let n = 0;
+  for (const ch of letter) n = n * 26 + (ch.charCodeAt(0) - 64);
+  return n;
+}
+function numToColLetter(n: number): string {
+  if (n <= 0) return 'A';
+  let result = '';
+  while (n > 0) {
+    const r = (n - 1) % 26;
+    result = String.fromCharCode(65 + r) + result;
+    n = Math.floor((n - 1) / 26);
+  }
+  return result;
+}
+// Try detected column; if empty, try the column one to the left (handles 1-col shift from embedded image)
+function colWithShiftFallback(
+  sheet: Map<number, Map<string, string>>,
+  row: number,
+  letter: string
+): string {
+  const v = col(sheet, row, letter);
+  if (v) return v;
+  const prev = numToColLetter(colLetterToNum(letter) - 1);
+  return col(sheet, row, prev);
+}
+
 // ─── Dynamic column detection ─────────────────────────────────────────────────
-// Scans a header row and maps field names to column letters.
-// Falls back to hardcoded letters (from 329.xlsx structure) if not found.
 const HEADER_PATTERNS: { field: string; re: RegExp }[] = [
   { field: 'sku',           re: /^sku$/i },
   { field: 'category',      re: /^code$/i },
@@ -129,7 +171,6 @@ function detectColumns(
     }
   }
 
-  // Merge with fallbacks for any field not found
   const colMap: Record<string, string> = { ...FALLBACK_COLS, ...best };
   return { colMap, headerRow };
 }
@@ -209,7 +250,7 @@ export async function POST(request: Request) {
     console.log('[upload-products] sheet XML length:', sheetXml.length);
 
     // ── Parse sheet ──────────────────────────────────────────────────────────
-    const sheet = parseSheet(sheetXml, ss);
+    const { sheet, ssRows } = parseSheet(sheetXml, ss);
     console.log('[upload-products] rows parsed:', sheet.size);
 
     // ── Dynamic column detection — scan rows 1 and 2 for headers ────────────
@@ -227,13 +268,19 @@ export async function POST(request: Request) {
       row1Cells: dumpRow(sheetXml, sheet, 1),
       row2Cells: dumpRow(sheetXml, sheet, 2),
       row3Cells: dumpRow(sheetXml, sheet, 3),
+      row2SharedStrings: ssRows.get(2) ?? [],
+      row3SharedStrings: ssRows.get(3) ?? [],
     };
-    console.log('[upload-products] row2Cells:', JSON.stringify(debugInfo.row2Cells));
-    console.log('[upload-products] row3Cells:', JSON.stringify(debugInfo.row3Cells));
+    console.log('[upload-products] row2 shared strings:', JSON.stringify(debugInfo.row2SharedStrings));
+    console.log('[upload-products] row3 shared strings:', JSON.stringify(debugInfo.row3SharedStrings));
 
     // ── Extract up to 10 products ────────────────────────────────────────────
-    // imageIndex = rowNum - dataStartRow + 1
-    // e.g. dataStartRow=3: row3→image1, row4→image2 …
+    // String fields: use ordinal position of shared-string cells in the row
+    //   ssInRow[0] = category (e.g. "Earring")
+    //   ssInRow[1] = SKU (e.g. "EAR08923")
+    //   ssInRow[2] = stone names (e.g. "CORAL, EMRALD")
+    // Numeric fields: use detected column letter, with 1-left fallback for
+    //   files where embedded images shift data cells by one column.
     const products = [];
 
     for (let i = 0; i < 10; i++) {
@@ -244,20 +291,30 @@ export async function POST(request: Request) {
         continue;
       }
 
-      const rawCategory   = col(sheet, rowNum, colMap.category).trim();
-      const sku           = col(sheet, rowNum, colMap.sku).trim();
-      const grossWeight   = parseFloat(col(sheet, rowNum, colMap.grossWeight))   || 0;
-      const silverWeight  = parseFloat(col(sheet, rowNum, colMap.silverWeight))  || 0;
-      const diamondWeight = parseFloat(col(sheet, rowNum, colMap.diamondWeight)) || 0;
-      const csWeight      = parseFloat(col(sheet, rowNum, colMap.csWeight))      || 0;
-      const rawStones     = col(sheet, rowNum, colMap.stoneName).trim();
-      const barcode       = col(sheet, rowNum, colMap.barcode).trim();
-      const price         = parseFloat(col(sheet, rowNum, colMap.price))         || 0;
+      const ssInRow = ssRows.get(rowNum) ?? [];
+
+      // String fields — ordinal shared-string position (immune to column shifts)
+      const rawCategory   = (ssInRow[0] ?? col(sheet, rowNum, colMap.category)).trim();
+      const sku           = (ssInRow[1] ?? col(sheet, rowNum, colMap.sku)).trim();
+      const rawStones     = (ssInRow[2] ?? col(sheet, rowNum, colMap.stoneName)).trim();
+
+      // Numeric fields — detected column with 1-left fallback
+      const grossWeight   = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.grossWeight))   || 0;
+      const silverWeight  = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.silverWeight))  || 0;
+      const diamondWeight = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.diamondWeight)) || 0;
+      const csWeight      = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.csWeight))      || 0;
+      const price         = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.price))         || 0;
+
+      // Barcode may be string or numeric
+      const barcode = col(sheet, rowNum, colMap.barcode).trim()
+                   || colWithShiftFallback(sheet, rowNum, colMap.barcode).trim()
+                   || (ssInRow[3] ?? '').trim();
 
       console.log(
         `[upload-products] row ${rowNum}: sku="${sku}" cat="${rawCategory}"` +
         ` stones="${rawStones}" barcode="${barcode}" price=${price}` +
-        ` silver=${silverWeight} diamond=${diamondWeight} cs=${csWeight}`
+        ` silver=${silverWeight} diamond=${diamondWeight} cs=${csWeight}` +
+        ` ssInRow=${JSON.stringify(ssInRow.slice(0, 5))}`
       );
 
       const category   = normaliseCategory(rawCategory);
