@@ -2,19 +2,18 @@ import { NextResponse } from 'next/server';
 import JSZip from 'jszip';
 import { put } from '@vercel/blob';
 
-// App Router route handlers do NOT need bodyParser config — that is Pages Router only.
-
 const CATEGORY_MAP: Record<string, string> = {
-  Ring: 'Rings', Rings: 'Rings',
-  Necklace: 'Necklaces', Necklaces: 'Necklaces',
-  Bracelet: 'Bracelets', Bracelets: 'Bracelets',
-  Earring: 'Earrings', Earrings: 'Earrings',
-  Pendant: 'Pendants', Pendants: 'Pendants',
-  Bangle: 'Bangles', Bangles: 'Bangles',
-  Chain: 'Chains', Chains: 'Chains',
+  Ring: 'Rings', Rings: 'Rings', RING: 'Rings', ring: 'Rings',
+  Necklace: 'Necklaces', Necklaces: 'Necklaces', NECKLACE: 'Necklaces',
+  Bracelet: 'Bracelets', Bracelets: 'Bracelets', BRACELET: 'Bracelets',
+  Earring: 'Earrings', Earrings: 'Earrings', EARRING: 'Earrings',
+  Pendant: 'Pendants', Pendants: 'Pendants', PENDANT: 'Pendants',
+  TOPS: 'Studs', Tops: 'Studs', tops: 'Studs', TOP: 'Studs',
+  Stud: 'Studs', Studs: 'Studs', STUDS: 'Studs', STUD: 'Studs',
+  Bangle: 'Bangles', Bangles: 'Bangles', BANGLE: 'Bangles',
+  Chain: 'Chains', Chains: 'Chains', CHAIN: 'Chains',
 };
 
-// Decode XML character entities
 function decodeXml(str: string): string {
   return str
     .replace(/&amp;/g, '&')
@@ -25,7 +24,6 @@ function decodeXml(str: string): string {
     .replace(/&#(\d+);/g, (_, c) => String.fromCharCode(parseInt(c, 10)));
 }
 
-// Parse xl/sharedStrings.xml into a string lookup array
 function parseSharedStrings(xml: string): string[] {
   const strings: string[] = [];
   const siRe = /<si>([\s\S]*?)<\/si>/g;
@@ -42,7 +40,6 @@ function parseSharedStrings(xml: string): string[] {
   return strings;
 }
 
-// Convert 0-based column index to Excel letter(s): 0→A, 1→B, 25→Z, 26→AA ...
 function colLetter(idx: number): string {
   let s = '';
   let n = idx + 1;
@@ -54,7 +51,6 @@ function colLetter(idx: number): string {
   return s;
 }
 
-// Convert Excel column letters back to 0-based index: A→0, B→1, AD→29 ...
 function colIndex(letters: string): number {
   let idx = 0;
   for (let i = 0; i < letters.length; i++) {
@@ -63,44 +59,37 @@ function colIndex(letters: string): number {
   return idx - 1;
 }
 
-// Parse xl/worksheets/sheet1.xml into Map<rowNum, Map<colIdx, value>>
 function parseSheet(
   xml: string,
   sharedStrings: string[]
 ): Map<number, Map<number, string>> {
   const sheet = new Map<number, Map<number, string>>();
 
-  // Split on <row so we process each row block independently (avoids nested-tag issues)
   const rowBlocks = xml.split(/<row\b/);
   for (let b = 1; b < rowBlocks.length; b++) {
     const block = rowBlocks[b];
 
-    // Extract row number from r="N" attribute
     const rAttr = block.match(/\br="(\d+)"/);
     if (!rAttr) continue;
     const rowNum = parseInt(rAttr[1], 10);
 
     const colMap = new Map<number, string>();
 
-    // Match every <c ...> ... </c>  OR  <c ... />
     const cellRe = /<c\b([^>]*)(?:\/>|>([\s\S]*?)<\/c>)/g;
     let cm;
     while ((cm = cellRe.exec(block)) !== null) {
       const attrs = cm[1];
       const inner = cm[2] ?? '';
 
-      // Cell reference e.g. r="AD3"
       const refM = attrs.match(/\br="([A-Z]+)(\d+)"/);
       if (!refM) continue;
       const cIdx = colIndex(refM[1]);
 
-      // Cell type
       const typeM = attrs.match(/\bt="([^"]+)"/);
       const cType = typeM ? typeM[1] : '';
 
       let value = '';
       if (cType === 's') {
-        // Shared string index
         const v = inner.match(/<v>(\d+)<\/v>/);
         if (v) value = sharedStrings[parseInt(v[1], 10)] ?? '';
       } else if (cType === 'inlineStr') {
@@ -110,7 +99,6 @@ function parseSheet(
         const v = inner.match(/<v>([^<]*)<\/v>/);
         if (v) value = decodeXml(v[1]);
       } else {
-        // Numeric / date / boolean
         const v = inner.match(/<v>([^<]*)<\/v>/);
         if (v) value = v[1];
       }
@@ -133,10 +121,18 @@ function titleCase(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
+// Parse comma-separated stone names like "CORAL, EMRALD, RUBY" → ["Coral", "Emrald", "Ruby"]
+function parseStones(raw: string): string[] {
+  if (!raw) return [];
+  return raw
+    .split(/[,;]+/)
+    .map((s) => titleCase(s.trim()))
+    .filter(Boolean);
+}
+
 export async function POST(request: Request) {
   console.log('[upload-products] POST received');
   try {
-    // ── 1. Read multipart file ────────────────────────────────────────────────
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     console.log('[upload-products] file:', file?.name, 'size:', file?.size);
@@ -147,51 +143,40 @@ export async function POST(request: Request) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    console.log('[upload-products] buffer bytes:', buffer.length);
 
-    // ── 2. Open xlsx as zip ───────────────────────────────────────────────────
     const zip = await JSZip.loadAsync(buffer);
     const zipEntries = Object.keys(zip.files);
-    console.log('[upload-products] zip entries (first 20):', zipEntries.slice(0, 20));
+    console.log('[upload-products] zip entries (first 30):', zipEntries.slice(0, 30));
 
-    // ── 3. Parse sharedStrings ────────────────────────────────────────────────
+    // Parse sharedStrings
     let sharedStrings: string[] = [];
     const ssFile = zip.file('xl/sharedStrings.xml');
     if (ssFile) {
       const ssXml = await ssFile.async('string');
       sharedStrings = parseSharedStrings(ssXml);
       console.log('[upload-products] sharedStrings count:', sharedStrings.length);
-      console.log('[upload-products] sharedStrings[0..9]:', sharedStrings.slice(0, 10));
-    } else {
-      console.log('[upload-products] no sharedStrings.xml (all-numeric sheet?)');
+      console.log('[upload-products] first 15 sharedStrings:', sharedStrings.slice(0, 15));
     }
 
-    // ── 4. Parse sheet1 ───────────────────────────────────────────────────────
-    // Try common sheet file locations
-    const sheetCandidates = [
-      'xl/worksheets/sheet1.xml',
-      'xl/worksheets/Sheet1.xml',
-    ];
+    // Find sheet XML
+    const sheetCandidates = ['xl/worksheets/sheet1.xml', 'xl/worksheets/Sheet1.xml'];
     let sheetXml = '';
     for (const path of sheetCandidates) {
       const f = zip.file(path);
       if (f) { sheetXml = await f.async('string'); break; }
     }
     if (!sheetXml) {
-      // Try any file under xl/worksheets/
       const ws = zipEntries.find(e => e.match(/xl\/worksheets\/.*\.xml$/i));
       if (ws) sheetXml = await zip.file(ws)!.async('string');
     }
     if (!sheetXml) {
-      console.error('[upload-products] sheet XML not found. Entries:', zipEntries);
       return NextResponse.json({ error: 'Could not locate worksheet in xlsx file' }, { status: 400 });
     }
-    console.log('[upload-products] sheet XML length:', sheetXml.length);
 
     const sheet = parseSheet(sheetXml, sharedStrings);
     console.log('[upload-products] parsed row count:', sheet.size);
 
-    // Log rows 1-7 for debugging
+    // Log rows 1-7 to debug column layout
     for (let r = 1; r <= 7; r++) {
       const rowMap = sheet.get(r);
       if (rowMap) {
@@ -201,11 +186,32 @@ export async function POST(request: Request) {
       }
     }
 
-    // ── 5. Extract 5 products from rows 3–7 ──────────────────────────────────
+    // ── Column layout (0-based indices) ─────────────────────────────────────
+    // A=0  Sno
+    // B=1  Category (Ring, Earring, Pendant, TOPS …)  ← shared string
+    // C=2  Picture (skip)
+    // D=3  SKU (EAR08923, PND11208 …)                 ← shared string
+    // E=4  Barcode (42418 …)                           ← number
+    // F=5  Metal
+    // G=6  Purity
+    // H=7  Pcs
+    // I=8  Gross Weight
+    // J=9  Silver Weight                               ← number
+    // K=10 Diamond Weight                              ← number
+    // L=11 Pearl Weight                                ← number
+    // M=12 CS Weight (colored stone weight)            ← number
+    // N=13 CS Name / Stone Names (CORAL, EMRALD …)    ← shared string
+    // O=14 Price                                       ← number
+    // ─────────────────────────────────────────────────────────────────────────
+    // Row 1 = header row (skip)
+    // Row 2 = first product  → xl/media/image1.jpeg
+    // Row 3 = second product → xl/media/image2.jpeg  etc.
+    // ─────────────────────────────────────────────────────────────────────────
+
     const products = [];
 
     for (let i = 0; i < 5; i++) {
-      const rowNum = i + 3; // rows 3–7 (rows 1+2 are headers)
+      const rowNum = i + 2; // rows 2–6 (row 1 is header)
       const rowData = sheet.get(rowNum);
 
       if (!rowData || rowData.size === 0) {
@@ -213,78 +219,92 @@ export async function POST(request: Request) {
         continue;
       }
 
-      // Column mapping (0-based): B=1, D=3, M=12, R=17, AA=26, AB=27, AD=29, AH=33, AI=34, AJ=35
-      const rawCategory    = cell(sheet, rowNum, 1).trim();   // B (sharedString)
-      const sku            = cell(sheet, rowNum, 3).trim();   // D (sharedString)
-      const silverWeight   = parseFloat(cell(sheet, rowNum, 12)) || 0; // M
-      const diamondWeight  = parseFloat(cell(sheet, rowNum, 17)) || 0; // R
-      const csWeight       = parseFloat(cell(sheet, rowNum, 26)) || 0; // AA
-      const rawSecondary   = cell(sheet, rowNum, 27).trim();  // AB (sharedString - colored stone name)
-      const rawStone       = cell(sheet, rowNum, 29).trim();  // AD (sharedString - main stone)
-      const barcode        = cell(sheet, rowNum, 33).trim();  // AH
-      const price          = parseFloat(cell(sheet, rowNum, 34)) || 0; // AI
-      const totalRS        = parseFloat(cell(sheet, rowNum, 35)) || 0; // AJ (MRP)
+      const rawCategory  = cell(sheet, rowNum, 1).trim();   // B
+      const sku          = cell(sheet, rowNum, 3).trim();   // D  shared string
+      const barcode      = cell(sheet, rowNum, 4).trim();   // E  number stored as string
+      const silverWeight = parseFloat(cell(sheet, rowNum, 9))  || 0; // J
+      const diamondWeight= parseFloat(cell(sheet, rowNum, 10)) || 0; // K
+      const pearlWeight  = parseFloat(cell(sheet, rowNum, 11)) || 0; // L
+      const csWeight     = parseFloat(cell(sheet, rowNum, 12)) || 0; // M
+      const rawStones    = cell(sheet, rowNum, 13).trim();  // N  shared string
+      const price        = parseFloat(cell(sheet, rowNum, 14)) || 0; // O
 
-      console.log(`[upload-products] row ${rowNum}: sku="${sku}" cat="${rawCategory}" stone="${rawStone}" secondary="${rawSecondary}" barcode="${barcode}" price=${price} totalRS=${totalRS} csWeight=${csWeight}`);
+      console.log(`[upload-products] row ${rowNum}: sku="${sku}" cat="${rawCategory}" stones="${rawStones}" barcode="${barcode}" price=${price}`);
 
-      const category = CATEGORY_MAP[rawCategory] || rawCategory || 'Rings';
-      const stoneName = titleCase(rawStone);
-      const secondaryStone = titleCase(rawSecondary);
+      // Normalise category
+      const category = CATEGORY_MAP[rawCategory] || titleCase(rawCategory) || 'Rings';
+
+      // Parse stones
+      const stones = parseStones(rawStones); // ["Coral", "Emrald", "Ruby", "Turquoise"]
+      const stoneName = stones[0] || '';     // primary stone for backward-compat field
+
+      // Build readable product name
       const categoryLabel = category.replace(/s$/, '');
-      const name = stoneName ? `${stoneName} ${categoryLabel}` : (secondaryStone ? `${secondaryStone} ${categoryLabel}` : `Silver ${categoryLabel}`);
+      const stoneLabel = stones.slice(0, 2).join(' ');
+      const name = stoneLabel
+        ? `${stoneLabel} ${categoryLabel}`
+        : `Silver ${categoryLabel}`;
 
-      // ── 7. Extract embedded image and upload to Vercel Blob ──────────────
-      const imageIndex = i + 1; // image1 → row 3, image2 → row 4 …
+      // Image: row 2 → image1, row 3 → image2, …
+      const imageIndex = rowNum - 1;
       let imagePath = '';
       let imageBase64 = '';
 
-      console.log(`[upload-products] extracting image${imageIndex}, BLOB token present: ${!!process.env.BLOB_READ_WRITE_TOKEN}`);
-      for (const ext of ['jpeg', 'jpg', 'png']) {
+      console.log(`[upload-products] looking for image${imageIndex}`);
+      for (const ext of ['jpeg', 'jpg', 'png', 'PNG', 'JPG', 'JPEG']) {
         const imgFile = zip.file(`xl/media/image${imageIndex}.${ext}`);
         if (imgFile) {
           console.log(`[upload-products] found xl/media/image${imageIndex}.${ext}`);
-
-          // Use arraybuffer — works universally in Next.js App Router
           const imgArrayBuffer = await imgFile.async('arraybuffer');
           const imgBuf = Buffer.from(imgArrayBuffer);
-          const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
-          const blobExt = ext === 'jpg' ? 'jpeg' : ext;
-          const blobKey = `products/${sku || `product_${i + 1}`}.${blobExt}`;
+          const mime = ext.toLowerCase() === 'png' ? 'image/png' : 'image/jpeg';
+          const blobExt = ext.toLowerCase() === 'png' ? 'png' : 'jpeg';
+          const blobKey = `products/${sku || `product_${imageIndex}`}.${blobExt}`;
 
-          console.log(`[upload-products] uploading to blob: key=${blobKey} size=${imgBuf.length} bytes`);
           try {
-            // SDK reads BLOB_READ_WRITE_TOKEN from env automatically;
-            // pass token explicitly so it also works during local dev
             const blob = await put(blobKey, imgArrayBuffer, {
               access: 'public',
               contentType: mime,
               token: process.env.BLOB_READ_WRITE_TOKEN,
             });
             imagePath = blob.url;
-            console.log(`[upload-products] blob upload SUCCESS: ${blob.url}`);
+            console.log(`[upload-products] blob upload OK: ${blob.url}`);
           } catch (blobErr: any) {
             console.error('[upload-products] blob upload FAILED:', blobErr?.message);
           }
 
-          // Always include base64 so the browser preview table shows even if blob fails
           imageBase64 = `data:${mime};base64,${imgBuf.toString('base64')}`;
           break;
         }
       }
 
       if (!imagePath && !imageBase64) {
-        console.log(`[upload-products] no image found for image${imageIndex} (row ${rowNum})`);
+        console.log(`[upload-products] no image found for image${imageIndex}`);
       }
 
-      products.push({ index: i, sku, category, stoneName, secondaryStone, silverWeight, diamondWeight, csWeight, price, totalRS, barcode, name, imagePath, imageBase64 });
+      products.push({
+        index: i,
+        sku,
+        barcode,
+        category,
+        stones,          // full array: ["Coral", "Emrald", "Ruby"]
+        stoneName,       // first stone (backward compat)
+        silverWeight,
+        diamondWeight,
+        pearlWeight,
+        csWeight,
+        price,
+        name,
+        imagePath,
+        imageBase64,
+      });
     }
 
     console.log(`[upload-products] returning ${products.length} products`);
     return NextResponse.json({ success: true, products });
 
   } catch (err: any) {
-    console.error('[upload-products] unhandled error:', err?.message);
-    console.error('[upload-products] stack:', err?.stack);
+    console.error('[upload-products] unhandled error:', err?.message, err?.stack);
     return NextResponse.json(
       { error: `Failed to process Excel file: ${err?.message ?? 'unknown error'}` },
       { status: 500 }

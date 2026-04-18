@@ -23,16 +23,19 @@ function mapStoneType(stoneName: string): string | undefined {
 interface BulkProduct {
   index: number;
   sku: string;
+  barcode?: string;
   category: string;
-  stoneName: string;
+  stones?: string[];    // all stones: ["Coral", "Emrald", "Ruby"]
+  stoneName: string;    // first stone (backward compat)
   secondaryStone?: string;
   silverWeight: number;
   diamondWeight: number;
+  pearlWeight?: number;
+  csWeight?: number;
   price: number;
-  barcode?: string;
   name: string;
-  imagePath: string;   // Vercel Blob URL (or empty)
-  imageBase64: string; // data:image/jpeg;base64,... — always present for Sanity upload
+  imagePath: string;
+  imageBase64: string;
 }
 
 // Get raw image buffer from whatever source is available
@@ -140,8 +143,10 @@ export async function POST(request: Request) {
           price: product.price,
           category: { _type: 'reference', _ref: category._id },
           silverWeight: product.silverWeight,
-          mainStoneType: mapStoneType(product.stoneName),
-          secondaryStoneType: mapStoneType(product.secondaryStone || '') || (product.secondaryStone ? product.secondaryStone : undefined),
+          mainStoneType: mapStoneType(product.stones?.[0] || product.stoneName) || product.stones?.[0] || undefined,
+          secondaryStoneType: product.stones && product.stones.length > 1
+            ? product.stones.slice(1).join(', ')
+            : (product.secondaryStone || undefined),
           barcode: product.barcode || undefined,
           totalCaratWeight: product.diamondWeight || undefined,
           images: uploadedImages,

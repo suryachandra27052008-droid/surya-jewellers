@@ -13,10 +13,14 @@ import {
 interface ParsedProduct {
   index: number;
   sku: string;
+  barcode: string;
   category: string;
-  stoneName: string;
+  stones: string[];      // all stones: ["Coral", "Emrald", "Ruby"]
+  stoneName: string;     // first stone (backward compat)
   silverWeight: number;
   diamondWeight: number;
+  pearlWeight: number;
+  csWeight: number;
   price: number;
   name: string;
   imagePath: string;
@@ -97,7 +101,7 @@ export default function BulkUploadPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Bulk Upload</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Import products from your Excel sheet — processes the first 5 rows with embedded images
+          Import products from your Excel sheet — processes the first 5 data rows with embedded images
         </p>
       </div>
 
@@ -113,10 +117,7 @@ export default function BulkUploadPage() {
               Products are now live in your inventory.
             </p>
           </div>
-          <button
-            onClick={() => setSuccess(false)}
-            className="text-emerald-500 hover:text-emerald-700"
-          >
+          <button onClick={() => setSuccess(false)} className="text-emerald-500 hover:text-emerald-700">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -162,7 +163,7 @@ export default function BulkUploadPage() {
             {parsing ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Processing first 5 products…
+                Processing…
               </>
             ) : (
               <>
@@ -185,18 +186,19 @@ export default function BulkUploadPage() {
         {/* Column guide */}
         {!file && (
           <div className="mt-5 p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-xs font-medium text-gray-600 mb-2">Expected column layout:</p>
+            <p className="text-xs font-medium text-gray-600 mb-2">Expected column layout (row 1 = header, data from row 2):</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs text-gray-500">
-              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">D</span> SKU</span>
-              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">B</span> Category (Ring, Necklace…)</span>
-              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">AD</span> Stone Name</span>
-              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">M</span> Silver Weight (g)</span>
-              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">R</span> Diamond Weight (ct)</span>
-              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">AI</span> Price (₹)</span>
+              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">B</span> Category (Ring, Earring, TOPS…)</span>
+              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">D</span> SKU (shared string)</span>
+              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">E</span> Barcode (number)</span>
+              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">J</span> Silver Weight (g)</span>
+              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">K</span> Diamond Weight (ct)</span>
+              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">M</span> CS Weight</span>
+              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">N</span> Stone Names (CORAL, EMRALD, RUBY…)</span>
+              <span><span className="font-mono bg-white border border-gray-200 px-1 rounded">O</span> Price (₹)</span>
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              Rows 1–2 are treated as headers. Products start from row 3.
-              Embedded images (xl/media/image1.jpeg…) are extracted automatically.
+              Row 1 = header. Row 2 = first product (image1.jpeg), row 3 = second (image2.jpeg), etc.
             </p>
           </div>
         )}
@@ -229,34 +231,35 @@ export default function BulkUploadPage() {
             <table className="w-full">
               <thead>
                 <tr className="text-left text-xs text-gray-500 uppercase tracking-wider bg-gray-50/60 border-b border-gray-100">
-                  <th className="px-6 py-3 font-medium">Image</th>
-                  <th className="px-6 py-3 font-medium">SKU</th>
-                  <th className="px-6 py-3 font-medium">Product Name</th>
-                  <th className="px-6 py-3 font-medium">Stone</th>
-                  <th className="px-6 py-3 font-medium">Category</th>
-                  <th className="px-6 py-3 font-medium">Price</th>
+                  <th className="px-4 py-3 font-medium">Image</th>
+                  <th className="px-4 py-3 font-medium">SKU</th>
+                  <th className="px-4 py-3 font-medium">Product Name</th>
+                  <th className="px-4 py-3 font-medium">Stones</th>
+                  <th className="px-4 py-3 font-medium">Category</th>
+                  <th className="px-4 py-3 font-medium">Price</th>
+                  <th className="px-4 py-3 font-medium">Barcode</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {products.map((p) => (
                   <tr key={p.index} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-3">
                       {p.imageBase64 ? (
                         <img
                           src={p.imageBase64}
                           alt={p.name}
-                          className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                          className="w-14 h-14 rounded-lg object-cover border border-gray-200"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-300 text-xs">
+                        <div className="w-14 h-14 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-300 text-xs">
                           No img
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-3">
-                      <span className="text-sm font-mono text-gray-500">{p.sku || '—'}</span>
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-mono text-gray-700 font-medium">{p.sku || '—'}</span>
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-3 max-w-[180px]">
                       <span className="text-sm font-medium text-gray-900">{p.name}</span>
                       <p className="text-xs text-gray-400 mt-0.5">
                         {p.silverWeight ? `${p.silverWeight}g silver` : ''}
@@ -264,16 +267,32 @@ export default function BulkUploadPage() {
                         {p.diamondWeight ? `${p.diamondWeight}ct diamond` : ''}
                       </p>
                     </td>
-                    <td className="px-6 py-3">
-                      <span className="text-sm text-gray-600">{p.stoneName || '—'}</span>
+                    <td className="px-4 py-3">
+                      {p.stones && p.stones.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {p.stones.map((s) => (
+                            <span
+                              key={s}
+                              className="text-xs px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded border border-amber-100"
+                            >
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">—</span>
+                      )}
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-3">
                       <span className="text-sm text-gray-600">{p.category}</span>
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-3">
                       <span className="text-sm font-semibold text-gray-900">
                         {p.price ? `₹${p.price.toLocaleString('en-IN')}` : '—'}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-mono text-gray-500">{p.barcode || '—'}</span>
                     </td>
                   </tr>
                 ))}
