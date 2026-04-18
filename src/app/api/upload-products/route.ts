@@ -214,13 +214,26 @@ export async function POST(request: Request) {
     };
 
     console.log('[upload-products] debugInfo.row2Cells:', JSON.stringify(debugInfo.row2Cells));
+    console.log('[upload-products] debugInfo.row3Cells:', JSON.stringify(debugInfo.row3Cells));
 
-    // ── STEP 4: extract up to 10 products (rows 2–11) ───────────────────────
-    // Row 1 = header. Row N → image(N-1).jpeg
+    // ── STEP 4: extract up to 10 products ───────────────────────────────────
+    // Row 1 = col headers (optional), Row 2 = col headers, Row 3 = first product
+    // image1.jpeg → row 3, image2.jpeg → row 4, …  (imageIndex = rowNum - 2)
+    //
+    // EXACT column mapping (confirmed from direct Excel analysis):
+    //   B  = Category        (shared string: "Ring", "Earring" …)
+    //   D  = SKU             (shared string: "RNG17288", "EAR08923" …)
+    //   H  = Gross Weight    (number)
+    //   M  = Silver Weight   (number: 5.01)
+    //   R  = Diamond Weight  (number: 1.07)
+    //   AA = CS Weight       (number: colored stone carats 3.37)
+    //   AD = Stone Name      (shared string: "EMRALD", "CORAL, RUBY" …)
+    //   AI = Barcode         (number: 41469)
+    //   AJ = Price/Amount    (number: 617625)
     const products = [];
 
     for (let i = 0; i < 10; i++) {
-      const rowNum = i + 2; // rows 2–11
+      const rowNum = i + 3; // rows 3–12 (row 2 = column headers)
       const rowMap = sheet.get(rowNum);
 
       if (!rowMap || rowMap.size === 0) {
@@ -228,25 +241,24 @@ export async function POST(request: Request) {
         continue;
       }
 
-      // ── STEP 3 (column mapping by letter) ───────────────────────────────
-      const rawCategory  = col(sheet, rowNum, 'B').trim();   // shared string
-      const sku          = col(sheet, rowNum, 'D').trim();   // shared string (t="s")
-      const barcode      = col(sheet, rowNum, 'E').trim();   // numeric
-      const grossWeight  = parseFloat(col(sheet, rowNum, 'I')) || 0;
-      const silverWeight = parseFloat(col(sheet, rowNum, 'J')) || 0;
-      const diamondWeight= parseFloat(col(sheet, rowNum, 'K')) || 0;
-      const csWeight     = parseFloat(col(sheet, rowNum, 'M')) || 0;
-      const rawStones    = col(sheet, rowNum, 'N').trim();   // shared string (t="s")
-      const price        = parseFloat(col(sheet, rowNum, 'O')) || 0;
+      const rawCategory  = col(sheet, rowNum, 'B').trim();    // shared string
+      const sku          = col(sheet, rowNum, 'D').trim();    // shared string (t="s")
+      const grossWeight  = parseFloat(col(sheet, rowNum, 'H'))  || 0; // number
+      const silverWeight = parseFloat(col(sheet, rowNum, 'M'))  || 0; // number
+      const diamondWeight= parseFloat(col(sheet, rowNum, 'R'))  || 0; // number
+      const csWeight     = parseFloat(col(sheet, rowNum, 'AA')) || 0; // number
+      const rawStones    = col(sheet, rowNum, 'AD').trim();   // shared string (t="s")
+      const barcode      = col(sheet, rowNum, 'AI').trim();   // number
+      const price        = parseFloat(col(sheet, rowNum, 'AJ')) || 0; // number
 
       console.log(
         `[upload-products] row ${rowNum}: sku="${sku}" cat="${rawCategory}"` +
         ` stones="${rawStones}" barcode="${barcode}" price=${price}` +
-        ` silver=${silverWeight} diamond=${diamondWeight}`
+        ` silver=${silverWeight} diamond=${diamondWeight} csWeight=${csWeight}`
       );
 
       const category    = normaliseCategory(rawCategory);
-      const stones      = parseStones(rawStones);           // ["Coral","Emrald","Ruby"]
+      const stones      = parseStones(rawStones);
       const stoneName   = stones[0] || '';
       const catLabel    = category.replace(/s$/, '');
       const stoneLabel  = stones.slice(0, 2).join(' ');
@@ -254,8 +266,8 @@ export async function POST(request: Request) {
         ? `${stoneLabel} ${catLabel}`
         : `Silver ${catLabel}`;
 
-      // Image: row 2 → image1.jpeg, row 3 → image2.jpeg …
-      const imageIndex = rowNum - 1;
+      // image1 → row 3, image2 → row 4, …
+      const imageIndex = rowNum - 2;
       let imagePath  = '';
       let imageBase64 = '';
 
