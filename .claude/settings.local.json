@@ -35,7 +35,27 @@
       "Bash(ls /c/Users/surya/.gemini/antigravity/scratch/surya-jewellers/sanity*)",
       "Bash(grep -n \"slug\\\\|projectId\" /c/Users/surya/.gemini/antigravity/scratch/surya-jewellers/src/lib/sanity/client.ts /c/Users/surya/.gemini/antigravity/scratch/surya-jewellers/src/app/products/[slug]/page.tsx)",
       "Bash(git checkout:*)",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "WebFetch(domain:suryajewellers.shop)",
+      "Bash(python C:/Users/surya/.claude/skills/seo/scripts/google_auth.py --check)",
+      "Bash(python C:/Users/surya/.claude/skills/seo/scripts/backlinks_auth.py --check)",
+      "Bash(curl -sI https://suryajewellers.shop/)",
+      "Bash(python \"C:/Users/surya/.claude/skills/seo/scripts/backlinks_auth.py\" --domain suryajewellers.shop)",
+      "Bash(python \"C:/Users/surya/.claude/skills/seo/scripts/common_crawl.py\" --domain suryajewellers.shop)",
+      "Bash(curl -sI https://suryajewellers.shop/collections)",
+      "Bash(grep -v \"^$\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\surya\\\\.gemini\\\\antigravity\\\\scratch\\\\surya-jewellers\\\\src\\\\app\\\\api\\\\upload-products\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\surya\\\\.gemini\\\\antigravity\\\\scratch\\\\surya-jewellers\\\\src\\\\app\\\\api\\\\admin\\\\products\\\\bulk\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\surya\\\\.gemini\\\\antigravity\\\\scratch\\\\surya-jewellers\\\\public\\\\products\")",
+      "Read(//c/Users/surya/.claude/skills/seo/**)",
+      "Bash(python scripts/google_auth.py --check)",
+      "Bash(python scripts/backlinks_auth.py --check)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(mv bracelets.webp.webp bracelets.webp)",
+      "Bash(mv earrings.jpg.jpeg earrings.jpg)",
+      "Bash(mv necklaces.webp.webp necklaces.webp)",
+      "Bash(mv pendants.webp.webp pendants.webp)",
+      "Bash(mv rings.jpg.jpeg rings.jpg)"
     ]
   }
 }
