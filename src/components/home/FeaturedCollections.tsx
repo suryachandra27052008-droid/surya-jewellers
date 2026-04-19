@@ -2,7 +2,6 @@
 
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'motion/react';
 
 const collections = [
@@ -128,26 +127,28 @@ export default function FeaturedCollections() {
                 >
                   {/* Image tile */}
                   <div className="aspect-[4/5] relative overflow-hidden rounded-sm">
-                    {/* Background image */}
-                    <Image
+                    {/* Background image — plain img for guaranteed rendering */}
+                    <img
                       src={collection.image}
                       alt={collection.name}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s ease' }}
+                      className="group-hover:scale-105"
                     />
 
                     {/* Dark overlay — lightens on hover */}
-                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-500" />
+                    <div
+                      className="absolute inset-0 transition-all duration-500 group-hover:opacity-50"
+                      style={{ background: 'rgba(0,0,0,0.45)', zIndex: 1 }}
+                    />
 
                     {/* Corner accents */}
-                    <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500 z-10" />
-                    <div className="absolute top-3 right-3 w-5 h-5 border-t border-r border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500 z-10" />
-                    <div className="absolute bottom-3 left-3 w-5 h-5 border-b border-l border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500 z-10" />
-                    <div className="absolute bottom-3 right-3 w-5 h-5 border-b border-r border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500 z-10" />
+                    <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500" style={{ zIndex: 2 }} />
+                    <div className="absolute top-3 right-3 w-5 h-5 border-t border-r border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500" style={{ zIndex: 2 }} />
+                    <div className="absolute bottom-3 left-3 w-5 h-5 border-b border-l border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500" style={{ zIndex: 2 }} />
+                    <div className="absolute bottom-3 right-3 w-5 h-5 border-b border-r border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500" style={{ zIndex: 2 }} />
 
                     {/* Centre icon + name */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4" style={{ zIndex: 2 }}>
                       <div className="w-24 h-24 rounded-full border border-[#c9a84c]/50 flex items-center justify-center group-hover:border-[#c9a84c]/80 transition-all duration-500 group-hover:scale-110">
                         {collection.icon}
                       </div>
