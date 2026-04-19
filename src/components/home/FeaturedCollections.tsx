@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { motion } from 'motion/react';
 
 const collections = [
-  { name: 'Rings',     slug: 'rings',     description: 'Elegant bands & statement pieces',    image: '/categories/rings.jpg' },
-  { name: 'Necklaces', slug: 'necklaces', description: 'Graceful chains & pendants',           image: '/categories/necklaces.webp' },
-  { name: 'Earrings',  slug: 'earrings',  description: 'Drops, hoops & statement pieces',      image: '/categories/earrings.jpg' },
-  { name: 'Bracelets', slug: 'bracelets', description: 'Delicate cuffs & bangles',             image: '/categories/bracelets.webp' },
-  { name: 'Pendants',  slug: 'pendants',  description: 'Delicate drops & statement charms',    image: '/categories/pendants.webp' },
-  { name: 'Studs',     slug: 'studs',     description: 'Classic & gemstone ear tops',          image: '/categories/studs.jpg' },
+  { name: 'Rings',     description: 'Elegant bands & statement pieces',    image: '/categories/rings.jpg' },
+  { name: 'Necklaces', description: 'Graceful chains & pendants',           image: '/categories/necklaces.webp' },
+  { name: 'Earrings',  description: 'Drops, hoops & statement pieces',      image: '/categories/earrings.jpg' },
+  { name: 'Bracelets', description: 'Delicate cuffs & bangles',             image: '/categories/bracelets.webp' },
+  { name: 'Pendants',  description: 'Delicate drops & statement charms',    image: '/categories/pendants.webp' },
+  { name: 'Studs',     description: 'Classic & gemstone ear tops',          image: '/categories/studs.jpg' },
 ];
 
 export default function FeaturedCollections() {
@@ -32,8 +32,8 @@ export default function FeaturedCollections() {
         {/* Collections Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {collections.map((collection, index) => (
-            <AnimatedSection key={collection.slug} delay={index * 0.08}>
-              <Link href={`/products?category=${collection.slug}`}>
+            <AnimatedSection key={collection.name} delay={index * 0.08}>
+              <Link href={`/products?category=${collection.name}`}>
                 <motion.div
                   whileHover={{ y: -4 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}

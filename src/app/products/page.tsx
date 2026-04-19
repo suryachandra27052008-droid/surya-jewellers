@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { client } from '@/lib/sanity/client';
 import ProductsClient from './ProductsClient';
 
@@ -131,7 +132,9 @@ export default async function ProductsPage() {
       </div>
 
       {/* Interactive client component for filters + product grid */}
-      <ProductsClient />
+      <Suspense>
+        <ProductsClient />
+      </Suspense>
     </>
   );
 }

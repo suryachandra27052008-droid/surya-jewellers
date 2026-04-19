@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
@@ -141,7 +142,11 @@ function SkeletonCard() {
 }
 
 export default function ProductsClient() {
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams.get('category');
+  const [selectedCategory, setSelectedCategory] = useState(
+    initialCategory && categories.includes(initialCategory) ? initialCategory : 'All'
+  );
   const [selectedStone, setSelectedStone] = useState('All');
   const [sortBy, setSortBy] = useState('featured');
   const [priceRange, setPriceRange] = useState<[number, number]>([PRICE_MIN, PRICE_MAX]);
