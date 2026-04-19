@@ -12,6 +12,13 @@ import {
   Info,
   Check,
 } from 'lucide-react';
+
+const ALL_STONES = [
+  'Diamond', 'Ruby', 'Emerald', 'Sapphire', 'Aquamarine',
+  'Amethyst', 'Topaz', 'Coral', 'Turquoise', 'Opal', 'Pearl',
+  'Malachite', 'Tanzanite', 'Tsavorite', 'Onyx', 'Quartz',
+  'Rose Quartz', 'Citrine', 'Garnet', 'Peridot', 'Spinel',
+];
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -25,6 +32,9 @@ interface ProductFormData {
   mainStoneType: string;
   totalCaratWeight?: number;
   diamondColorClarity?: string;
+  diamondWeight?: number;
+  csWeight?: number;
+  grossWeight?: number;
   barcode?: string;
   description: string;
   stockQuantity: number;
@@ -100,6 +110,7 @@ export default function AddProductPage() {
   const [dragActive, setDragActive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [selectedStones, setSelectedStones] = useState<string[]>([]);
 
   const {
     register,
@@ -127,6 +138,12 @@ export default function AddProductPage() {
     } else {
       setValue('sku', `SJ-X-${Math.floor(100 + Math.random() * 900)}`);
     }
+  };
+
+  const toggleStone = (stone: string) => {
+    setSelectedStones((prev) =>
+      prev.includes(stone) ? prev.filter((s) => s !== stone) : [...prev, stone]
+    );
   };
 
   // Image drag-and-drop handlers
@@ -184,6 +201,7 @@ export default function AddProductPage() {
       Object.entries(data).forEach(([key, value]) => {
         formData.append(key, String(value));
       });
+      formData.append('allStones', JSON.stringify(selectedStones));
       // Compress and append images
       for (const img of images) {
         if (img.file.size > 1024 * 1024) { // Only compress if over 1MB
@@ -442,11 +460,33 @@ export default function AddProductPage() {
               </select>
             </div>
 
+            {/* Diamond Weight */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Diamond Weight (ct)</label>
+              <input
+                {...register('diamondWeight', { valueAsNumber: true })}
+                type="number"
+                step="0.01"
+                placeholder="0.49"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+              />
+            </div>
+
+            {/* Colored Stone Weight */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Colored Stone Wt (ct)</label>
+              <input
+                {...register('csWeight', { valueAsNumber: true })}
+                type="number"
+                step="0.01"
+                placeholder="0.7"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+              />
+            </div>
+
             {/* Total Carat Weight */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Total Carat Weight
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Total Carat Weight (ct)</label>
               <input
                 {...register('totalCaratWeight', { valueAsNumber: true })}
                 type="number"
@@ -456,17 +496,55 @@ export default function AddProductPage() {
               />
             </div>
 
+            {/* Gross Weight */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Gross Weight (g)</label>
+              <input
+                {...register('grossWeight', { valueAsNumber: true })}
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+              />
+            </div>
+
             {/* Barcode */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Barcode
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Barcode</label>
               <input
                 {...register('barcode')}
                 type="text"
-                placeholder="e.g., 1234567890123"
+                placeholder="42337"
                 className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 font-mono placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
               />
+            </div>
+
+            {/* All Stones multi-select */}
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-gray-700 mb-2">All Stones</label>
+              <div className="flex flex-wrap gap-2">
+                {ALL_STONES.map((stone) => {
+                  const active = selectedStones.includes(stone);
+                  return (
+                    <button
+                      key={stone}
+                      type="button"
+                      onClick={() => toggleStone(stone)}
+                      className="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                      style={
+                        active
+                          ? { backgroundColor: '#c9a84c', borderColor: '#c9a84c', color: '#fff' }
+                          : { backgroundColor: 'transparent', borderColor: '#d1d5db', color: '#374151' }
+                      }
+                    >
+                      {stone}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedStones.length > 0 && (
+                <p className="text-xs text-gray-400 mt-1.5">Selected: {selectedStones.join(', ')}</p>
+              )}
             </div>
 
             {/* Diamond Color & Clarity */}
