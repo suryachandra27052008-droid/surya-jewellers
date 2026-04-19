@@ -85,6 +85,25 @@ export const product = defineType({
       validation: (Rule) => Rule.positive(),
     }),
     defineField({
+      name: 'diamondWeight',
+      title: 'Diamond Weight (ct)',
+      type: 'number',
+      validation: (Rule) => Rule.positive(),
+    }),
+    defineField({
+      name: 'grossWeight',
+      title: 'Gross Weight (g)',
+      type: 'number',
+      validation: (Rule) => Rule.positive(),
+    }),
+    defineField({
+      name: 'allStones',
+      title: 'All Stones',
+      type: 'array',
+      of: [{ type: 'string' }],
+      description: 'All gemstones present in this piece',
+    }),
+    defineField({
       name: 'barcode',
       title: 'Barcode',
       type: 'string',

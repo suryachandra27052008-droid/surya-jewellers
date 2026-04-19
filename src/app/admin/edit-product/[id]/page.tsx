@@ -11,10 +11,16 @@ import {
   Sparkles,
   Info,
   Check,
-  RotateCcw,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+
+const ALL_STONES = [
+  'Diamond', 'Ruby', 'Emerald', 'Sapphire', 'Aquamarine',
+  'Amethyst', 'Topaz', 'Coral', 'Turquoise', 'Opal', 'Pearl',
+  'Malachite', 'Tanzanite', 'Tsavorite', 'Onyx', 'Quartz',
+  'Rose Quartz', 'Citrine', 'Garnet', 'Peridot', 'Spinel',
+];
 
 interface ProductFormData {
   name: string;
@@ -26,13 +32,16 @@ interface ProductFormData {
   mainStoneType: string;
   totalCaratWeight?: number;
   diamondColorClarity?: string;
+  diamondWeight?: number;
+  csWeight?: number;
+  grossWeight?: number;
+  barcode?: string;
   description: string;
   stockQuantity: number;
   inStock: boolean;
   featured: boolean;
 }
 
-// Image compression helper
 async function compressImage(file: File, maxWidth = 1200, maxQuality = 0.8): Promise<File> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -44,25 +53,18 @@ async function compressImage(file: File, maxWidth = 1200, maxQuality = 0.8): Pro
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-
         if (width > maxWidth) {
           height = (maxWidth / width) * height;
           width = maxWidth;
         }
-
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
-
         canvas.toBlob(
           (blob) => {
             if (blob) {
-              const compressedFile = new File([blob], file.name, {
-                type: 'image/jpeg',
-                lastModified: Date.now(),
-              });
-              resolve(compressedFile);
+              resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
             } else {
               reject(new Error('Canvas toBlob failed'));
             }
@@ -89,6 +91,7 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [selectedStones, setSelectedStones] = useState<string[]>([]);
 
   const {
     register,
@@ -99,20 +102,17 @@ export default function EditProductPage() {
     formState: { errors },
   } = useForm<ProductFormData>();
 
-  const category = watch('category');
   const mainStoneType = watch('mainStoneType');
 
-  // Fetch product data
   useEffect(() => {
     async function fetchProduct() {
       try {
         const res = await fetch(`/api/admin/products/${id}`, {
-            headers: { 'Authorization': 'Basic ' + btoa('admin:Good@luck123') }
+          headers: { 'Authorization': 'Basic ' + btoa('admin:Good@luck123') },
         });
         if (res.ok) {
           const data = await res.json();
           const p = data.product;
-          
           reset({
             name: p.name,
             sku: p.sku,
@@ -123,11 +123,16 @@ export default function EditProductPage() {
             mainStoneType: p.mainStoneType || '',
             totalCaratWeight: p.totalCaratWeight,
             diamondColorClarity: p.diamondColorClarity || '',
+            diamondWeight: p.diamondWeight,
+            csWeight: p.csWeight,
+            grossWeight: p.grossWeight,
+            barcode: p.barcode || '',
             description: p.description || '',
             stockQuantity: p.stockQuantity ?? 1,
             inStock: p.inStock,
             featured: p.featured,
           });
+          setSelectedStones(p.allStones || []);
           setExistingImages(p.images || []);
           setExistingImageRefs(p.imageRefs || []);
         } else {
@@ -143,32 +148,29 @@ export default function EditProductPage() {
     fetchProduct();
   }, [id, reset, router]);
 
-  // Image drag-and-drop handlers
+  const toggleStone = (stone: string) => {
+    setSelectedStones((prev) =>
+      prev.includes(stone) ? prev.filter((s) => s !== stone) : [...prev, stone]
+    );
+  };
+
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
+    if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true);
+    else if (e.type === 'dragleave') setDragActive(false);
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    const files = Array.from(e.dataTransfer.files).filter((f) =>
-      f.type.startsWith('image/')
-    );
+    const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
     addImages(files);
   }, []);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      addImages(files);
-    }
+    if (e.target.files) addImages(Array.from(e.target.files));
   };
 
   const addImages = (files: File[]) => {
@@ -194,10 +196,8 @@ export default function EditProductPage() {
     setExistingImageRefs((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Form submission
   const onSubmit = async (data: ProductFormData) => {
     setSubmitting(true);
-
     try {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
@@ -207,7 +207,7 @@ export default function EditProductPage() {
           formData.append(key, String(value));
         }
       });
-
+      formData.append('allStones', JSON.stringify(selectedStones));
       formData.append('keptImageRefs', JSON.stringify(existingImageRefs));
 
       for (const img of newImages) {
@@ -223,9 +223,7 @@ export default function EditProductPage() {
 
       if (res.ok) {
         setSubmitSuccess(true);
-        setTimeout(() => {
-          router.push('/admin/inventory');
-        }, 1500);
+        setTimeout(() => router.push('/admin/inventory'), 1500);
       } else {
         const err = await res.json();
         alert(err.error || 'Failed to update product');
@@ -262,61 +260,43 @@ export default function EditProductPage() {
     <div className="max-w-4xl">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Link
-          href="/admin/inventory"
-          className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-        >
+        <Link href="/admin/inventory" className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
           <ArrowLeft className="w-4 h-4 text-gray-500" />
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Modify product details for {watch('name')}
-          </p>
+          <p className="text-sm text-gray-500 mt-0.5">Modify product details for {watch('name')}</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* ==== SECTION: Basic Info ==== */}
+        {/* Basic Info */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-7 h-7 rounded-md bg-blue-50 flex items-center justify-center">
               <Info className="w-4 h-4 text-blue-500" />
             </div>
-            <h2 className="text-sm font-semibold text-gray-900">
-              Basic Information
-            </h2>
+            <h2 className="text-sm font-semibold text-gray-900">Basic Information</h2>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Product Title <span className="text-red-400">*</span>
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Product Title <span className="text-red-400">*</span></label>
               <input
                 {...register('name', { required: 'Product name is required' })}
                 type="text"
-                className={`w-full px-3.5 py-2.5 bg-gray-50 border rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all ${
-                  errors.name ? 'border-red-300' : 'border-gray-200'
-                }`}
+                className={`w-full px-3.5 py-2.5 bg-gray-50 border rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all ${errors.name ? 'border-red-300' : 'border-gray-200'}`}
               />
             </div>
-
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                SKU <span className="text-red-400">*</span>
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">SKU <span className="text-red-400">*</span></label>
               <input
                 {...register('sku', { required: 'SKU is required' })}
                 type="text"
                 className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 font-mono"
               />
             </div>
-
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Category <span className="text-red-400">*</span>
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Category <span className="text-red-400">*</span></label>
               <select
                 {...register('category', { required: 'Category is required' })}
                 className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
@@ -329,22 +309,16 @@ export default function EditProductPage() {
                 <option value="Studs">Studs</option>
               </select>
             </div>
-
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Retail Price (₹) <span className="text-red-400">*</span>
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Retail Price (₹) <span className="text-red-400">*</span></label>
               <input
                 {...register('price', { required: 'Price is required', valueAsNumber: true })}
                 type="number"
                 className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900"
               />
             </div>
-
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Compare-at Price (₹)
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Compare-at Price (₹)</label>
               <input
                 {...register('compareAtPrice', { valueAsNumber: true })}
                 type="number"
@@ -354,22 +328,17 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        {/* ==== SECTION: Specifications ==== */}
+        {/* Specifications */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-7 h-7 rounded-md bg-amber-50 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-amber-500" />
             </div>
-            <h2 className="text-sm font-semibold text-gray-900">
-              Specifications & Stone Details
-            </h2>
+            <h2 className="text-sm font-semibold text-gray-900">Specifications & Stone Details</h2>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Silver Weight (grams) <span className="text-red-400">*</span>
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Silver Weight (grams) <span className="text-red-400">*</span></label>
               <input
                 {...register('silverWeight', { required: 'Required', valueAsNumber: true })}
                 type="number"
@@ -377,11 +346,18 @@ export default function EditProductPage() {
                 className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900"
               />
             </div>
-
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Main Stone Type
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Gross Weight (g)</label>
+              <input
+                {...register('grossWeight', { valueAsNumber: true })}
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Main Stone Type</label>
               <select
                 {...register('mainStoneType')}
                 className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900"
@@ -391,13 +367,100 @@ export default function EditProductPage() {
                 <option value="Ruby">Ruby</option>
                 <option value="Emerald">Emerald</option>
                 <option value="Sapphire">Sapphire</option>
+                <option value="Aquamarine">Aquamarine</option>
+                <option value="Amethyst">Amethyst</option>
+                <option value="Topaz">Topaz</option>
+                <option value="Coral">Coral</option>
+                <option value="Turquoise">Turquoise</option>
+                <option value="Opal">Opal</option>
+                <option value="Pearl">Pearl</option>
+                <option value="Tanzanite">Tanzanite</option>
+                <option value="Tsavorite">Tsavorite</option>
+                <option value="Tourmaline">Tourmaline</option>
+                <option value="Peridot">Peridot</option>
+                <option value="Spinel">Spinel</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Diamond Weight (ct)</label>
+              <input
+                {...register('diamondWeight', { valueAsNumber: true })}
+                type="number"
+                step="0.01"
+                placeholder="0.49"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Colored Stone Wt (ct)</label>
+              <input
+                {...register('csWeight', { valueAsNumber: true })}
+                type="number"
+                step="0.01"
+                placeholder="0.7"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Total Carat Weight (ct)</label>
+              <input
+                {...register('totalCaratWeight', { valueAsNumber: true })}
+                type="number"
+                step="0.01"
+                placeholder="0.50"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Diamond Color & Clarity</label>
+              <input
+                {...register('diamondColorClarity')}
+                type="text"
+                placeholder="G/VS1"
+                disabled={mainStoneType !== 'Diamond'}
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Barcode</label>
+              <input
+                {...register('barcode')}
+                type="text"
+                placeholder="42337"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 font-mono placeholder:text-gray-400"
+              />
+            </div>
+
+            {/* All Stones multi-select */}
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-gray-700 mb-2">All Stones</label>
+              <div className="flex flex-wrap gap-2">
+                {ALL_STONES.map((stone) => {
+                  const active = selectedStones.includes(stone);
+                  return (
+                    <button
+                      key={stone}
+                      type="button"
+                      onClick={() => toggleStone(stone)}
+                      className="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                      style={
+                        active
+                          ? { backgroundColor: '#c9a84c', borderColor: '#c9a84c', color: '#fff' }
+                          : { backgroundColor: 'transparent', borderColor: '#d1d5db', color: '#374151' }
+                      }
+                    >
+                      {stone}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedStones.length > 0 && (
+                <p className="text-xs text-gray-400 mt-1.5">Selected: {selectedStones.join(', ')}</p>
+              )}
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Description
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Description</label>
               <textarea
                 {...register('description')}
                 rows={4}
@@ -407,7 +470,7 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        {/* ==== SECTION: Images ==== */}
+        {/* Images */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-7 h-7 rounded-md bg-purple-50 flex items-center justify-center">
@@ -416,8 +479,6 @@ export default function EditProductPage() {
             <h2 className="text-sm font-semibold text-gray-900">Product Images</h2>
             <span className="text-xs text-gray-400 ml-auto">{existingImages.length + newImages.length}/5</span>
           </div>
-
-          {/* Existing images */}
           {existingImages.length > 0 && (
             <div className="mb-4">
               <p className="text-xs font-medium text-gray-500 mb-2">Current Images — click × to remove</p>
@@ -437,8 +498,6 @@ export default function EditProductPage() {
               </div>
             </div>
           )}
-
-          {/* New images to be added */}
           {newImages.length > 0 && (
             <div className="mb-4">
               <p className="text-xs font-medium text-gray-500 mb-2">New Images to Upload</p>
@@ -458,35 +517,24 @@ export default function EditProductPage() {
               </div>
             </div>
           )}
-
-          {/* Upload zone */}
           {existingImages.length + newImages.length < 5 && (
             <div
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
-                dragActive ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-amber-300 hover:bg-gray-50'
-              }`}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${dragActive ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-amber-300 hover:bg-gray-50'}`}
               onClick={() => document.getElementById('edit-image-input')?.click()}
             >
               <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
               <p className="text-sm font-medium text-gray-600">Drop images or click to upload</p>
               <p className="text-xs text-gray-400 mt-1">JPEG, PNG, WebP — max 10MB each</p>
-              <input
-                id="edit-image-input"
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handleFileInput}
-              />
+              <input id="edit-image-input" type="file" accept="image/*" multiple className="hidden" onChange={handleFileInput} />
             </div>
           )}
         </div>
 
-        {/* ==== SECTION: Stock Quantity ==== */}
+        {/* Stock */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-7 h-7 rounded-md bg-green-50 flex items-center justify-center">
@@ -495,9 +543,7 @@ export default function EditProductPage() {
             <h2 className="text-sm font-semibold text-gray-900">Stock Quantity</h2>
           </div>
           <div className="max-w-xs">
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">
-              Available Pieces <span className="text-red-400">*</span>
-            </label>
+            <label className="block text-xs font-medium text-gray-700 mb-1.5">Available Pieces <span className="text-red-400">*</span></label>
             <input
               type="number"
               min={1}
@@ -508,7 +554,7 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        {/* ==== SECTION: Toggles ==== */}
+        {/* Toggles */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex flex-col sm:flex-row gap-6">
             <label className="flex items-center gap-3 cursor-pointer">
@@ -528,7 +574,7 @@ export default function EditProductPage() {
           </div>
         </div>
 
-        {/* ==== Actions ==== */}
+        {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-2 pb-8">
           <Link href="/admin/inventory" className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
             Cancel
