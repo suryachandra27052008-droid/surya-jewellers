@@ -101,7 +101,7 @@ export default async function ProductsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
       />
 
-      {/* Server-rendered SEO content header */}
+      {/* Page title */}
       <div className="pt-24 pb-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
@@ -115,19 +115,6 @@ export default async function ProductsPage() {
               emeralds, sapphires, and more — and comes with a Certificate of Authenticity.
             </p>
           </div>
-
-          {/* Category description grid — visible, indexable content */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-            {categoryDescriptions.map((cat) => (
-              <div
-                key={cat.slug}
-                className="bg-cream/60 border border-cream-dark rounded p-5"
-              >
-                <h2 className="font-serif text-lg text-charcoal mb-2">{cat.title}</h2>
-                <p className="text-charcoal-muted text-xs leading-relaxed">{cat.description}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -135,6 +122,21 @@ export default async function ProductsPage() {
       <Suspense>
         <ProductsClient />
       </Suspense>
+
+      {/* Category description grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {categoryDescriptions.map((cat) => (
+            <div
+              key={cat.slug}
+              className="bg-cream/60 border border-cream-dark rounded p-5"
+            >
+              <h2 className="font-serif text-lg text-charcoal mb-2">{cat.title}</h2>
+              <p className="text-charcoal-muted text-xs leading-relaxed">{cat.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </>
   );
 }
