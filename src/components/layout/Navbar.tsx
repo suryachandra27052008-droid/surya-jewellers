@@ -39,22 +39,27 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`w-full transition-all duration-300 glass ${
-          scrolled ? 'shadow-md py-3' : 'shadow-sm py-4'
+        className={`w-full transition-all duration-300 ${
+          scrolled
+            ? 'bg-white shadow-md py-3'
+            : 'bg-white/80 backdrop-blur-xl shadow-sm py-4'
         }`}
+        style={{ borderBottom: scrolled ? '1px solid rgba(212,175,55,0.15)' : '1px solid rgba(212,175,55,0.08)' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center group">
-            <Image
-              src="/logo_sj.webp"
-              alt="Surya Jewellers — 92.5 Sterling Silver Jewellery Jaipur"
-              height={44}
-              width={144}
-              style={{ height: '44px', width: 'auto' }}
-              priority
-              fetchPriority="high"
-            />
+            <div className="bg-white rounded px-2 py-1 shadow-sm">
+              <Image
+                src="/logo_sj.webp"
+                alt="Surya Jewellers — 92.5 Sterling Silver Jewellery Jaipur"
+                height={44}
+                width={144}
+                style={{ height: '44px', width: 'auto' }}
+                priority
+                fetchPriority="high"
+              />
+            </div>
           </Link>
 
           {/* Desktop Nav */}
