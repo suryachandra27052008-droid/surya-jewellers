@@ -138,7 +138,7 @@ export default function FeaturedCollections() {
                     />
 
                     {/* Dark overlay — lightens on hover */}
-                    <div className="absolute inset-0 bg-black/35 group-hover:bg-black/20 transition-all duration-500" />
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-500" />
 
                     {/* Corner accents */}
                     <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500 z-10" />
