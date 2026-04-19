@@ -137,23 +137,24 @@ export default function FeaturedCollections() {
 
                     {/* Dark overlay — lightens on hover */}
                     <div
-                      className="absolute inset-0 transition-all duration-500 group-hover:opacity-50"
-                      style={{ background: 'rgba(0,0,0,0.45)', zIndex: 1 }}
+                      className="absolute inset-0 transition-all duration-500"
+                      style={{ background: 'rgba(0,0,0,0.25)', zIndex: 1 }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.10)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.25)')}
                     />
-
-                    {/* Corner accents */}
-                    <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500" style={{ zIndex: 2 }} />
-                    <div className="absolute top-3 right-3 w-5 h-5 border-t border-r border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500" style={{ zIndex: 2 }} />
-                    <div className="absolute bottom-3 left-3 w-5 h-5 border-b border-l border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500" style={{ zIndex: 2 }} />
-                    <div className="absolute bottom-3 right-3 w-5 h-5 border-b border-r border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500" style={{ zIndex: 2 }} />
 
                     {/* Centre icon + name */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4" style={{ zIndex: 2 }}>
-                      <div className="w-24 h-24 rounded-full border border-[#c9a84c]/50 flex items-center justify-center group-hover:border-[#c9a84c]/80 transition-all duration-500 group-hover:scale-110">
+                      <div className="w-28 h-28 rounded-full border border-[#c9a84c]/50 flex items-center justify-center group-hover:border-[#c9a84c]/80 transition-all duration-500 group-hover:scale-110">
                         {collection.icon}
                       </div>
                       <div className="text-center px-4">
-                        <p className="font-serif text-white text-lg tracking-[0.08em] drop-shadow-md">{collection.name}</p>
+                        <p
+                          className="font-serif text-white text-xl sm:text-2xl tracking-[0.08em]"
+                          style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}
+                        >
+                          {collection.name}
+                        </p>
                         <div className="w-8 h-[1px] bg-[#c9a84c]/70 mx-auto mt-2 group-hover:w-14 transition-all duration-500" />
                       </div>
                     </div>
