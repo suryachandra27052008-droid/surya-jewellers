@@ -42,44 +42,6 @@ async function getProductListItems() {
   }
 }
 
-const categoryDescriptions = [
-  {
-    slug: 'rings',
-    title: 'Sterling Silver Rings',
-    description:
-      'Our silver rings collection features solitaire diamond rings, gemstone cocktail rings, stacking bands, and statement pieces — all in hallmarked 92.5 sterling silver. From delicate ruby rings to bold sapphire statement rings, each is crafted by hand in our Jaipur workshop.',
-  },
-  {
-    slug: 'necklaces',
-    title: 'Sterling Silver Necklaces',
-    description:
-      'From emerald pendants on fine chains to layered gemstone necklaces, our sterling silver necklace collection offers timeless elegance. Every necklace is set with natural, certified gemstones and finished to a mirror polish.',
-  },
-  {
-    slug: 'earrings',
-    title: 'Sterling Silver Earrings',
-    description:
-      'Handcrafted sterling silver earrings ranging from simple diamond studs to elaborate jhumka drops set with rubies, opals, and tourmalines. Each pair is lightweight, hypoallergenic, and suitable for everyday wear.',
-  },
-  {
-    slug: 'bracelets',
-    title: 'Sterling Silver Bracelets',
-    description:
-      'Our 92.5 sterling silver bracelets include tennis bracelets set with diamonds, charm bracelets with natural gemstones, and bold cuff designs. A perfect gift for any occasion, each bracelet comes with a Certificate of Authenticity.',
-  },
-  {
-    slug: 'pendants',
-    title: 'Sterling Silver Pendants',
-    description:
-      'Choose from a wide range of sterling silver pendants featuring natural stones — sapphire teardrops, moonstone ovals, emerald drops, and more. Our pendants are crafted to sit beautifully on fine chains and statement neckpieces alike.',
-  },
-  {
-    slug: 'studs',
-    title: 'Sterling Silver Studs',
-    description:
-      'Minimalist yet impactful, our sterling silver studs are set with natural diamonds, rubies, emeralds, and sapphires. The perfect everyday earring, each stud pair is polished to perfection and secured with push-back fittings.',
-  },
-];
 
 export default async function ProductsPage() {
   const itemListElements = await getProductListItems();
@@ -123,20 +85,6 @@ export default async function ProductsPage() {
         <ProductsClient />
       </Suspense>
 
-      {/* Category description grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {categoryDescriptions.map((cat) => (
-            <div
-              key={cat.slug}
-              className="bg-cream/60 border border-cream-dark rounded p-5"
-            >
-              <h2 className="font-serif text-lg text-charcoal mb-2">{cat.title}</h2>
-              <p className="text-charcoal-muted text-xs leading-relaxed">{cat.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
     </>
   );
 }
