@@ -1,28 +1,61 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
+
+const SLIDES = [
+  { src: '/hero-bg.jpg.jpeg', alt: 'Tourmaline necklace by Surya Jewellers' },
+  { src: '/hero-bg-2.jpg.jpg', alt: 'Aquamarine necklace by Surya Jewellers' },
+  { src: '/hero-bg-3.jpg.png', alt: 'Pink heart pendant by Surya Jewellers' },
+];
+
+const INTERVAL = 4000;
+const FADE_DURATION = 1.5;
 
 export default function Hero() {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % SLIDES.length);
+    }, INTERVAL);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section className="relative min-h-[82vh] flex items-center justify-center overflow-hidden">
-      {/* Background image */}
-      <Image
-        src="/hero-bg.jpg.jpeg"
-        alt="Surya Jewellers hero background"
-        fill
-        className="object-cover object-center"
-        priority
-        fetchPriority="high"
-        sizes="100vw"
-      />
+      {/* Slideshow backgrounds */}
+      {SLIDES.map((slide, i) => (
+        <AnimatePresence key={slide.src}>
+          {i === current && (
+            <motion.div
+              key={`slide-${i}`}
+              className="absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: FADE_DURATION, ease: 'easeInOut' }}
+            >
+              <Image
+                src={slide.src}
+                alt={slide.alt}
+                fill
+                className="object-cover object-center"
+                priority={i === 0}
+                sizes="100vw"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      ))}
 
-      {/* Dark overlay — 45% opacity */}
-      <div className="absolute inset-0 bg-black/45" />
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/45 z-[1]" />
 
-      {/* Subtle gold vignette at bottom for blending into next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/30 to-transparent" />
+      {/* Bottom vignette */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/30 to-transparent z-[1]" />
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
@@ -99,6 +132,23 @@ export default function Hero() {
             <span className="text-gold text-sm">✦</span> Certified
           </span>
         </motion.div>
+      </div>
+
+      {/* Dot indicators */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex gap-3">
+        {SLIDES.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            aria-label={`Go to slide ${i + 1}`}
+            className="w-2.5 h-2.5 rounded-full transition-all duration-300"
+            style={
+              i === current
+                ? { backgroundColor: '#c9a84c', border: '2px solid #c9a84c' }
+                : { backgroundColor: 'transparent', border: '2px solid #c9a84c' }
+            }
+          />
+        ))}
       </div>
 
       {/* Scroll indicator */}
