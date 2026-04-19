@@ -2,6 +2,7 @@
 
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'motion/react';
 
 const collections = [
@@ -9,6 +10,7 @@ const collections = [
     name: 'Rings',
     slug: 'rings',
     description: 'Elegant bands & statement pieces',
+    image: '/categories/rings.jpg',
     icon: (
       <svg viewBox="0 0 80 80" fill="none" className="w-16 h-16" stroke="#c9a84c" strokeWidth="1.5">
         <circle cx="40" cy="40" r="22" />
@@ -22,6 +24,7 @@ const collections = [
     name: 'Necklaces',
     slug: 'necklaces',
     description: 'Graceful chains & pendants',
+    image: '/categories/necklaces.webp',
     icon: (
       <svg viewBox="0 0 80 80" fill="none" className="w-16 h-16" stroke="#c9a84c" strokeWidth="1.5">
         <path d="M20 18 Q40 52 60 18" strokeLinecap="round" />
@@ -36,6 +39,7 @@ const collections = [
     name: 'Earrings',
     slug: 'earrings',
     description: 'Drops, hoops & statement pieces',
+    image: '/categories/earrings.jpg',
     icon: (
       <svg viewBox="0 0 80 80" fill="none" className="w-16 h-16" stroke="#c9a84c" strokeWidth="1.5">
         <circle cx="28" cy="22" r="4" />
@@ -51,6 +55,7 @@ const collections = [
     name: 'Bracelets',
     slug: 'bracelets',
     description: 'Delicate cuffs & bangles',
+    image: '/categories/bracelets.webp',
     icon: (
       <svg viewBox="0 0 80 80" fill="none" className="w-16 h-16" stroke="#c9a84c" strokeWidth="1.5">
         <path d="M18 50 Q18 28 40 24 Q62 28 62 50" strokeLinecap="round" />
@@ -65,6 +70,7 @@ const collections = [
     name: 'Pendants',
     slug: 'pendants',
     description: 'Delicate drops & statement charms',
+    image: '/categories/pendants.webp',
     icon: (
       <svg viewBox="0 0 80 80" fill="none" className="w-16 h-16" stroke="#c9a84c" strokeWidth="1.5">
         <path d="M30 18 Q40 16 50 18" strokeLinecap="round" />
@@ -78,6 +84,7 @@ const collections = [
     name: 'Studs',
     slug: 'studs',
     description: 'Classic & gemstone ear tops',
+    image: '/categories/studs.jpg',
     icon: (
       <svg viewBox="0 0 80 80" fill="none" className="w-16 h-16" stroke="#c9a84c" strokeWidth="1.5">
         <circle cx="27" cy="36" r="10" />
@@ -119,27 +126,36 @@ export default function FeaturedCollections() {
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                   className="group cursor-pointer"
                 >
-                  {/* Dark tile */}
-                  <div className="aspect-[4/5] relative overflow-hidden rounded-sm" style={{ background: 'linear-gradient(145deg, #181818 0%, #0d0d0d 100%)' }}>
-                    {/* Corner accents */}
-                    <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-[#c9a84c]/40 group-hover:border-[#c9a84c]/70 transition-colors duration-500" />
-                    <div className="absolute top-3 right-3 w-5 h-5 border-t border-r border-[#c9a84c]/40 group-hover:border-[#c9a84c]/70 transition-colors duration-500" />
-                    <div className="absolute bottom-3 left-3 w-5 h-5 border-b border-l border-[#c9a84c]/40 group-hover:border-[#c9a84c]/70 transition-colors duration-500" />
-                    <div className="absolute bottom-3 right-3 w-5 h-5 border-b border-r border-[#c9a84c]/40 group-hover:border-[#c9a84c]/70 transition-colors duration-500" />
+                  {/* Image tile */}
+                  <div className="aspect-[4/5] relative overflow-hidden rounded-sm">
+                    {/* Background image */}
+                    <Image
+                      src={collection.image}
+                      alt={collection.name}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    />
 
-                    {/* Centre icon in gold ring */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                      <div className="w-24 h-24 rounded-full border border-[#c9a84c]/25 flex items-center justify-center group-hover:border-[#c9a84c]/50 transition-all duration-500 group-hover:scale-110">
+                    {/* Dark overlay — lightens on hover */}
+                    <div className="absolute inset-0 bg-black/35 group-hover:bg-black/20 transition-all duration-500" />
+
+                    {/* Corner accents */}
+                    <div className="absolute top-3 left-3 w-5 h-5 border-t border-l border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500 z-10" />
+                    <div className="absolute top-3 right-3 w-5 h-5 border-t border-r border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500 z-10" />
+                    <div className="absolute bottom-3 left-3 w-5 h-5 border-b border-l border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500 z-10" />
+                    <div className="absolute bottom-3 right-3 w-5 h-5 border-b border-r border-[#c9a84c]/60 group-hover:border-[#c9a84c]/90 transition-colors duration-500 z-10" />
+
+                    {/* Centre icon + name */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10">
+                      <div className="w-24 h-24 rounded-full border border-[#c9a84c]/50 flex items-center justify-center group-hover:border-[#c9a84c]/80 transition-all duration-500 group-hover:scale-110">
                         {collection.icon}
                       </div>
                       <div className="text-center px-4">
-                        <p className="font-serif text-white/90 text-lg tracking-[0.08em]">{collection.name}</p>
-                        <div className="w-8 h-[1px] bg-[#c9a84c]/50 mx-auto mt-2 group-hover:w-14 transition-all duration-400" />
+                        <p className="font-serif text-white text-lg tracking-[0.08em] drop-shadow-md">{collection.name}</p>
+                        <div className="w-8 h-[1px] bg-[#c9a84c]/70 mx-auto mt-2 group-hover:w-14 transition-all duration-500" />
                       </div>
                     </div>
-
-                    {/* Subtle gold vignette on hover */}
-                    <div className="absolute inset-0 bg-[#c9a84c]/0 group-hover:bg-[#c9a84c]/4 transition-all duration-500" />
                   </div>
 
                   {/* Caption below */}
