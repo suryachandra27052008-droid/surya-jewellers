@@ -49,7 +49,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center group">
-            <div className="bg-white rounded px-2 py-1 shadow-sm">
+            <div style={{ background: 'white', borderRadius: '8px', padding: '4px 8px', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}>
               <Image
                 src="/logo_sj.webp"
                 alt="Surya Jewellers — 92.5 Sterling Silver Jewellery Jaipur"
