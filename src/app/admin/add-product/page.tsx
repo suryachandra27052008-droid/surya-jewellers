@@ -14,10 +14,26 @@ import {
 } from 'lucide-react';
 
 const ALL_STONES = [
-  'Diamond', 'Ruby', 'Emerald', 'Sapphire', 'Aquamarine',
-  'Amethyst', 'Topaz', 'Coral', 'Turquoise', 'Opal', 'Pearl',
-  'Malachite', 'Tanzanite', 'Tsavorite', 'Onyx', 'Quartz',
-  'Rose Quartz', 'Citrine', 'Garnet', 'Peridot', 'Spinel',
+  "Alexander", "Amethist", "Ametrine", "Apppatide", "Aquamarine",
+  "B.S DF", "Big Diamond", "Black Opal", "Black Rainbow", "Black Spinel",
+  "Blue Opal", "Blue Sapphire", "Blue Topaz", "Cats Eye", "Citrine",
+  "Color Opal", "Color Stone", "Coral", "Coral Carbeen", "Coral Flower",
+  "Crystal", "Emerald", "Emerald Beads", "Garnet", "Gomed",
+  "Green Amethist", "Green Opal", "Green Topaz", "Honey Quartz",
+  "Italian Coral", "Japanese Coral", "Kunzait", "Kyanite",
+  "Lemon Topaz", "London Topaz", "Lapis Lazuli", "Larimar",
+  "Lavender Spinel", "Lemon Quartz", "Multi Sapphire", "Mix Beads",
+  "Moon Stone", "Morganite", "Mozambique Heated Ruby", "Munga",
+  "Natural Color Diamond", "Natural Blue Sapphire", "Natural Ruby",
+  "Navratan", "No Heat Ruby", "Onyx", "Opal", "Peridot", "Pearl",
+  "Pink Spinel", "Pink Opal", "Pink Sapphire", "Pink Topaz",
+  "Polki Blue", "Purple Sapphire", "Quartz", "Rainbow", "Rhodolite",
+  "Rose Cut Diamond", "Rose Quartz", "Ruby", "Ruby Carbeen", "Ruby Lite",
+  "S Malachite", "Sapphire", "Spinel", "Star Blue Sapphire", "Star Ruby",
+  "Tanzanite", "Tanzanite Carbeen", "Tourmaline", "Tourmaline Carbeen",
+  "Tsavorite", "Turquoise", "White Opal", "White Sapphire",
+  "Yellow Aquamarine", "Yellow Diamond", "Yellow Labradorite",
+  "Yellow Opal", "Yellow Sapphire", "Zachary Turquoise",
 ];
 import Link from 'next/link';
 import Image from 'next/image';
