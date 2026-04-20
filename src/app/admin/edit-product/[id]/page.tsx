@@ -344,7 +344,7 @@ export default function EditProductPage() {
               <input
                 {...register('silverWeight', { required: 'Required', valueAsNumber: true })}
                 type="number"
-                step="0.1"
+                step="0.001"
                 className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900"
               />
             </div>
