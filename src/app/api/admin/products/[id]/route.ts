@@ -37,6 +37,12 @@ export async function PATCH(
     const slugify = (text: string) =>
       text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
 
+    const safeNum = (v: unknown): number | undefined => {
+      if (v === null || v === undefined || v === '' || v === 'NaN' || v === 'undefined') return undefined;
+      const n = Number(v);
+      return isNaN(n) ? undefined : n;
+    };
+
     const contentType = request.headers.get('content-type') || '';
     let body: any;
     let keptImageRefs: { _key: string; assetId: string }[] = [];
@@ -54,6 +60,7 @@ export async function PATCH(
         mainStoneType: formData.get('mainStoneType'),
         totalCaratWeight: formData.get('totalCaratWeight'),
         diamondColorClarity: formData.get('diamondColorClarity'),
+        secondaryStoneType: formData.get('secondaryStoneType'),
         csWeight: formData.get('csWeight'),
         diamondWeight: formData.get('diamondWeight'),
         grossWeight: formData.get('grossWeight'),
@@ -74,18 +81,19 @@ export async function PATCH(
       name: body.name,
       sku: body.sku,
       price: Number(body.price),
-      compareAtPrice: body.compareAtPrice ? Number(body.compareAtPrice) : undefined,
+      compareAtPrice: safeNum(body.compareAtPrice),
       silverWeight: Number(body.silverWeight),
       mainStoneType: body.mainStoneType,
-      totalCaratWeight: body.totalCaratWeight ? Number(body.totalCaratWeight) : undefined,
-      diamondColorClarity: body.diamondColorClarity,
-      csWeight: body.csWeight ? Number(body.csWeight) : undefined,
-      diamondWeight: body.diamondWeight ? Number(body.diamondWeight) : undefined,
-      grossWeight: body.grossWeight ? Number(body.grossWeight) : undefined,
+      totalCaratWeight: safeNum(body.totalCaratWeight),
+      diamondColorClarity: body.diamondColorClarity || undefined,
+      secondaryStoneType: body.secondaryStoneType || undefined,
+      csWeight: safeNum(body.csWeight),
+      diamondWeight: safeNum(body.diamondWeight),
+      grossWeight: safeNum(body.grossWeight),
       allStones: body.allStones ? JSON.parse(body.allStones) : undefined,
       barcode: body.barcode || undefined,
       description: body.description,
-      stockQuantity: body.stockQuantity ? Number(body.stockQuantity) : undefined,
+      stockQuantity: safeNum(body.stockQuantity),
       inStock: body.inStock,
       featured: body.featured,
     };

@@ -27,6 +27,7 @@ const PRODUCT_QUERY = `
     silverWeight,
     mainStoneType,
     totalCaratWeight,
+    diamondWeight,
     diamondColorClarity,
     secondaryStoneType,
     csWeight,
@@ -111,6 +112,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     images: raw.images || [],
     secondaryStoneType: raw.secondaryStoneType || '',
     csWeight: raw.csWeight || 0,
+    diamondWeight: raw.diamondWeight || 0,
     barcode: raw.barcode || '',
   };
 
