@@ -9,8 +9,8 @@ import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
-const PRICE_MIN = 4000;
-const PRICE_MAX = 400000;
+const PRICE_MIN = 0;
+const PRICE_MAX = 800000;
 
 const categories = ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Pendants', 'Studs'];
 const stoneTypes = [
