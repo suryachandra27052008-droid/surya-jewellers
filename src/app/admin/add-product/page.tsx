@@ -413,7 +413,7 @@ export default function AddProductPage() {
                   min: { value: 0.1, message: 'Must be a positive number' },
                 })}
                 type="number"
-                step="0.1"
+                step="0.001"
                 placeholder="5.2"
                 className={`w-full px-3.5 py-2.5 bg-gray-50 border rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all ${
                   errors.silverWeight ? 'border-red-300' : 'border-gray-200'
