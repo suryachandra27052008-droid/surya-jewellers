@@ -149,6 +149,7 @@ export async function POST(request: Request) {
             : (product.secondaryStone || undefined),
           barcode: product.barcode || undefined,
           csWeight: product.csWeight || undefined,
+          diamondWeight: product.diamondWeight || undefined,
           totalCaratWeight: product.diamondWeight || undefined,
           images: uploadedImages,
           description: '',

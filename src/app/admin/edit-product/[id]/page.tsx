@@ -36,6 +36,7 @@ interface ProductFormData {
   csWeight?: number;
   grossWeight?: number;
   barcode?: string;
+  secondaryStoneType?: string;
   description: string;
   stockQuantity: number;
   inStock: boolean;
@@ -123,6 +124,7 @@ export default function EditProductPage() {
             mainStoneType: p.mainStoneType || '',
             totalCaratWeight: p.totalCaratWeight,
             diamondColorClarity: p.diamondColorClarity || '',
+            secondaryStoneType: p.secondaryStoneType || '',
             diamondWeight: p.diamondWeight,
             csWeight: p.csWeight,
             grossWeight: p.grossWeight,
@@ -380,6 +382,15 @@ export default function EditProductPage() {
                 <option value="Peridot">Peridot</option>
                 <option value="Spinel">Spinel</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Secondary Stone</label>
+              <input
+                {...register('secondaryStoneType')}
+                type="text"
+                placeholder="e.g. Yellow Sapphire, Coral"
+                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400"
+              />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1.5">Diamond Weight (ct)</label>
