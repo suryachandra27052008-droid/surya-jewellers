@@ -56,6 +56,7 @@ export interface ProductData {
   price: number;
   category: string;
   silverWeight: number;
+  grossWeight?: number;
   mainStoneType: string;
   totalCaratWeight: number;
   diamondColorClarity: string;
@@ -113,6 +114,9 @@ export default function ProductDetailClient({
     { label: 'SKU', value: product.sku },
     { label: 'Silver Purity', value: '92.5% Sterling Silver' },
     { label: 'Silver Weight', value: `${product.silverWeight}g` },
+    ...(product.grossWeight && product.grossWeight > 0
+      ? [{ label: 'Gross Weight', value: `${product.grossWeight}g` }]
+      : []),
     ...(product.mainStoneType && product.mainStoneType !== 'None'
       ? [{ label: 'Main Stone', value: product.mainStoneType }]
       : []),
