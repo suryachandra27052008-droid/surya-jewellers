@@ -113,10 +113,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     stockQuantity: raw.stockQuantity ?? 1,
     images: raw.images || [],
     secondaryStoneType: raw.secondaryStoneType || '',
-    csWeight: raw.csWeight || 0,
-    diamondWeight: raw.diamondWeight > 0
-      ? raw.diamondWeight
-      : (raw.totalCaratWeight > 0 && raw.totalCaratWeight !== raw.csWeight ? raw.totalCaratWeight : 0),
+    csWeight: Number(raw.csWeight) || 0,
+    diamondWeight: Number(raw.diamondWeight) > 0
+      ? Number(raw.diamondWeight)
+      : (Number(raw.totalCaratWeight) > 0 && Number(raw.totalCaratWeight) !== Number(raw.csWeight)
+          ? Number(raw.totalCaratWeight)
+          : 0),
     barcode: raw.barcode || '',
   };
 
