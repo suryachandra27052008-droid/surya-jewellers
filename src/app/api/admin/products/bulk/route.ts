@@ -29,6 +29,7 @@ interface BulkProduct {
   stoneName: string;
   secondaryStone?: string;
   silverWeight: number;
+  grossWeight?: number;
   diamondWeight: number;
   pearlWeight?: number;
   csWeight?: number;
@@ -143,6 +144,7 @@ export async function POST(request: Request) {
           price: product.price,
           category: { _type: 'reference', _ref: category._id },
           silverWeight: product.silverWeight,
+          grossWeight: product.grossWeight || undefined,
           mainStoneType: mapStoneType(product.stones?.[0] || product.stoneName) || product.stones?.[0] || undefined,
           secondaryStoneType: product.stones && product.stones.length > 1
             ? product.stones.slice(1).join(', ')
