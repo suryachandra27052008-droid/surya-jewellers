@@ -131,7 +131,7 @@ export default function InventoryPage() {
             mainStoneType: p.mainStoneType || 'None',
             silverWeight: p.silverWeight || 0,
             status: p.inStock ? 'In Stock' : 'Sold Out',
-            emoji: '🆕'
+            image: (Array.isArray(p.images) ? p.images.filter(Boolean)[0] : null) || p.image || '',
           }));
           // API products listed first
           setProducts(apiProducts.reverse());
@@ -441,39 +441,41 @@ export default function InventoryPage() {
                 >
                   {/* Thumbnail */}
                   <td className="px-6 py-3">
-                    <div style={{ position: 'relative', width: '48px', height: '48px' }}>
-                      {product.image ? (
-                        <>
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '6px', display: 'block' }}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                              ((e.target as HTMLImageElement).nextElementSibling as HTMLElement).style.display = 'flex';
-                            }}
-                          />
-                          <div style={{
-                            width: '48px', height: '48px', borderRadius: '6px',
-                            background: '#c9a84c20', border: '1px solid #c9a84c',
-                            display: 'none', alignItems: 'center', justifyContent: 'center',
-                            color: '#c9a84c', fontSize: '16px', fontWeight: '500',
-                            position: 'absolute', top: 0, left: 0,
-                          }}>
-                            {product.name?.[0]?.toUpperCase()}
-                          </div>
-                        </>
-                      ) : (
-                        <div style={{
-                          width: '48px', height: '48px', borderRadius: '6px',
-                          background: '#c9a84c20', border: '1px solid #c9a84c',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#c9a84c', fontSize: '16px', fontWeight: '500',
-                        }}>
-                          {product.name?.[0]?.toUpperCase()}
+                    {(() => {
+                      const imageUrl = product.image || null;
+                      return (
+                        <div style={{ width: '48px', height: '48px', borderRadius: '6px', overflow: 'hidden', background: '#f5f5f5' }}>
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={product.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              onError={(e) => {
+                                const el = e.currentTarget;
+                                el.style.display = 'none';
+                                const fallback = el.parentElement;
+                                if (fallback) {
+                                  fallback.style.background = '#c9a84c20';
+                                  fallback.style.display = 'flex';
+                                  fallback.style.alignItems = 'center';
+                                  fallback.style.justifyContent = 'center';
+                                  fallback.innerHTML = `<span style="color:#c9a84c;font-size:16px;font-weight:600">${product.name?.[0]?.toUpperCase() ?? '?'}</span>`;
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div style={{
+                              width: '100%', height: '100%', display: 'flex',
+                              alignItems: 'center', justifyContent: 'center',
+                              background: '#c9a84c20', color: '#c9a84c',
+                              fontSize: '16px', fontWeight: '600',
+                            }}>
+                              {product.name?.[0]?.toUpperCase()}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      );
+                    })()}
                   </td>
 
                   {/* Name */}
