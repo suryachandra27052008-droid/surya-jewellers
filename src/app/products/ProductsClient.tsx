@@ -14,10 +14,27 @@ const PRICE_MAX = 800000;
 
 const categories = ['All', 'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Pendants', 'Studs'];
 const stoneTypes = [
-  'All', 'Diamond', 'Ruby', 'Emerald', 'Sapphire',
-  'Opal', 'Moonstone', 'Blue Topaz', 'Amethyst', 'Black Opal', 'Coloured Opal',
-  'Tourmaline', 'Yellow Sapphire', 'Aquamarine', 'Turquoise', 'Tanzanite',
-  'Coral', 'Morganite', 'Peridot', 'Tsavorite', 'Alexandrite', 'Spinel',
+  'All',
+  "Alexander", "Amethist", "Ametrine", "Apppatide", "Aquamarine",
+  "B.S DF", "Big Diamond", "Black Opal", "Black Rainbow", "Black Spinel",
+  "Blue Opal", "Blue Sapphire", "Blue Topaz", "Cats Eye", "Citrine",
+  "Color Opal", "Color Stone", "Coral", "Coral Carbeen", "Coral Flower",
+  "Crystal", "Emerald", "Emerald Beads", "Garnet", "Gomed",
+  "Green Amethist", "Green Opal", "Green Topaz", "Honey Quartz",
+  "Italian Coral", "Japanese Coral", "Kunzait", "Kyanite",
+  "Lemon Topaz", "London Topaz", "Lapis Lazuli", "Larimar",
+  "Lavender Spinel", "Lemon Quartz", "Multi Sapphire", "Mix Beads",
+  "Moon Stone", "Morganite", "Mozambique Heated Ruby", "Munga",
+  "Natural Color Diamond", "Natural Blue Sapphire", "Natural Ruby",
+  "Navratan", "No Heat Ruby", "Onyx", "Opal", "Peridot", "Pearl",
+  "Pink Spinel", "Pink Opal", "Pink Sapphire", "Pink Topaz",
+  "Polki Blue", "Purple Sapphire", "Quartz", "Rainbow", "Rhodolite",
+  "Rose Cut Diamond", "Rose Quartz", "Ruby", "Ruby Carbeen", "Ruby Lite",
+  "S Malachite", "Sapphire", "Spinel", "Star Blue Sapphire", "Star Ruby",
+  "Tanzanite", "Tanzanite Carbeen", "Tourmaline", "Tourmaline Carbeen",
+  "Tsavorite", "Turquoise", "White Opal", "White Sapphire",
+  "Yellow Aquamarine", "Yellow Diamond", "Yellow Labradorite",
+  "Yellow Opal", "Yellow Sapphire", "Zachary Turquoise",
 ];
 const sortOptions = [
   { label: 'Featured', value: 'featured' },
@@ -152,7 +169,7 @@ export default function ProductsClient() {
   const [priceRange, setPriceRange] = useState<[number, number]>([PRICE_MIN, PRICE_MAX]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [stonesExpanded, setStonesExpanded] = useState(false);
-  const STONE_PREVIEW_COUNT = 5;
+  const STONE_PREVIEW_COUNT = 20;
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { addItem, items: cartItems } = useCartStore();
