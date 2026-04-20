@@ -114,7 +114,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     images: raw.images || [],
     secondaryStoneType: raw.secondaryStoneType || '',
     csWeight: raw.csWeight || 0,
-    diamondWeight: raw.diamondWeight || 0,
+    diamondWeight: raw.diamondWeight > 0
+      ? raw.diamondWeight
+      : (raw.totalCaratWeight > 0 && raw.totalCaratWeight !== raw.csWeight ? raw.totalCaratWeight : 0),
     barcode: raw.barcode || '',
   };
 

@@ -104,7 +104,7 @@ export default function InventoryPage() {
           mainStoneType: p.mainStoneType || 'None',
           silverWeight: p.silverWeight || 0,
           status: p.inStock ? 'In Stock' : 'Sold Out',
-          image: p.images?.[0] || '',
+          image: (Array.isArray(p.images) ? p.images.filter(Boolean)[0] : null) || '',
         }));
         setProducts(mapped.reverse());
       }
@@ -450,7 +450,7 @@ export default function InventoryPage() {
                             style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '6px', display: 'block' }}
                             onError={(e) => {
                               (e.target as HTMLImageElement).style.display = 'none';
-                              ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
+                              ((e.target as HTMLImageElement).nextElementSibling as HTMLElement).style.display = 'flex';
                             }}
                           />
                           <div style={{
