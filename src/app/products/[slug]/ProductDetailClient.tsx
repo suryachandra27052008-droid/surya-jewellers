@@ -123,7 +123,7 @@ export default function ProductDetailClient({
     ...(product.secondaryStoneType
       ? [{ label: 'Secondary Stone', value: product.secondaryStoneType }]
       : []),
-    ...(product.diamondWeight && product.diamondWeight > 0 && product.diamondWeight !== product.csWeight
+    ...(product.diamondWeight && Number(product.diamondWeight) > 0
       ? [{ label: 'Diamond Weight', value: `${product.diamondWeight} ct` }]
       : []),
     ...(product.csWeight && product.csWeight > 0
