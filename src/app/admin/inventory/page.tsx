@@ -25,7 +25,7 @@ interface Product {
   mainStoneType: string;
   silverWeight: number;
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
-  emoji: string;
+  image?: string;
 }
 
 interface ParsedProduct {
@@ -104,7 +104,7 @@ export default function InventoryPage() {
           mainStoneType: p.mainStoneType || 'None',
           silverWeight: p.silverWeight || 0,
           status: p.inStock ? 'In Stock' : 'Sold Out',
-          emoji: '🆕',
+          image: p.images?.[0] || '',
         }));
         setProducts(mapped.reverse());
       }
@@ -236,14 +236,14 @@ export default function InventoryPage() {
         <div className="flex items-center gap-2 mb-4">
           <FileSpreadsheet className="w-5 h-5 text-amber-600" />
           <h2 className="text-lg font-semibold text-gray-900">Bulk Upload via Excel</h2>
-          <span className="text-xs text-gray-400 ml-1">(first 5 products)</span>
+          <span className="text-xs text-gray-400 ml-1">(up to 10 products)</span>
         </div>
 
         {bulkSuccess ? (
           <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
             <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
             <p className="text-sm font-medium text-emerald-700">
-              5 products uploaded successfully! Inventory list refreshed.
+              Products uploaded successfully! Inventory list refreshed.
             </p>
             <button
               onClick={() => setBulkSuccess(false)}
@@ -441,8 +441,38 @@ export default function InventoryPage() {
                 >
                   {/* Thumbnail */}
                   <td className="px-6 py-3">
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-sm border border-gray-200">
-                      {product.emoji}
+                    <div style={{ position: 'relative', width: '48px', height: '48px' }}>
+                      {product.image ? (
+                        <>
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '6px', display: 'block' }}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = 'flex';
+                            }}
+                          />
+                          <div style={{
+                            width: '48px', height: '48px', borderRadius: '6px',
+                            background: '#c9a84c20', border: '1px solid #c9a84c',
+                            display: 'none', alignItems: 'center', justifyContent: 'center',
+                            color: '#c9a84c', fontSize: '16px', fontWeight: '500',
+                            position: 'absolute', top: 0, left: 0,
+                          }}>
+                            {product.name?.[0]?.toUpperCase()}
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{
+                          width: '48px', height: '48px', borderRadius: '6px',
+                          background: '#c9a84c20', border: '1px solid #c9a84c',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: '#c9a84c', fontSize: '16px', fontWeight: '500',
+                        }}>
+                          {product.name?.[0]?.toUpperCase()}
+                        </div>
+                      )}
                     </div>
                   </td>
 
