@@ -152,14 +152,38 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setStore(load('sj_store', DEFAULT_STORE));
-    setShipping(load('sj_shipping', DEFAULT_SHIPPING));
     setSocial(load('sj_social', DEFAULT_SOCIAL));
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((data) => {
+        setShipping({
+          freeShippingEnabled: data.showFreeShippingBanner ?? DEFAULT_SHIPPING.freeShippingEnabled,
+          freeShippingEndDate: data.freeShippingEndDate ?? DEFAULT_SHIPPING.freeShippingEndDate,
+          freeShippingMinOrder: data.freeShippingMinOrder ?? DEFAULT_SHIPPING.freeShippingMinOrder,
+        });
+      })
+      .catch(() => setShipping(load('sj_shipping', DEFAULT_SHIPPING)));
   }, []);
 
   function save<T>(key: string, value: T, setSaved: (v: boolean) => void) {
     localStorage.setItem(key, JSON.stringify(value));
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
+  }
+
+  async function saveShipping() {
+    localStorage.setItem('sj_shipping', JSON.stringify(shipping));
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        showFreeShippingBanner: shipping.freeShippingEnabled,
+        freeShippingEndDate: shipping.freeShippingEndDate,
+        freeShippingMinOrder: shipping.freeShippingMinOrder,
+      }),
+    });
+    setShippingSaved(true);
+    setTimeout(() => setShippingSaved(false), 2500);
   }
 
   async function handleClearProducts() {
@@ -334,10 +358,7 @@ export default function SettingsPage() {
           </div>
         </div>
         <div className="mt-5 flex justify-end">
-          <SaveButton
-            onClick={() => save('sj_shipping', shipping, setShippingSaved)}
-            saved={shippingSaved}
-          />
+          <SaveButton onClick={saveShipping} saved={shippingSaved} />
         </div>
       </SectionCard>
 
