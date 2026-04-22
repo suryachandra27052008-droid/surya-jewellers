@@ -233,8 +233,9 @@ export default function ProductsClient() {
     if (selectedCategory !== 'All') result = result.filter((p) => p.category.name === selectedCategory);
     if (selectedStone !== 'All') result = result.filter((p) => p.mainStoneType === selectedStone || p.secondaryStoneType === selectedStone);
     result = result.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1]);
-    if (sortBy === 'price-asc') result.sort((a, b) => a.price - b.price);
-    else if (sortBy === 'price-desc') result.sort((a, b) => b.price - a.price);
+    if (sortBy === 'price-asc') result = [...result].sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+    else if (sortBy === 'price-desc') result = [...result].sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+    else if (sortBy === 'newest') result = [...result].sort((a, b) => String(b._id).localeCompare(String(a._id)));
     return result;
   }, [selectedCategory, selectedStone, sortBy, priceRange, allProducts]);
 

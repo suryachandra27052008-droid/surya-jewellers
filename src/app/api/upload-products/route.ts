@@ -346,14 +346,17 @@ export async function POST(request: Request) {
       // Diamond weight — read from detected column (should be K / "Diam Wt").
       // No shift-fallback: Excel omits zero-value cells, so absent = 0.
       // Shift-fallback would bleed into the neighbour column for zero-diamond rows.
+      // Guard: real diamond weights are < 100 ct; anything higher means the price
+      // column leaked in (happens when the weight cell is empty).
       const diaCol = colMap.diamondWeight || 'K';
       const rawDiaWt = parseFloat(col(sheet, rowNum, diaCol) || '0');
-      const diamondWeight = rawDiaWt > 0 ? rawDiaWt : 0;
+      const diamondWeight = (rawDiaWt > 0 && rawDiaWt <= 100) ? rawDiaWt : 0;
 
       // CS weight — try detected column (should be M / "CS Wt"), then one left.
+      // Guard: real stone weights are < 500 ct; anything higher is the price leaking in.
       const csCol = colMap.csWeight || 'M';
       const rawCsWt = parseFloat(colWithShiftFallback(sheet, rowNum, csCol) || '0');
-      const csWeight = rawCsWt > 0 ? rawCsWt : 0;
+      const csWeight = (rawCsWt > 0 && rawCsWt <= 500) ? rawCsWt : 0;
 
       // Barcode may be string or numeric
       const barcode = col(sheet, rowNum, colMap.barcode).trim()
