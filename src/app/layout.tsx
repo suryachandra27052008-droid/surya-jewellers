@@ -4,6 +4,7 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import Script from "next/script";
 import LayoutShell from "@/components/layout/LayoutShell";
+import IntroAnimation from "@/components/IntroAnimation";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -166,6 +167,7 @@ export default function RootLayout({
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
           />
+            <IntroAnimation />
           <LayoutShell>{children}</LayoutShell>
           <Script
             src="https://widget.kalcend.ai/widget.js"
