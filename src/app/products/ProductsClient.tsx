@@ -198,7 +198,7 @@ export default function ProductsClient() {
             const sku = String(p.sku || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || p._id.slice(-6);
             return `${stone}-${cat}-${sku}`.replace(/-+/g, '-');
           };
-          const apiProducts = data.products.map((p: any) => ({
+          const apiProducts = data.products.map((p: any, idx: number) => ({
             _id: p._id,
             name: p.name,
             sku: p.sku,
@@ -213,8 +213,10 @@ export default function ProductsClient() {
             images: p.images && p.images.length > 0 ? p.images : [],
             inStock: p.inStock,
             description: p.description || '',
+            createdAt: p.createdAt || p._createdAt || null,
+            _idx: idx,
           }));
-          setAllProducts(apiProducts.reverse());
+          setAllProducts(apiProducts);
         }
       } catch (err: any) {
         if (err.name !== 'AbortError') console.error('Failed to fetch products', err);
@@ -235,7 +237,10 @@ export default function ProductsClient() {
     result = result.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1]);
     if (sortBy === 'price-asc') result = [...result].sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
     else if (sortBy === 'price-desc') result = [...result].sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-    else if (sortBy === 'newest') result = [...result].sort((a, b) => String(b._id).localeCompare(String(a._id)));
+    else if (sortBy === 'newest') result = [...result].sort((a, b) => {
+      if (a.createdAt && b.createdAt) return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return a._idx - b._idx;
+    });
     return result;
   }, [selectedCategory, selectedStone, sortBy, priceRange, allProducts]);
 
