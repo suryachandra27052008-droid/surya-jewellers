@@ -126,7 +126,8 @@ export default function ProductDetailClient({
     ...(product.diamondWeight && Number(product.diamondWeight) > 0
       ? [{ label: 'Diamond Weight', value: `${product.diamondWeight} ct` }]
       : []),
-    ...(product.csWeight && product.csWeight > 0
+    ...(product.csWeight && product.csWeight > 0 && product.csWeight <= 500
+      && (product.mainStoneType !== 'None' || !!product.secondaryStoneType)
       ? [{ label: 'Colored Stone Wt (ct)', value: `${product.csWeight} ct` }]
       : []),
     ...(product.diamondColorClarity
