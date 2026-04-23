@@ -341,7 +341,23 @@ export async function POST(request: Request) {
       // Numeric fields
       const grossWeight  = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.grossWeight))  || 0;
       const silverWeight = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.silverWeight)) || 0;
-      const price        = parseFloat(colWithShiftFallback(sheet, rowNum, colMap.price))        || 0;
+
+      // Price: try detected column first, then N/O/M in order, then scan row for any value > 1000
+      let price = 0;
+      for (const c of [colMap.price, 'N', 'O', 'M']) {
+        const v = parseFloat(col(sheet, rowNum, c) || '0');
+        if (v > 0) { price = v; break; }
+      }
+      if (!price) {
+        const priceRowMap = sheet.get(rowNum);
+        if (priceRowMap) {
+          for (const v of priceRowMap.values()) {
+            const n = parseFloat(v);
+            if (n > 1000 && n > price) price = n;
+          }
+        }
+      }
+      console.log('Product price found:', price, 'for SKU:', sku);
 
       // Diamond weight — read from detected column (should be K / "Diam Wt").
       // No shift-fallback: Excel omits zero-value cells, so absent = 0.
