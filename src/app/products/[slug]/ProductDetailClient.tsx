@@ -224,10 +224,16 @@ export default function ProductDetailClient({
               </h1>
 
               <div className="flex items-baseline gap-3">
-                <span className="text-2xl font-semibold text-charcoal">
-                  {formatPrice(product.price, currency)}
-                </span>
-                <span className="text-xs text-charcoal-muted">(Incl. of taxes)</span>
+                {product.price ? (
+                  <>
+                    <span className="text-2xl font-semibold text-charcoal">
+                      {formatPrice(product.price, currency)}
+                    </span>
+                    <span className="text-xs text-charcoal-muted">(Incl. of taxes)</span>
+                  </>
+                ) : (
+                  <span className="text-2xl font-semibold text-charcoal">Contact for Price</span>
+                )}
               </div>
 
               <div className="h-[1px] bg-gradient-to-r from-gold/40 via-gold/20 to-transparent" />
@@ -381,7 +387,7 @@ export default function ProductDetailClient({
                   <p className="text-xs text-charcoal-muted tracking-wide uppercase">{rp.category}</p>
                   <p className="font-serif text-charcoal text-sm mt-0.5 group-hover:text-gold transition-colors">{rp.name}</p>
                   <p className="text-sm font-medium text-charcoal mt-1">
-                    {formatPrice(rp.price, currency)}
+                    {rp.price ? formatPrice(rp.price, currency) : 'Contact for Price'}
                   </p>
                 </Link>
               ))}

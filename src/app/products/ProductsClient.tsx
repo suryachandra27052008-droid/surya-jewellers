@@ -613,7 +613,7 @@ export default function ProductsClient() {
                         )}
                         <div className="flex items-center justify-between mt-2">
                           <p className="text-gold font-semibold tracking-wide">
-                            {formatPrice(product.price, currency)}
+                            {product.price ? formatPrice(product.price, currency) : 'Contact for Price'}
                           </p>
                           <span className="text-[0.65rem] text-charcoal-muted">
                             {product.silverWeight}g Silver
