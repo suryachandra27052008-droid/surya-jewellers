@@ -63,6 +63,10 @@ export default function CheckoutPage() {
   const shipping = getShipping(subtotal);
   const total = subtotal + shipping;
 
+  const showPayPal = currency === 'USD' || currency === 'GBP';
+  const paypalCurrency = showPayPal ? (currency as 'USD' | 'GBP') : 'USD';
+  const paypalAmount = (total * CURRENCIES[paypalCurrency].rate).toFixed(2);
+
   if (items.length === 0) {
     return (
       <div className="pt-32 pb-16 text-center">
@@ -342,77 +346,81 @@ export default function CheckoutPage() {
                       💳 PayPal available — select USD or other currency above
                     </p>
                   )}
-                  {(currency === 'USD' || currency === 'GBP') && (
+                  {showPayPal && (
                     <p className="text-xs text-green-600 text-center mt-2">
                       ✓ PayPal will appear in payment options
                     </p>
                   )}
 
-                  {/* PayPal — international payments */}
-                  <div className="flex items-center gap-3 mt-6 mb-4">
-                    <div className="flex-1 h-[1px] bg-cream-dark" />
-                    <span className="text-xs text-charcoal-muted tracking-[0.15em] uppercase whitespace-nowrap">or pay with</span>
-                    <div className="flex-1 h-[1px] bg-cream-dark" />
-                  </div>
+                  {/* PayPal — international payments (USD / GBP) */}
+                  {showPayPal && (
+                    <>
+                      <div className="flex items-center gap-3 mt-6 mb-4">
+                        <div className="flex-1 h-[1px] bg-cream-dark" />
+                        <span className="text-xs text-charcoal-muted tracking-[0.15em] uppercase whitespace-nowrap">or pay with</span>
+                        <div className="flex-1 h-[1px] bg-cream-dark" />
+                      </div>
 
-                  <PayPalScriptProvider
-                    options={{
-                      clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? 'test',
-                      currency: 'USD',
-                    }}
-                  >
-                    <PayPalButtons
-                      disabled={!isFormValid() || loading}
-                      style={{ layout: 'vertical', shape: 'rect', tagline: false, label: 'paypal' }}
-                      createOrder={(_data, actions) => {
-                        const usdAmount = (total * CURRENCIES.USD.rate).toFixed(2);
-                        return actions.order.create({
-                          intent: 'CAPTURE',
-                          purchase_units: [
-                            {
-                              amount: { value: usdAmount, currency_code: 'USD' },
-                              description: 'Surya Jewellers — Sterling Silver Jewelry',
-                            },
-                          ],
-                        });
-                      }}
-                      onApprove={async (_data, actions) => {
-                        const capture = await actions.order!.capture();
-                        const captureId =
-                          capture.purchase_units?.[0]?.payments?.captures?.[0]?.id ??
-                          capture.id ??
-                          'paypal';
-                        const res = await fetch('/api/save-paypal-order', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            paypalOrderId: capture.id,
-                            paypalCaptureId: captureId,
-                            items: items.map((item) => ({
-                              _id: item._id,
-                              name: item.name,
-                              price: item.price,
-                              quantity: item.quantity,
-                            })),
-                            customer: form,
-                            subtotal,
-                            shipping,
-                            total,
-                          }),
-                        });
-                        const result = await res.json();
-                        if (result.success) {
-                          clearCart();
-                          router.push(`/order-success?id=${capture.id}`);
-                        } else {
-                          alert(
-                            'Order could not be saved. Please contact support. Ref: ' +
-                              capture.id
-                          );
-                        }
-                      }}
-                    />
-                  </PayPalScriptProvider>
+                      <PayPalScriptProvider
+                        key={paypalCurrency}
+                        options={{
+                          clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? 'test',
+                          currency: paypalCurrency,
+                        }}
+                      >
+                        <PayPalButtons
+                          disabled={!isFormValid() || loading}
+                          style={{ layout: 'vertical', shape: 'rect', tagline: false, label: 'paypal' }}
+                          createOrder={(_data, actions) => {
+                            return actions.order.create({
+                              intent: 'CAPTURE',
+                              purchase_units: [
+                                {
+                                  amount: { value: paypalAmount, currency_code: paypalCurrency },
+                                  description: 'Surya Jewellers — Sterling Silver Jewelry',
+                                },
+                              ],
+                            });
+                          }}
+                          onApprove={async (_data, actions) => {
+                            const capture = await actions.order!.capture();
+                            const captureId =
+                              capture.purchase_units?.[0]?.payments?.captures?.[0]?.id ??
+                              capture.id ??
+                              'paypal';
+                            const res = await fetch('/api/save-paypal-order', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                paypalOrderId: capture.id,
+                                paypalCaptureId: captureId,
+                                items: items.map((item) => ({
+                                  _id: item._id,
+                                  name: item.name,
+                                  price: item.price,
+                                  quantity: item.quantity,
+                                })),
+                                customer: form,
+                                subtotal,
+                                shipping,
+                                total,
+                              }),
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                              clearCart();
+                              router.push(`/order-success?id=${capture.id}`);
+                            } else {
+                              alert(
+                                'Order could not be saved. Please contact support. Ref: ' +
+                                  capture.id
+                              );
+                            }
+                          }}
+                        />
+                      </PayPalScriptProvider>
+                    </>
+                  )}
                 </div>
               </AnimatedSection>
             </div>
