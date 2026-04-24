@@ -2,15 +2,6 @@ import { NextResponse } from 'next/server';
 
 type SupportedCurrency = 'INR' | 'USD' | 'GBP' | 'JPY' | 'CNY';
 
-// Approximate INR → target currency rates
-const RATES: Record<SupportedCurrency, number> = {
-  INR: 1,
-  USD: 1 / 84,
-  GBP: 1 / 106,
-  JPY: 1.8,
-  CNY: 1 / 12,
-};
-
 // JPY has no decimal subunits; all others use paise/cents/pence × 100
 const SUBUNIT_MULTIPLIER: Record<SupportedCurrency, number> = {
   INR: 100,
@@ -23,14 +14,12 @@ const SUBUNIT_MULTIPLIER: Record<SupportedCurrency, number> = {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const amountInr: number = body.amount;
+    const amount: number = body.amount; // already in target currency (converted by frontend)
     const currency: SupportedCurrency = body.currency ?? 'INR';
 
-    const rate = RATES[currency] ?? 1;
     const multiplier = SUBUNIT_MULTIPLIER[currency] ?? 100;
-    const razorpayAmount = Math.round(amountInr * rate * multiplier);
+    const razorpayAmount = Math.round(amount * multiplier);
 
-    // Check if Razorpay credentials are configured
     const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
