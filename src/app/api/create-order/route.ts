@@ -1,25 +1,49 @@
 import { NextResponse } from 'next/server';
 
+type SupportedCurrency = 'INR' | 'USD' | 'GBP' | 'JPY' | 'CNY';
+
+// Approximate INR → target currency rates
+const RATES: Record<SupportedCurrency, number> = {
+  INR: 1,
+  USD: 1 / 84,
+  GBP: 1 / 106,
+  JPY: 1.8,
+  CNY: 1 / 12,
+};
+
+// JPY has no decimal subunits; all others use paise/cents/pence × 100
+const SUBUNIT_MULTIPLIER: Record<SupportedCurrency, number> = {
+  INR: 100,
+  USD: 100,
+  GBP: 100,
+  JPY: 1,
+  CNY: 100,
+};
+
 export async function POST(request: Request) {
   try {
-    const { amount } = await request.json();
+    const body = await request.json();
+    const amountInr: number = body.amount;
+    const currency: SupportedCurrency = body.currency ?? 'INR';
+
+    const rate = RATES[currency] ?? 1;
+    const multiplier = SUBUNIT_MULTIPLIER[currency] ?? 100;
+    const razorpayAmount = Math.round(amountInr * rate * multiplier);
 
     // Check if Razorpay credentials are configured
     const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!keyId || keyId === 'rzp_test_placeholder' || !keySecret || keySecret === 'placeholder_secret') {
-      // Return a demo order when Razorpay is not configured
       return NextResponse.json({
         id: null,
-        amount: amount * 100,
-        currency: 'INR',
+        amount: razorpayAmount,
+        currency,
         demo: true,
         message: 'Razorpay not configured. Running in demo mode.',
       });
     }
 
-    // Dynamic import to avoid errors when razorpay is not properly configured
     const Razorpay = (await import('razorpay')).default;
 
     const razorpay = new Razorpay({
@@ -28,8 +52,8 @@ export async function POST(request: Request) {
     });
 
     const order = await razorpay.orders.create({
-      amount: amount * 100, // Amount in paise
-      currency: 'INR',
+      amount: razorpayAmount,
+      currency,
       receipt: `receipt_${Date.now()}`,
       notes: {
         website: 'https://suryajewellers.shop',

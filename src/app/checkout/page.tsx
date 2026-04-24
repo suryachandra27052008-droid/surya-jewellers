@@ -102,7 +102,7 @@ export default function CheckoutPage() {
       const res = await fetch('/api/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: total }),
+        body: JSON.stringify({ amount: total, currency }),
       });
 
       const order = await res.json();
@@ -336,6 +336,17 @@ export default function CheckoutPage() {
                   <p className="text-xs text-charcoal-muted text-center mt-4">
                     🔒 Secured by Razorpay. 100% safe & encrypted.
                   </p>
+
+                  {currency === 'INR' && (
+                    <p className="text-xs text-charcoal-muted text-center mt-2">
+                      💳 PayPal available — select USD or other currency above
+                    </p>
+                  )}
+                  {(currency === 'USD' || currency === 'GBP') && (
+                    <p className="text-xs text-green-600 text-center mt-2">
+                      ✓ PayPal will appear in payment options
+                    </p>
+                  )}
 
                   {/* PayPal — international payments */}
                   <div className="flex items-center gap-3 mt-6 mb-4">
