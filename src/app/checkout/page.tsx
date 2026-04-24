@@ -6,7 +6,8 @@ import { useUser } from '@clerk/nextjs';
 import Script from 'next/script';
 import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
-import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
+import { useCurrencyStore, formatPrice, CURRENCIES } from '@/stores/currency-store';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { getShipping, isPromoActive, FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE } from '@/lib/shipping';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
@@ -335,6 +336,72 @@ export default function CheckoutPage() {
                   <p className="text-xs text-charcoal-muted text-center mt-4">
                     🔒 Secured by Razorpay. 100% safe & encrypted.
                   </p>
+
+                  {/* PayPal — international payments */}
+                  <div className="flex items-center gap-3 mt-6 mb-4">
+                    <div className="flex-1 h-[1px] bg-cream-dark" />
+                    <span className="text-xs text-charcoal-muted tracking-[0.15em] uppercase whitespace-nowrap">or pay with</span>
+                    <div className="flex-1 h-[1px] bg-cream-dark" />
+                  </div>
+
+                  <PayPalScriptProvider
+                    options={{
+                      clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? 'test',
+                      currency: 'USD',
+                    }}
+                  >
+                    <PayPalButtons
+                      disabled={!isFormValid() || loading}
+                      style={{ layout: 'vertical', shape: 'rect', tagline: false, label: 'paypal' }}
+                      createOrder={(_data, actions) => {
+                        const usdAmount = (total * CURRENCIES.USD.rate).toFixed(2);
+                        return actions.order.create({
+                          intent: 'CAPTURE',
+                          purchase_units: [
+                            {
+                              amount: { value: usdAmount, currency_code: 'USD' },
+                              description: 'Surya Jewellers — Sterling Silver Jewelry',
+                            },
+                          ],
+                        });
+                      }}
+                      onApprove={async (_data, actions) => {
+                        const capture = await actions.order!.capture();
+                        const captureId =
+                          capture.purchase_units?.[0]?.payments?.captures?.[0]?.id ??
+                          capture.id ??
+                          'paypal';
+                        const res = await fetch('/api/save-paypal-order', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            paypalOrderId: capture.id,
+                            paypalCaptureId: captureId,
+                            items: items.map((item) => ({
+                              _id: item._id,
+                              name: item.name,
+                              price: item.price,
+                              quantity: item.quantity,
+                            })),
+                            customer: form,
+                            subtotal,
+                            shipping,
+                            total,
+                          }),
+                        });
+                        const result = await res.json();
+                        if (result.success) {
+                          clearCart();
+                          router.push(`/order-success?id=${capture.id}`);
+                        } else {
+                          alert(
+                            'Order could not be saved. Please contact support. Ref: ' +
+                              capture.id
+                          );
+                        }
+                      }}
+                    />
+                  </PayPalScriptProvider>
                 </div>
               </AnimatedSection>
             </div>

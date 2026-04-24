@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.8",
+    "@paypal/react-paypal-js": "^9.1.1",
     "@sanity/image-url": "^2.1.0",
     "@sanity/vision": "^5.18.0",
     "@types/nodemailer": "^7.0.11",
