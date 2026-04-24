@@ -113,6 +113,8 @@ export default function CheckoutPage() {
 
       const order = await res.json();
 
+      console.log('Razorpay order currency:', order.currency ?? currency);
+
       if (!order.id) {
         // If Razorpay is not configured, simulate success
         clearCart();
@@ -130,6 +132,24 @@ export default function CheckoutPage() {
         order_id: order.id,
         notes: {
           website: 'https://suryajewellers.shop',
+        },
+        method: {
+          wallet: true,
+          card: true,
+          upi: true,
+          netbanking: true,
+        },
+        config: {
+          display: {
+            blocks: {
+              paypal: {
+                name: 'Pay with PayPal',
+                instruments: [{ method: 'wallet', wallets: ['paypal'] }],
+              },
+            },
+            sequence: ['block.paypal', 'block.default'],
+            preferences: { show_default_blocks: true },
+          },
         },
         handler: async function (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) {
           // Verify payment and save order
