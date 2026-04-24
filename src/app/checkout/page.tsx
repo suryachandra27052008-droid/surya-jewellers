@@ -6,7 +6,7 @@ import { useUser } from '@clerk/nextjs';
 import Script from 'next/script';
 import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
-import { useCurrencyStore, formatPrice, CURRENCIES } from '@/stores/currency-store';
+import { useCurrencyStore, formatPrice, CURRENCIES, type CurrencyCode } from '@/stores/currency-store';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { getShipping, isPromoActive, FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE } from '@/lib/shipping';
 import AnimatedSection from '@/components/ui/AnimatedSection';
@@ -102,11 +102,13 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // Create order on backend
+      // Convert total to selected currency before sending (display and charge match)
+      const convertedTotal = total * CURRENCIES[currency].rate;
+
       const res = await fetch('/api/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: total, currency }),
+        body: JSON.stringify({ amount: convertedTotal, currency }),
       });
 
       const order = await res.json();
