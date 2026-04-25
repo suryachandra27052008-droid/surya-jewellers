@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import Script from "next/script";
 import LayoutShell from "@/components/layout/LayoutShell";
 import IntroAnimation from "@/components/IntroAnimation";
+import { Analytics } from "@vercel/analytics/next";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -169,6 +170,7 @@ export default function RootLayout({
           />
             <IntroAnimation />
           <LayoutShell>{children}</LayoutShell>
+          <Analytics />
           <Script
             src="https://widget.kalcend.ai/widget.js"
             data-config-id="MCDtb7d7EgVbuc17I72u"
