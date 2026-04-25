@@ -395,9 +395,21 @@ export default function SettingsPage() {
               <p className="text-sm font-semibold text-gray-900">PayPal</p>
               <p className="text-xs text-gray-400 mt-0.5">Global payments</p>
             </div>
-            <span className="flex items-center gap-1.5 text-xs font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
-              <Clock className="w-3.5 h-3.5" />
-              Setup in progress
+            <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Live
+            </span>
+          </div>
+
+          {/* Payoneer */}
+          <div className="flex items-start justify-between p-3 rounded-lg border border-gray-100">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Payoneer</p>
+              <p className="text-xs text-gray-400 mt-0.5">International payouts</p>
+            </div>
+            <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Live
             </span>
           </div>
         </div>
