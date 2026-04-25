@@ -24,7 +24,6 @@ export default function CheckoutPage() {
   const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [paypalLoading, setPaypalLoading] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -62,9 +61,9 @@ export default function CheckoutPage() {
   const shipping = getShipping(subtotal);
   const total = subtotal + shipping;
 
-  const showPayPal = currency !== 'INR';
+  const selectedCurrency = currency;
   const paypalCurrency = (currency === 'USD' || currency === 'GBP') ? currency : 'USD';
-  const paypalAmount = (total * CURRENCIES[paypalCurrency].rate).toFixed(2);
+  const convertedTotal = total * CURRENCIES[paypalCurrency].rate;
 
   if (items.length === 0) {
     return (
@@ -101,12 +100,12 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const convertedTotal = total * CURRENCIES[currency].rate;
+      const convertedTotalRazorpay = total * CURRENCIES[currency].rate;
 
       const res = await fetch('/api/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: convertedTotal, currency }),
+        body: JSON.stringify({ amount: convertedTotalRazorpay, currency }),
       });
 
       const order = await res.json();
@@ -183,60 +182,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const handlePayPal = async () => {
-    if (!isFormValid()) {
-      alert('Please fill in all required fields.');
-      return;
-    }
-    setPaypalLoading(true);
-    try {
-      localStorage.setItem(
-        'paypal_pending_order',
-        JSON.stringify({
-          items: items.map((item) => ({
-            _id: item._id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-          })),
-          customer: form,
-          subtotal,
-          shipping,
-          total,
-        })
-      );
-
-      const res = await fetch('/api/paypal/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: paypalAmount, currency: paypalCurrency }),
-      });
-      const order = await res.json();
-
-      if (order.error) {
-        console.error('PayPal create-order error:', order.error);
-        alert('PayPal is unavailable right now. Please use Razorpay instead.');
-        return;
-      }
-
-      const approvalUrl = order.links?.find(
-        (l: { rel: string }) => l.rel === 'approve'
-      )?.href;
-
-      if (!approvalUrl) {
-        console.error('No PayPal approval URL in response:', order);
-        alert('PayPal is unavailable right now. Please use Razorpay instead.');
-        return;
-      }
-
-      window.location.href = approvalUrl;
-    } catch (err) {
-      console.error('PayPal error:', err);
-      alert('PayPal is unavailable right now. Please use Razorpay instead.');
-    } finally {
-      setPaypalLoading(false);
-    }
-  };
+  console.log('PayPal button rendering, currency:', selectedCurrency, 'total:', convertedTotal);
 
   return (
     <>
@@ -384,7 +330,7 @@ export default function CheckoutPage() {
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={handlePayment}
-                    disabled={loading || paypalLoading}
+                    disabled={loading}
                     className="btn-gold w-full text-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
@@ -408,7 +354,7 @@ export default function CheckoutPage() {
                   )}
 
                   {/* PayPal — international payments (non-INR) */}
-                  {showPayPal && (
+                  {selectedCurrency !== 'INR' && (
                     <>
                       <div className="flex items-center gap-3 mt-6 mb-4">
                         <div className="flex-1 h-[1px] bg-cream-dark" />
@@ -417,45 +363,64 @@ export default function CheckoutPage() {
                       </div>
 
                       <button
-                        onClick={handlePayPal}
-                        disabled={paypalLoading || loading}
+                        onClick={async () => {
+                          try {
+                            localStorage.setItem(
+                              'paypal_pending_order',
+                              JSON.stringify({
+                                items: items.map((item) => ({
+                                  _id: item._id,
+                                  name: item.name,
+                                  price: item.price,
+                                  quantity: item.quantity,
+                                })),
+                                customer: form,
+                                subtotal,
+                                shipping,
+                                total,
+                              })
+                            );
+                            const res = await fetch('/api/paypal/create-order', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                amount: convertedTotal.toFixed(2),
+                                currency: selectedCurrency || 'USD'
+                              })
+                            });
+                            const data = await res.json();
+                            console.log('PayPal order:', data);
+                            const approvalUrl = data.links?.find((l: { rel: string }) => l.rel === 'approve')?.href;
+                            if (approvalUrl) {
+                              window.location.href = approvalUrl;
+                            } else {
+                              alert('PayPal error: ' + JSON.stringify(data));
+                            }
+                          } catch(err) {
+                            alert('Error: ' + (err as Error).message);
+                          }
+                        }}
                         style={{
                           width: '100%',
                           padding: '14px',
+                          marginTop: '12px',
                           background: '#FFC439',
-                          border: 'none',
-                          borderRadius: '4px',
+                          border: '1px solid #F5A623',
+                          borderRadius: '6px',
                           fontSize: '16px',
-                          fontWeight: 'bold',
-                          cursor: paypalLoading || loading ? 'not-allowed' : 'pointer',
+                          fontWeight: '700',
+                          cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           gap: '8px',
-                          opacity: paypalLoading || loading ? 0.6 : 1,
+                          color: '#003087'
                         }}
                       >
-                        {paypalLoading ? (
-                          <>
-                            <span style={{
-                              width: '16px', height: '16px',
-                              border: '2px solid #333', borderTopColor: 'transparent',
-                              borderRadius: '50%', display: 'inline-block',
-                              animation: 'spin 1s linear infinite',
-                            }} />
-                            Redirecting to PayPal...
-                          </>
-                        ) : (
-                          <>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg"
-                              alt="PayPal"
-                              height="23"
-                            />
-                            Pay with PayPal
-                          </>
-                        )}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#003087">
+                          <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 4.643-5.813 4.643h-2.19c-.11 0-.217.012-.321.034l-.814 5.158 1.066-6.748c.082-.518.526-.9 1.05-.9h2.19c4.298 0 7.664-1.747 8.647-6.797.03-.149.054-.294.077-.437-.36-.282-.77-.528-1.244-.666z"/>
+                        </svg>
+                        Pay with PayPal
                       </button>
                     </>
                   )}
