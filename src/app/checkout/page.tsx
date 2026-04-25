@@ -1,5 +1,8 @@
 'use client';
 
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "BAAKnji4ytvM1sAwzHIPe-HWHXKl4Bx4aBsS0pdCF8gG1n4wMq4FLMQ8d2bYLbGUSB6WwP8SzLO_neTAR3T3mMB4PoHKF4YX";
+console.log('PayPal ID length:', PAYPAL_CLIENT_ID?.length);
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
@@ -386,13 +389,14 @@ export default function CheckoutPage() {
                       <PayPalScriptProvider
                         key={paypalCurrency}
                         options={{
-                          clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? 'test',
+                          clientId: PAYPAL_CLIENT_ID,
                           currency: paypalCurrency,
                         }}
                       >
                         <PayPalButtons
                           disabled={!isFormValid() || loading}
                           style={{ layout: 'vertical', shape: 'rect', tagline: false, label: 'paypal' }}
+                          onError={(err) => { console.error('PayPal error:', err); }}
                           createOrder={(_data, actions) => {
                             return actions.order.create({
                               intent: 'CAPTURE',
