@@ -182,8 +182,6 @@ export default function CheckoutPage() {
     }
   };
 
-  console.log('PayPal button rendering, currency:', selectedCurrency, 'total:', convertedTotal);
-
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
@@ -401,12 +399,12 @@ export default function CheckoutPage() {
                             alert('Error: ' + (err as Error).message);
                           }
                         }}
-                        className="w-full mt-3 flex items-center justify-center gap-3 bg-charcoal border border-gold text-gold font-semibold uppercase text-[0.8rem] tracking-[0.1em] rounded-[2px] py-3 px-8 transition-all duration-300 hover:bg-charcoal-light hover:shadow-[0_4px_20px_rgba(212,175,55,0.3)] hover:-translate-y-px"
+                        className="btn-gold w-full flex items-center justify-center gap-2.5"
                       >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden="true">
                           <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 4.643-5.813 4.643h-2.19c-.11 0-.217.012-.321.034l-.814 5.158 1.066-6.748c.082-.518.526-.9 1.05-.9h2.19c4.298 0 7.664-1.747 8.647-6.797.03-.149.054-.294.077-.437-.36-.282-.77-.528-1.244-.666z"/>
                         </svg>
-                        Pay {formatPrice(convertedTotal, paypalCurrency)} · PayPal
+                        Pay with PayPal
                       </motion.button>
                     </>
                   )}
