@@ -1,5 +1,5 @@
 # SEO Audit Report — Surya Jewellers
-**URL:** https://suryajewellers.shop/  
+**URL:** https://suryajewellers.com/  
 **Audit Date:** 2026-04-17  
 **Business Type:** Local E-commerce (Jewellery retailer, Jaipur)  
 **Platform:** Next.js on Vercel  
@@ -172,9 +172,9 @@ This is a critical gap for an e-commerce jewellery store. Missing schema include
   "@context": "https://schema.org",
   "@type": "JewelryStore",
   "name": "Surya Jewellers",
-  "url": "https://suryajewellers.shop",
-  "logo": "https://suryajewellers.shop/logo_sj.webp",
-  "image": "https://suryajewellers.shop/logo_sj.webp",
+  "url": "https://suryajewellers.com",
+  "logo": "https://suryajewellers.com/logo_sj.webp",
+  "image": "https://suryajewellers.com/logo_sj.webp",
   "description": "Handcrafted 92.5 sterling silver jewellery with certified natural gemstones. Established 2003, Jaipur.",
   "telephone": "+91-99839-39306",
   "email": "suryajewellersjaipur@gmail.com",

@@ -111,7 +111,7 @@ const DEFAULT_STORE: StoreInfo = {
   phone: '+91 99839 39306',
   altPhone: '9358842102',
   address: 'B-169 Anandpuri, Moti Doongri Rd, near Naila House, Jaipur, Rajasthan 302004',
-  website: 'suryajewellers.shop',
+  website: 'suryajewellers.com',
 };
 
 const DEFAULT_SHIPPING: ShippingSettings = {

@@ -6,14 +6,14 @@ export const metadata: Metadata = {
   description:
     'Surya Jewellers, Jaipur. Family-owned silver jewellery manufacturer since 2003 near Moti Doongri. Handcrafted rings, necklaces, earrings with natural diamonds & gemstones. Visit our showroom or shop online.',
   alternates: {
-    canonical: 'https://suryajewellers.shop/jaipur-jewellery',
+    canonical: 'https://suryajewellers.com/jaipur-jewellery',
   },
   openGraph: {
     title: 'Jewellers in Jaipur — 92.5 Sterling Silver | Surya Jewellers',
     description:
       'Family-owned silver jewellery manufacturer in Jaipur since 2003. Natural certified gemstones, Certificate of Authenticity, lifetime maintenance. Visit B-169 Anandpuri, Moti Doongri Rd.',
     type: 'website',
-    url: 'https://suryajewellers.shop/jaipur-jewellery',
+    url: 'https://suryajewellers.com/jaipur-jewellery',
     siteName: 'Surya Jewellers',
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Jewellers in Jaipur — Surya Jewellers' }],
   },
@@ -28,11 +28,11 @@ export const metadata: Metadata = {
 const localBusinessSchema = {
   '@context': 'https://schema.org',
   '@type': 'JewelryStore',
-  '@id': 'https://suryajewellers.shop/#business',
+  '@id': 'https://suryajewellers.com/#business',
   name: 'Surya Jewellers',
-  url: 'https://suryajewellers.shop',
-  logo: 'https://suryajewellers.shop/logo_sj.png',
-  image: 'https://suryajewellers.shop/opengraph-image',
+  url: 'https://suryajewellers.com',
+  logo: 'https://suryajewellers.com/logo_sj.png',
+  image: 'https://suryajewellers.com/opengraph-image',
   description:
     'Family-owned 92.5 sterling silver jewellery manufacturer in Jaipur, Rajasthan. Handcrafted rings, necklaces, earrings, bracelets with certified natural gemstones since 2003.',
   telephone: '+91 99839 39306',
@@ -84,8 +84,8 @@ const breadcrumbSchema = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://suryajewellers.shop' },
-    { '@type': 'ListItem', position: 2, name: 'Jewellers in Jaipur', item: 'https://suryajewellers.shop/jaipur-jewellery' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://suryajewellers.com' },
+    { '@type': 'ListItem', position: 2, name: 'Jewellers in Jaipur', item: 'https://suryajewellers.com/jaipur-jewellery' },
   ],
 };
 

@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { client } from '@/lib/sanity/client';
 import { posts } from '@/app/blog/data';
 
-const BASE_URL = 'https://suryajewellers.shop';
+const BASE_URL = 'https://suryajewellers.com';
 
 const buildUniqueSlug = (p: {
   mainStoneType?: string;

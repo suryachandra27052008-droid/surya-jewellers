@@ -35,8 +35,8 @@ export async function POST(request) {
           description: 'Surya Jewellers — Sterling Silver Jewelry',
         }],
         application_context: {
-          return_url: 'https://suryajewellers.shop/order-success?payment=paypal',
-          cancel_url: 'https://suryajewellers.shop/checkout',
+          return_url: 'https://suryajewellers.com/order-success?payment=paypal',
+          cancel_url: 'https://suryajewellers.com/checkout',
           brand_name: 'Surya Jewellers',
           user_action: 'PAY_NOW',
         },

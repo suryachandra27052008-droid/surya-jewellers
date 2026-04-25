@@ -53,13 +53,13 @@ export const metadata: Metadata = {
   verification: {
     google: "-6zyoc8a4UjXayuNcv5Ij90FqUG8S8s9oGdd6W7gc3E",
   },
-  metadataBase: new URL("https://suryajewellers.shop"),
+  metadataBase: new URL("https://suryajewellers.com"),
   openGraph: {
     title: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",
     description:
       "Surya Jewellers, Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Handcrafted rings, necklaces, earrings with natural diamonds and precious gemstones. Certificate of Authenticity.",
     type: "website",
-    url: "https://suryajewellers.shop",
+    url: "https://suryajewellers.com",
     siteName: "Surya Jewellers",
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Surya Jewellers — 92.5 Sterling Silver Jewellery, Jaipur" }],
   },
@@ -76,9 +76,9 @@ const localBusinessSchema = {
   '@context': 'https://schema.org',
   '@type': 'JewelryStore',
   name: 'Surya Jewellers',
-  url: 'https://suryajewellers.shop',
-  logo: 'https://suryajewellers.shop/logo_sj.png',
-  image: 'https://suryajewellers.shop/logo_sj.png',
+  url: 'https://suryajewellers.com',
+  logo: 'https://suryajewellers.com/logo_sj.png',
+  image: 'https://suryajewellers.com/logo_sj.png',
   description:
     'Handcrafted 92.5 sterling silver jewellery with certified natural gemstones. Family-owned since 2003, based in Jaipur.',
   telephone: '+91 99839 39306',
@@ -119,12 +119,12 @@ const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Surya Jewellers',
-  url: 'https://suryajewellers.shop',
+  url: 'https://suryajewellers.com',
   potentialAction: {
     '@type': 'SearchAction',
     target: {
       '@type': 'EntryPoint',
-      urlTemplate: 'https://suryajewellers.shop/products?q={search_term_string}',
+      urlTemplate: 'https://suryajewellers.com/products?q={search_term_string}',
     },
     'query-input': 'required name=search_term_string',
   },
@@ -134,8 +134,8 @@ const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Surya Jewellers',
-  url: 'https://suryajewellers.shop',
-  logo: 'https://suryajewellers.shop/logo_sj.png',
+  url: 'https://suryajewellers.com',
+  logo: 'https://suryajewellers.com/logo_sj.png',
   foundingDate: '2003',
   contactPoint: {
     '@type': 'ContactPoint',
