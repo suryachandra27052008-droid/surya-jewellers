@@ -3,11 +3,102 @@
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'motion/react';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { useCartStore } from '@/stores/cart-store';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('id') || 'N/A';
+  const rawId = searchParams.get('id');
+  const payment = searchParams.get('payment');
+  const paypalToken = searchParams.get('token'); // PayPal order ID on redirect-back
+
+  const clearCart = useCartStore((s) => s.clearCart);
+  const [orderId, setOrderId] = useState(rawId || 'N/A');
+  const [capturing, setCapturing] = useState(payment === 'paypal' && !!paypalToken);
+  const [captureError, setCaptureError] = useState('');
+  const captured = useRef(false);
+
+  useEffect(() => {
+    if (payment !== 'paypal' || !paypalToken || captured.current) return;
+    captured.current = true;
+
+    async function captureAndSave() {
+      try {
+        // Capture the PayPal payment
+        const captureRes = await fetch('/api/paypal/capture-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderID: paypalToken }),
+        });
+        const capture = await captureRes.json();
+
+        if (capture.error || capture.status === 'VOIDED') {
+          setCaptureError('Payment could not be confirmed. Please contact support.');
+          setCapturing(false);
+          return;
+        }
+
+        const captureId =
+          capture.purchase_units?.[0]?.payments?.captures?.[0]?.id ??
+          capture.id ??
+          paypalToken;
+
+        // Retrieve pending order data stored before the PayPal redirect
+        let pending: {
+          items: { _id: string; name: string; price: number; quantity: number }[];
+          customer: { fullName: string; email: string; phone: string; address1: string; address2?: string; city: string; state: string; pincode: string };
+          subtotal: number;
+          shipping: number;
+          total: number;
+        } | null = null;
+
+        try {
+          const raw = localStorage.getItem('paypal_pending_order');
+          if (raw) pending = JSON.parse(raw);
+        } catch {
+          // localStorage unavailable — order save will use empty data
+        }
+
+        // Save order to Sanity + send confirmation email
+        await fetch('/api/save-paypal-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paypalOrderId: capture.id ?? paypalToken,
+            paypalCaptureId: captureId,
+            items: pending?.items ?? [],
+            customer: pending?.customer ?? {},
+            subtotal: pending?.subtotal ?? 0,
+            shipping: pending?.shipping ?? 0,
+            total: pending?.total ?? 0,
+          }),
+        });
+
+        localStorage.removeItem('paypal_pending_order');
+        clearCart();
+        setOrderId(captureId);
+      } catch (err) {
+        console.error('PayPal capture error:', err);
+        setCaptureError('Payment confirmed but order could not be saved. Ref: ' + paypalToken);
+        setOrderId(paypalToken ?? 'N/A');
+      } finally {
+        setCapturing(false);
+      }
+    }
+
+    captureAndSave();
+  }, [payment, paypalToken, clearCart]);
+
+  if (capturing) {
+    return (
+      <div className="pt-32 pb-20 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-charcoal-muted text-sm">Confirming your PayPal payment…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-32 pb-20 min-h-screen flex items-center">
@@ -57,6 +148,10 @@ function OrderSuccessContent() {
             Your order has been confirmed and we are preparing your exquisite
             jewelry for dispatch. You will receive a confirmation email shortly.
           </p>
+
+          {captureError && (
+            <p className="text-red-500 text-sm mb-4">{captureError}</p>
+          )}
 
           {/* Order ID */}
           <div className="bg-cream rounded p-6 mb-8 border border-cream-dark">

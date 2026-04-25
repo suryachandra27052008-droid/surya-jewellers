@@ -1,17 +1,13 @@
 'use client';
 
-const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "BAAKnji4ytvM1sAwzHIPe-HWHXKl4Bx4aBsS0pdCF8gG1n4wMq4FLMQ8d2bYLbGUSB6WwP8SzLO_neTAR3T3mMB4PoHKF4YX";
-console.log('PayPal ID length:', PAYPAL_CLIENT_ID?.length);
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import Script from 'next/script';
 import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
-import { useCurrencyStore, formatPrice, CURRENCIES, type CurrencyCode } from '@/stores/currency-store';
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
-import { getShipping, isPromoActive, FREE_SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE } from '@/lib/shipping';
+import { useCurrencyStore, formatPrice, CURRENCIES } from '@/stores/currency-store';
+import { getShipping, isPromoActive, FREE_SHIPPING_THRESHOLD } from '@/lib/shipping';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
 declare global {
@@ -28,6 +24,7 @@ export default function CheckoutPage() {
   const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [paypalLoading, setPaypalLoading] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -43,7 +40,6 @@ export default function CheckoutPage() {
     setMounted(true);
   }, []);
 
-  // Pre-fill form with Clerk user data
   useEffect(() => {
     if (user) {
       setForm((prev) => ({
@@ -66,8 +62,8 @@ export default function CheckoutPage() {
   const shipping = getShipping(subtotal);
   const total = subtotal + shipping;
 
-  const showPayPal = currency === 'USD' || currency === 'GBP';
-  const paypalCurrency = showPayPal ? (currency as 'USD' | 'GBP') : 'USD';
+  const showPayPal = currency !== 'INR';
+  const paypalCurrency = (currency === 'USD' || currency === 'GBP') ? currency : 'USD';
   const paypalAmount = (total * CURRENCIES[paypalCurrency].rate).toFixed(2);
 
   if (items.length === 0) {
@@ -105,7 +101,6 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // Convert total to selected currency before sending (display and charge match)
       const convertedTotal = total * CURRENCIES[currency].rate;
 
       const res = await fetch('/api/create-order', {
@@ -119,7 +114,6 @@ export default function CheckoutPage() {
       console.log('Razorpay order currency:', order.currency ?? currency);
 
       if (!order.id) {
-        // If Razorpay is not configured, simulate success
         clearCart();
         router.push('/order-success?id=DEMO-' + Date.now());
         return;
@@ -142,20 +136,7 @@ export default function CheckoutPage() {
           upi: true,
           netbanking: true,
         },
-        config: {
-          display: {
-            blocks: {
-              paypal: {
-                name: 'Pay with PayPal',
-                instruments: [{ method: 'wallet', wallets: ['paypal'] }],
-              },
-            },
-            sequence: ['block.paypal', 'block.default'],
-            preferences: { show_default_blocks: true },
-          },
-        },
         handler: async function (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) {
-          // Verify payment and save order
           const verifyRes = await fetch('/api/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -195,11 +176,65 @@ export default function CheckoutPage() {
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch {
-      // If API fails, simulate success for demo
       clearCart();
       router.push('/order-success?id=DEMO-' + Date.now());
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePayPal = async () => {
+    if (!isFormValid()) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+    setPaypalLoading(true);
+    try {
+      localStorage.setItem(
+        'paypal_pending_order',
+        JSON.stringify({
+          items: items.map((item) => ({
+            _id: item._id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          customer: form,
+          subtotal,
+          shipping,
+          total,
+        })
+      );
+
+      const res = await fetch('/api/paypal/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: paypalAmount, currency: paypalCurrency }),
+      });
+      const order = await res.json();
+
+      if (order.error) {
+        console.error('PayPal create-order error:', order.error);
+        alert('PayPal is unavailable right now. Please use Razorpay instead.');
+        return;
+      }
+
+      const approvalUrl = order.links?.find(
+        (l: { rel: string }) => l.rel === 'approve'
+      )?.href;
+
+      if (!approvalUrl) {
+        console.error('No PayPal approval URL in response:', order);
+        alert('PayPal is unavailable right now. Please use Razorpay instead.');
+        return;
+      }
+
+      window.location.href = approvalUrl;
+    } catch (err) {
+      console.error('PayPal error:', err);
+      alert('PayPal is unavailable right now. Please use Razorpay instead.');
+    } finally {
+      setPaypalLoading(false);
     }
   };
 
@@ -349,7 +384,7 @@ export default function CheckoutPage() {
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={handlePayment}
-                    disabled={loading}
+                    disabled={loading || paypalLoading}
                     className="btn-gold w-full text-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
@@ -371,13 +406,8 @@ export default function CheckoutPage() {
                       💳 PayPal available — select USD or other currency above
                     </p>
                   )}
-                  {showPayPal && (
-                    <p className="text-xs text-green-600 text-center mt-2">
-                      ✓ PayPal will appear in payment options
-                    </p>
-                  )}
 
-                  {/* PayPal — international payments (USD / GBP) */}
+                  {/* PayPal — international payments (non-INR) */}
                   {showPayPal && (
                     <>
                       <div className="flex items-center gap-3 mt-6 mb-4">
@@ -386,65 +416,47 @@ export default function CheckoutPage() {
                         <div className="flex-1 h-[1px] bg-cream-dark" />
                       </div>
 
-                      <PayPalScriptProvider
-                        key={paypalCurrency}
-                        options={{
-                          clientId: PAYPAL_CLIENT_ID,
-                          currency: paypalCurrency,
+                      <button
+                        onClick={handlePayPal}
+                        disabled={paypalLoading || loading}
+                        style={{
+                          width: '100%',
+                          padding: '14px',
+                          background: '#FFC439',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontSize: '16px',
+                          fontWeight: 'bold',
+                          cursor: paypalLoading || loading ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          opacity: paypalLoading || loading ? 0.6 : 1,
                         }}
                       >
-                        <PayPalButtons
-                          disabled={!isFormValid() || loading}
-                          style={{ layout: 'vertical', shape: 'rect', tagline: false, label: 'paypal' }}
-                          onError={(err) => { console.error('PayPal error:', err); }}
-                          createOrder={(_data, actions) => {
-                            return actions.order.create({
-                              intent: 'CAPTURE',
-                              purchase_units: [
-                                {
-                                  amount: { value: paypalAmount, currency_code: paypalCurrency },
-                                  description: 'Surya Jewellers — Sterling Silver Jewelry',
-                                },
-                              ],
-                            });
-                          }}
-                          onApprove={async (_data, actions) => {
-                            const capture = await actions.order!.capture();
-                            const captureId =
-                              capture.purchase_units?.[0]?.payments?.captures?.[0]?.id ??
-                              capture.id ??
-                              'paypal';
-                            const res = await fetch('/api/save-paypal-order', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                paypalOrderId: capture.id,
-                                paypalCaptureId: captureId,
-                                items: items.map((item) => ({
-                                  _id: item._id,
-                                  name: item.name,
-                                  price: item.price,
-                                  quantity: item.quantity,
-                                })),
-                                customer: form,
-                                subtotal,
-                                shipping,
-                                total,
-                              }),
-                            });
-                            const result = await res.json();
-                            if (result.success) {
-                              clearCart();
-                              router.push(`/order-success?id=${capture.id}`);
-                            } else {
-                              alert(
-                                'Order could not be saved. Please contact support. Ref: ' +
-                                  capture.id
-                              );
-                            }
-                          }}
-                        />
-                      </PayPalScriptProvider>
+                        {paypalLoading ? (
+                          <>
+                            <span style={{
+                              width: '16px', height: '16px',
+                              border: '2px solid #333', borderTopColor: 'transparent',
+                              borderRadius: '50%', display: 'inline-block',
+                              animation: 'spin 1s linear infinite',
+                            }} />
+                            Redirecting to PayPal...
+                          </>
+                        ) : (
+                          <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg"
+                              alt="PayPal"
+                              height="23"
+                            />
+                            Pay with PayPal
+                          </>
+                        )}
+                      </button>
                     </>
                   )}
                 </div>
