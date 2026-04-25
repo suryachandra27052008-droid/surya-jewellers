@@ -61,7 +61,6 @@ export default function CheckoutPage() {
   const shipping = getShipping(subtotal);
   const total = subtotal + shipping;
 
-  const selectedCurrency = currency;
   const paypalCurrency = (currency === 'USD' || currency === 'GBP') ? currency : 'USD';
   const convertedTotal = total * CURRENCIES[paypalCurrency].rate;
 
@@ -352,7 +351,7 @@ export default function CheckoutPage() {
                   )}
 
                   {/* PayPal — international payments (non-INR) */}
-                  {selectedCurrency !== 'INR' && (
+                  {currency !== 'INR' && (
                     <>
                       <div className="flex items-center gap-3 mt-6 mb-4">
                         <div className="flex-1 h-[1px] bg-cream-dark" />
@@ -384,7 +383,7 @@ export default function CheckoutPage() {
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({
                                 amount: convertedTotal.toFixed(2),
-                                currency: selectedCurrency || 'USD'
+                                currency: paypalCurrency
                               })
                             });
                             const data = await res.json();
