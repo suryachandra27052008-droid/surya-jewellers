@@ -6,7 +6,7 @@ import TrustSection from '@/components/home/TrustSection';
 const aggregateRatingSchema = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
-  '@id': 'https://suryajewellers.shop/#business',
+  '@id': 'https://suryajewellers.com/#business',
   name: 'Surya Jewellers',
   aggregateRating: {
     '@type': 'AggregateRating',

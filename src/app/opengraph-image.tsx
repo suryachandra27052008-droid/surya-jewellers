@@ -72,7 +72,7 @@ export default function OGImage() {
 
           {/* URL */}
           <div style={{ color: '#c9a84c', fontSize: 16, letterSpacing: '0.1em', marginTop: 16 }}>
-            suryajewellers.shop
+            suryajewellers.com
           </div>
         </div>
       </div>

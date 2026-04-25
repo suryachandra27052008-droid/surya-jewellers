@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     'Shop Surya Jewellers\' complete range of handcrafted 92.5 sterling silver jewellery — rings, necklaces, earrings, bracelets, pendants and studs set with natural diamonds, rubies, emeralds and sapphires. Made in Jaipur.',
   alternates: {
-    canonical: 'https://suryajewellers.shop/products',
+    canonical: 'https://suryajewellers.com/products',
   },
 };
 
@@ -35,7 +35,7 @@ async function getProductListItems() {
     return products.map((p, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      url: `https://suryajewellers.shop/products/${buildUniqueSlug(p)}`,
+      url: `https://suryajewellers.com/products/${buildUniqueSlug(p)}`,
     }));
   } catch {
     return [];
@@ -51,7 +51,7 @@ export default async function ProductsPage() {
     '@type': 'ItemList',
     name: 'Surya Jewellers — 92.5 Sterling Silver Jewellery Collections',
     description: 'Handcrafted 92.5 sterling silver jewellery with natural gemstones. Made in Jaipur, India.',
-    url: 'https://suryajewellers.shop/products',
+    url: 'https://suryajewellers.com/products',
     numberOfItems: itemListElements.length,
     itemListElement: itemListElements,
   };

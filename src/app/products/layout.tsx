@@ -14,14 +14,14 @@ export const metadata: Metadata = {
     'one of a kind jewellery',
   ],
   alternates: {
-    canonical: 'https://suryajewellers.shop/products',
+    canonical: 'https://suryajewellers.com/products',
   },
   openGraph: {
     title: 'Collections | Surya Jewellers — 92.5 Sterling Silver',
     description:
       'Browse our exclusive 92.5 sterling silver jewellery collection with natural diamonds, rubies, emeralds and sapphires. One piece one design.',
     type: 'website',
-    url: 'https://suryajewellers.shop/products',
+    url: 'https://suryajewellers.com/products',
     images: [{ url: '/logo_sj.png', width: 512, height: 512, alt: 'Surya Jewellers Collections' }],
   },
   twitter: {

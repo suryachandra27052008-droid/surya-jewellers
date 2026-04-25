@@ -127,7 +127,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     '@type': 'Product',
     name: product.name,
     description: product.description || `${product.name} — handcrafted 92.5 sterling silver jewellery from Surya Jewellers, Jaipur.`,
-    image: product.images[0] ?? 'https://suryajewellers.shop/logo_sj.png',
+    image: product.images[0] ?? 'https://suryajewellers.com/logo_sj.png',
     sku: product.sku,
     brand: {
       '@type': 'Brand',
@@ -136,7 +136,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     material: '92.5 Sterling Silver',
     offers: {
       '@type': 'Offer',
-      url: `https://suryajewellers.shop/products/${product.slug}`,
+      url: `https://suryajewellers.com/products/${product.slug}`,
       priceCurrency: 'INR',
       price: product.price,
       availability: product.inStock
@@ -157,19 +157,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://suryajewellers.shop',
+        item: 'https://suryajewellers.com',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Collections',
-        item: 'https://suryajewellers.shop/products',
+        item: 'https://suryajewellers.com/products',
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: product.name,
-        item: `https://suryajewellers.shop/products/${product.slug}`,
+        item: `https://suryajewellers.com/products/${product.slug}`,
       },
     ],
   };

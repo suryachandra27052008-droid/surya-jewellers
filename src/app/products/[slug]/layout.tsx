@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? product.description.slice(0, 160)
     : `${product.name} — handcrafted 92.5 sterling silver jewellery from Surya Jewellers, Jaipur.`;
   const image = product.images?.[0] ?? '/logo_sj.png';
-  const url = `https://suryajewellers.shop/products/${slug}`;
+  const url = `https://suryajewellers.com/products/${slug}`;
 
   return {
     title,

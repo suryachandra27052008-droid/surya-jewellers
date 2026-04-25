@@ -13,14 +13,14 @@ export const metadata: Metadata = {
     'Jaipur jewellery blog',
   ],
   alternates: {
-    canonical: 'https://suryajewellers.shop/blog',
+    canonical: 'https://suryajewellers.com/blog',
   },
   openGraph: {
     title: 'The Journal | Surya Jewellers',
     description:
       'Jewellery care tips, gemstone guides and styling advice from Surya Jewellers Jaipur.',
     type: 'website',
-    url: 'https://suryajewellers.shop/blog',
+    url: 'https://suryajewellers.com/blog',
     images: [{ url: '/logo_sj.png', width: 512, height: 512, alt: 'Surya Jewellers Journal' }],
   },
   twitter: {

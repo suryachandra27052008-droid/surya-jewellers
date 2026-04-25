@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = 'Surya Jewellers <hello@suryajewellers.shop>';
+const FROM = 'Surya Jewellers <hello@suryajewellers.com>';
 const SUPPORT_EMAIL = 'suryajewellersjaipur@gmail.com';
 const SUPPORT_PHONE = '+91 99839 39306';
 

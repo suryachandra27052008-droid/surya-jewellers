@@ -15,7 +15,7 @@
 - Googlebot sees "Loading…" — no product names, prices, descriptions, or images
 - Fix: Enable Next.js SSR (`getServerSideProps`) or SSG (`getStaticProps` + `getStaticPaths`) for all product pages
 - All product data must be in the initial HTML response
-- Test with: `curl https://suryajewellers.shop/products/emerald-ring` — should return full product content
+- Test with: `curl https://suryajewellers.com/products/emerald-ring` — should return full product content
 
 ### C2. Add Product Schema to All Product Pages
 **Impact:** 🔴 Missing Google Shopping rich results, product carousels  
@@ -81,7 +81,7 @@
   "datePublished": "2025-03-01",
   "dateModified": "2025-03-01",
   "image": "...",
-  "url": "https://suryajewellers.shop/blog/care-for-sterling-silver"
+  "url": "https://suryajewellers.com/blog/care-for-sterling-silver"
 }
 ```
 
@@ -108,7 +108,7 @@
 ### H8. Add Canonical Tags to All Pages
 **Impact:** 🟠 Prevents duplicate content issues  
 **Effort:** Low (developer — 30 min)  
-- Add `<link rel="canonical" href="https://suryajewellers.shop/[path]" />` to every page
+- Add `<link rel="canonical" href="https://suryajewellers.com/[path]" />` to every page
 - In Next.js: add to `<Head>` component or use `metadata.alternates.canonical`
 
 ### H9. Add Alt Text to All Images
@@ -163,7 +163,7 @@ Add to `vercel.json` or `next.config.js`:
 ### M6. Add llms.txt for AI Search Visibility
 **Impact:** 🟡 Better AI Overview and Perplexity citations  
 **Effort:** Low (30 min)  
-Create `https://suryajewellers.shop/llms.txt`:
+Create `https://suryajewellers.com/llms.txt`:
 ```
 # Surya Jewellers
 
@@ -172,17 +172,17 @@ specialising in handcrafted 92.5 sterling silver jewellery with certified
 natural gemstones. Established in 2003 by Sanjay and Pooja Chandra.
 
 ## Key Pages
-- Homepage: https://suryajewellers.shop/
-- Collections: https://suryajewellers.shop/products
-- About: https://suryajewellers.shop/about
-- Blog/Journal: https://suryajewellers.shop/blog
-- Contact: https://suryajewellers.shop/contact
+- Homepage: https://suryajewellers.com/
+- Collections: https://suryajewellers.com/products
+- About: https://suryajewellers.com/about
+- Blog/Journal: https://suryajewellers.com/blog
+- Contact: https://suryajewellers.com/contact
 ```
 
 ### M7. Use Business Domain Email
 **Impact:** 🟡 Professional credibility; E-E-A-T signal  
 **Effort:** Low (Zoho Mail free tier available for custom domains)  
-- Replace `suryajewellersjaipur@gmail.com` with `hello@suryajewellers.shop`
+- Replace `suryajewellersjaipur@gmail.com` with `hello@suryajewellers.com`
 
 ### M8. Add AggregateRating Schema
 **Impact:** 🟡 Star ratings visible in SERPs  
@@ -213,7 +213,7 @@ natural gemstones. Established in 2003 by Sanjay and Pooja Chandra.
 - Include sameAs links to social profiles
 
 ### L4. Build backlinks through wholesale partnerships
-- Ask B2B partners to link to suryajewellers.shop
+- Ask B2B partners to link to suryajewellers.com
 - Submit to Indian jewellery directories
 
 ### L5. Add structured data for shipping policy

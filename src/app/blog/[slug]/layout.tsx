@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${post.title} | Surya Jewellers Journal`;
   const description = post.excerpt.slice(0, 160);
-  const url = `https://suryajewellers.shop/blog/${slug}`;
+  const url = `https://suryajewellers.com/blog/${slug}`;
   const dateISO = parseDateISO(post.date);
 
   return {
@@ -55,7 +55,7 @@ export default async function BlogSlugLayout({ params, children }: Props) {
 
   if (!post) return <>{children}</>;
 
-  const url = `https://suryajewellers.shop/blog/${slug}`;
+  const url = `https://suryajewellers.com/blog/${slug}`;
   const dateISO = parseDateISO(post.date);
 
   const blogPostingSchema = {
@@ -72,19 +72,19 @@ export default async function BlogSlugLayout({ params, children }: Props) {
       worksFor: {
         '@type': 'Organization',
         name: 'Surya Jewellers',
-        url: 'https://suryajewellers.shop',
+        url: 'https://suryajewellers.com',
       },
     },
     publisher: {
       '@type': 'Organization',
       name: 'Surya Jewellers',
-      url: 'https://suryajewellers.shop',
+      url: 'https://suryajewellers.com',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://suryajewellers.shop/logo_sj.png',
+        url: 'https://suryajewellers.com/logo_sj.png',
       },
     },
-    image: 'https://suryajewellers.shop/opengraph-image',
+    image: 'https://suryajewellers.com/opengraph-image',
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': url,
