@@ -151,7 +151,12 @@ export default function SettingsPage() {
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    setStore(load('sj_store', DEFAULT_STORE));
+    const storedStore = load('sj_store', DEFAULT_STORE);
+    // Migrate stale domain from before the .shop → .com rename
+    if (storedStore.website === 'suryajewellers.shop') {
+      storedStore.website = 'suryajewellers.com';
+    }
+    setStore(storedStore);
     setSocial(load('sj_social', DEFAULT_SOCIAL));
     fetch('/api/settings')
       .then((r) => r.json())
