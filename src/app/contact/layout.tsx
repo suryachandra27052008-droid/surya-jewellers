@@ -5,14 +5,14 @@ export const metadata: Metadata = {
   description:
     'Contact Surya Jewellers in Jaipur. Visit us at B-169 Anandpuri, Moti Doongri Rd. Open Mon–Sat 10AM–8PM. Call +91 99839 39306 or WhatsApp us for enquiries.',
   alternates: {
-    canonical: 'https://suryajewellers.com/contact',
+    canonical: 'https://www.suryajewellers.com/contact',
   },
   openGraph: {
     title: 'Contact Surya Jewellers | Jaipur Studio',
     description:
       'Visit our studio at B-169 Anandpuri, Moti Doongri Rd, Jaipur. Open Monday to Saturday, 10AM–8PM. Call or WhatsApp +91 99839 39306.',
     type: 'website',
-    url: 'https://suryajewellers.com/contact',
+    url: 'https://www.suryajewellers.com/contact',
     images: [{ url: '/logo_sj.png', width: 512, height: 512, alt: 'Surya Jewellers' }],
   },
   twitter: {

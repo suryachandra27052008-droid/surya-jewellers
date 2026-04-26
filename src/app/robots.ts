@@ -19,6 +19,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://suryajewellers.com/sitemap.xml',
+    sitemap: 'https://www.suryajewellers.com/sitemap.xml',
   };
 }

@@ -1,12 +1,19 @@
+import type { Metadata } from 'next';
 import Hero from '@/components/home/Hero';
 import FeaturedCollections from '@/components/home/FeaturedCollections';
 import Testimonials from '@/components/home/Testimonials';
 import TrustSection from '@/components/home/TrustSection';
 
+export const metadata: Metadata = {
+  alternates: {
+    canonical: 'https://www.suryajewellers.com/',
+  },
+};
+
 const aggregateRatingSchema = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
-  '@id': 'https://suryajewellers.com/#business',
+  '@id': 'https://www.suryajewellers.com/#business',
   name: 'Surya Jewellers',
   aggregateRating: {
     '@type': 'AggregateRating',

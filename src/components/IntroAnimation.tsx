@@ -55,7 +55,7 @@ export default function IntroAnimation() {
           — EST. 2003 · JAIPUR, INDIA —
         </p>
 
-        <h1 style={{
+        <div aria-hidden="true" style={{
           fontFamily: 'Cinzel, serif',
           fontSize: 'clamp(60px, 12vw, 140px)',
           fontWeight: '300',
@@ -66,9 +66,9 @@ export default function IntroAnimation() {
           textShadow: '0 0 80px rgba(201,168,76,0.4)'
         }}>
           SURYA
-        </h1>
+        </div>
 
-        <h2 style={{
+        <div aria-hidden="true" style={{
           fontFamily: 'Cinzel, serif',
           fontSize: 'clamp(14px, 2.5vw, 22px)',
           fontWeight: '400',
@@ -78,7 +78,7 @@ export default function IntroAnimation() {
           textIndent: 'clamp(10px, 3vw, 24px)'
         }}>
           JEWELLERS
-        </h2>
+        </div>
 
         <div style={{
           width: '80px', height: '1px',

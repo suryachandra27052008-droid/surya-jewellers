@@ -29,6 +29,22 @@ interface SanityProduct {
   sku?: string;
 }
 
+function correctSpelling(text: string): string {
+  return text
+    .replace(/\bEmrald\b/g, 'Emerald')
+    .replace(/\bemrald\b/g, 'emerald')
+    .replace(/\bAmethist\b/g, 'Amethyst')
+    .replace(/\bamethist\b/g, 'amethyst')
+    .replace(/\bShaphire\b/g, 'Sapphire')
+    .replace(/\bshaphire\b/g, 'sapphire')
+    .replace(/\bMalti\b/g, 'Multi')
+    .replace(/\bmalti\b/g, 'multi')
+    .replace(/\bCristal\b/g, 'Crystal')
+    .replace(/\bcristal\b/g, 'crystal')
+    .replace(/\bearringss\b/gi, 'Earrings')
+    .replace(/\bearring\b/gi, 'Earrings');
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
@@ -51,12 +67,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: 'Product Not Found | Surya Jewellers' };
   }
 
-  const title = `${product.name} | Surya Jewellers`;
-  const description = product.description
-    ? product.description.slice(0, 160)
-    : `${product.name} — handcrafted 92.5 sterling silver jewellery from Surya Jewellers, Jaipur.`;
+  const stone = product.mainStoneType && product.mainStoneType !== 'None'
+    ? product.mainStoneType
+    : null;
+  const category = product.category || 'Jewellery';
+  const cleanName = correctSpelling(product.name);
+  const baseName = stone ? `${stone} ${category}` : cleanName;
+
+  const title = `${baseName} in 92.5 Sterling Silver | Surya Jewellers Jaipur`;
+  const description = product.description && product.description.length > 50
+    ? correctSpelling(product.description.slice(0, 160))
+    : `Shop this handcrafted ${baseName} in hallmarked 92.5 sterling silver from Surya Jewellers Jaipur. Includes natural gemstone details and Certificate of Authenticity.`;
   const image = product.images?.[0] ?? '/logo_sj.png';
-  const url = `https://suryajewellers.com/products/${slug}`;
+  const url = `https://www.suryajewellers.com/products/${slug}`;
 
   return {
     title,
@@ -69,7 +92,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       type: 'website',
       url,
-      images: [{ url: image, alt: product.name }],
+      images: [{ url: image, alt: `${baseName} in 92.5 sterling silver by Surya Jewellers Jaipur` }],
     },
     twitter: {
       card: 'summary_large_image',

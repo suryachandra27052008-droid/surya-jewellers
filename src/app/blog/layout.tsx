@@ -1,31 +1,23 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'The Journal | Surya Jewellers',
+  title: 'Jewellery Journal | Surya Jewellers Jaipur',
   description:
     'Jewellery care tips, gemstone guides and styling advice from Surya Jewellers Jaipur.',
-  keywords: [
-    'jewellery care tips',
-    'sterling silver care',
-    'gemstone guide',
-    'how to style silver jewellery',
-    'natural diamond guide',
-    'Jaipur jewellery blog',
-  ],
   alternates: {
-    canonical: 'https://suryajewellers.com/blog',
+    canonical: 'https://www.suryajewellers.com/blog',
   },
   openGraph: {
-    title: 'The Journal | Surya Jewellers',
+    title: 'Jewellery Journal | Surya Jewellers Jaipur',
     description:
       'Jewellery care tips, gemstone guides and styling advice from Surya Jewellers Jaipur.',
     type: 'website',
-    url: 'https://suryajewellers.com/blog',
+    url: 'https://www.suryajewellers.com/blog',
     images: [{ url: '/logo_sj.png', width: 512, height: 512, alt: 'Surya Jewellers Journal' }],
   },
   twitter: {
     card: 'summary',
-    title: 'The Journal | Surya Jewellers',
+    title: 'Jewellery Journal | Surya Jewellers Jaipur',
     description:
       'Jewellery care tips, gemstone guides and styling advice from our studio in Jaipur.',
     images: ['/logo_sj.png'],

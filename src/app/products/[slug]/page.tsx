@@ -127,7 +127,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     '@type': 'Product',
     name: product.name,
     description: product.description || `${product.name} — handcrafted 92.5 sterling silver jewellery from Surya Jewellers, Jaipur.`,
-    image: product.images[0] ?? 'https://suryajewellers.com/logo_sj.png',
+    image: product.images[0] ?? 'https://www.suryajewellers.com/logo_sj.png',
     sku: product.sku,
     brand: {
       '@type': 'Brand',
@@ -136,12 +136,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     material: '92.5 Sterling Silver',
     offers: {
       '@type': 'Offer',
-      url: `https://suryajewellers.com/products/${product.slug}`,
+      url: `https://www.suryajewellers.com/products/${product.slug}`,
       priceCurrency: 'INR',
       price: product.price,
       availability: product.inStock
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
       seller: {
         '@type': 'Organization',
         name: 'Surya Jewellers',
@@ -157,19 +158,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://suryajewellers.com',
+        item: 'https://www.suryajewellers.com',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Collections',
-        item: 'https://suryajewellers.com/products',
+        item: 'https://www.suryajewellers.com/products',
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: product.name,
-        item: `https://suryajewellers.com/products/${product.slug}`,
+        item: `https://www.suryajewellers.com/products/${product.slug}`,
       },
     ],
   };
