@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter, Cinzel } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import Script from "next/script";
 import LayoutShell from "@/components/layout/LayoutShell";
 import IntroAnimation from "@/components/IntroAnimation";
 
@@ -156,11 +155,6 @@ export default function RootLayout({
           />
             <IntroAnimation />
           <LayoutShell>{children}</LayoutShell>
-          <Script
-            src="https://widget.kalcend.ai/widget.js"
-            data-config-id="MCDtb7d7EgVbuc17I72u"
-            strategy="lazyOnload"
-          />
         </body>
       </html>
     </ClerkProvider>
