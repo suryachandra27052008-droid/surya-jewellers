@@ -56,7 +56,9 @@
       "Bash(mv necklaces.webp.webp necklaces.webp)",
       "Bash(mv pendants.webp.webp pendants.webp)",
       "Bash(mv rings.jpg.jpeg rings.jpg)",
-      "Bash(xargs sed *)"
+      "Bash(xargs sed *)",
+      "Bash(vercel --version)",
+      "Bash(npx eslint *)"
     ]
   }
 }
