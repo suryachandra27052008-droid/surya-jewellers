@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Collections | Surya Jewellers — 92.5 Sterling Silver',
+  title: { absolute: 'Silver Jewellery Collections | Surya Jewellers Jaipur' },
   description:
     'Browse our exclusive 92.5 sterling silver jewellery collection with natural diamonds, rubies, emeralds and sapphires. One piece one design.',
   alternates: {

@@ -123,10 +123,10 @@ export default function CheckoutPage() {
         currency: order.currency,
         name: 'Surya Jewellers',
         description: 'Sterling Silver Jewelry Purchase',
-        image: 'https://suryajewellers.com/icon.png',
+        image: 'https://www.suryajewellers.com/icon.png',
         order_id: order.id,
         notes: {
-          website: 'https://suryajewellers.com',
+          website: 'https://www.suryajewellers.com',
         },
         method: {
           wallet: true,

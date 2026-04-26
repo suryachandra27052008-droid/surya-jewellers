@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = getPost(slug);
 
   if (!post) {
-    return { title: 'Article Not Found | Surya Jewellers' };
+    return { title: { absolute: 'Article Not Found | Surya Jewellers' } };
   }
 
   const title = `${post.title} | Surya Jewellers Journal`;
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const dateISO = parseDateISO(post.date);
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: {
       canonical: url,

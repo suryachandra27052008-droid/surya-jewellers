@@ -9,6 +9,21 @@ const nextConfig: NextConfig = {
         destination: "https://www.suryajewellers.com/:path*",
         permanent: true,
       },
+      {
+        source: "/products/amethist-bracelets-br07367",
+        destination: "/products/amethyst-blue-topaz-bracelet-br07367",
+        permanent: true,
+      },
+      {
+        source: "/products/malti-shaphire-bracelets-br06382",
+        destination: "/products/multi-sapphire-bracelet-br06382",
+        permanent: true,
+      },
+      {
+        source: "/products/cristal-earrings-ear08924",
+        destination: "/products/crystal-ruby-earrings-ear08924",
+        permanent: true,
+      },
     ];
   },
   images: {

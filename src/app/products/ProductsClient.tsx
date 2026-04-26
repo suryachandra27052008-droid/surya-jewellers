@@ -7,7 +7,12 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
-import AnimatedSection from '@/components/ui/AnimatedSection';
+import {
+  getProductCanonicalSlug,
+  getProductDisplayName,
+  getProductImageAlt,
+  type ProductSeoInput,
+} from '@/lib/seo/product';
 
 const PRICE_MIN = 0;
 const PRICE_MAX = 800000;
@@ -42,6 +47,43 @@ const sortOptions = [
   { label: 'Price: High to Low', value: 'price-desc' },
   { label: 'Newest', value: 'newest' },
 ];
+
+type ApiProduct = ProductSeoInput & {
+  _id: string;
+  price?: number;
+  silverWeight?: number;
+  totalCaratWeight?: number;
+  diamondColorClarity?: string;
+  secondaryStoneType?: string;
+  images?: string[];
+  inStock?: boolean;
+  description?: string;
+  createdAt?: string;
+  _createdAt?: string;
+  stockQuantity?: number;
+};
+
+type ProductListItem = {
+  _id: string;
+  name: string;
+  sku?: string | number;
+  displayName: string;
+  imageAlt: string;
+  slug: { current: string };
+  price: number;
+  category: { name: string; slug: { current: string } };
+  mainStoneType: string;
+  secondaryStoneType: string;
+  silverWeight: number;
+  totalCaratWeight: number;
+  diamondColorClarity: string;
+  images: string[];
+  inStock?: boolean;
+  description: string;
+  createdAt: string | null;
+  stockQuantity?: number;
+  _idx: number;
+};
 
 const stoneColors: Record<string, string> = {
   Diamond: '#E8E8E8',
@@ -170,7 +212,7 @@ export default function ProductsClient() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [stonesExpanded, setStonesExpanded] = useState(false);
   const STONE_PREVIEW_COUNT = 20;
-  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { addItem, items: cartItems } = useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
@@ -187,23 +229,18 @@ export default function ProductsClient() {
       try {
         const res = await fetch('/api/admin/products', {
           signal: controller.signal,
-          // @ts-ignore
           priority: 'high',
-        });
+        } as RequestInit & { priority: 'high' });
         if (res.ok) {
-          const data = await res.json();
-          const buildUniqueSlug = (p: any) => {
-            const stone = (p.mainStoneType && p.mainStoneType !== 'None' ? p.mainStoneType : 'silver').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-            const cat = (p.category || 'jewellery').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-            const sku = String(p.sku || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || p._id.slice(-6);
-            return `${stone}-${cat}-${sku}`.replace(/-+/g, '-');
-          };
-          const apiProducts = data.products.map((p: any, idx: number) => ({
+          const data = await res.json() as { products?: ApiProduct[] };
+          const apiProducts = (data.products ?? []).map((p, idx): ProductListItem => ({
             _id: p._id,
-            name: p.name,
+            name: p.name || 'Silver Jewellery',
             sku: p.sku,
-            slug: { current: buildUniqueSlug(p) },
-            price: p.price,
+            displayName: getProductDisplayName(p),
+            imageAlt: getProductImageAlt(p),
+            slug: { current: getProductCanonicalSlug(p) },
+            price: Number(p.price) || 0,
             category: { name: p.category || 'Rings', slug: { current: (p.category || 'rings').toLowerCase() } },
             mainStoneType: p.mainStoneType || 'None',
             secondaryStoneType: p.secondaryStoneType || '',
@@ -218,8 +255,10 @@ export default function ProductsClient() {
           }));
           setAllProducts(apiProducts);
         }
-      } catch (err: any) {
-        if (err.name !== 'AbortError') console.error('Failed to fetch products', err);
+      } catch (err: unknown) {
+        if (!(err instanceof DOMException && err.name === 'AbortError')) {
+          console.error('Failed to fetch products', err);
+        }
       } finally {
         setLoading(false);
       }
@@ -235,8 +274,8 @@ export default function ProductsClient() {
     if (selectedCategory !== 'All') result = result.filter((p) => p.category.name === selectedCategory);
     if (selectedStone !== 'All') result = result.filter((p) => p.mainStoneType === selectedStone || p.secondaryStoneType === selectedStone);
     result = result.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1]);
-    if (sortBy === 'price-asc') result = [...result].sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-    else if (sortBy === 'price-desc') result = [...result].sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+    if (sortBy === 'price-asc') result = [...result].sort((a, b) => a.price - b.price);
+    else if (sortBy === 'price-desc') result = [...result].sort((a, b) => b.price - a.price);
     else if (sortBy === 'newest') result = [...result].sort((a, b) => {
       if (a.createdAt && b.createdAt) return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       return a._idx - b._idx;
@@ -503,7 +542,7 @@ export default function ProductsClient() {
                           {product.images && product.images.length > 0 ? (
                             <Image
                               src={product.images[0]}
-                              alt={product.name}
+                              alt={product.imageAlt || product.displayName || product.name}
                               fill
                               loading="lazy"
                               placeholder="blur"
@@ -580,7 +619,7 @@ export default function ProductsClient() {
                       <div className="p-4">
                         <Link href={`/products/${product.slug.current}`}>
                           <h3 className="font-serif text-base text-charcoal hover:text-gold transition-colors line-clamp-1">
-                            {product.name}
+                            {product.displayName || product.name}
                           </h3>
                         </Link>
                         {((product.mainStoneType && product.mainStoneType !== 'None') || product.secondaryStoneType) && (

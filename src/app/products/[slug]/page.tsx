@@ -1,20 +1,13 @@
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { writeClient } from '@/lib/sanity/client';
 import ProductDetailClient, { type ProductData, type RelatedProduct } from './ProductDetailClient';
-
-const buildUniqueSlug = (p: {
-  mainStoneType?: string;
-  category?: string;
-  sku?: string;
-  _id: string;
-}) => {
-  const stone = (p.mainStoneType && p.mainStoneType !== 'None' ? p.mainStoneType : 'silver')
-    .toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const cat = (p.category || 'jewellery').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const sku = String(p.sku || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || p._id.slice(-6);
-  return `${stone}-${cat}-${sku}`.replace(/-+/g, '-');
-};
+import {
+  correctSpelling,
+  getProductCanonicalSlug,
+  getProductDisplayName,
+  getProductMetaDescription,
+  SITE_URL,
+} from '@/lib/seo/product';
 
 const PRODUCT_QUERY = `
   *[_type == "product"] {
@@ -46,15 +39,16 @@ export const dynamicParams = true;
 
 export async function generateStaticParams() {
   try {
-    const products = await writeClient.fetch<{ _id: string; mainStoneType?: string; category?: string; sku?: string }[]>(
-      `*[_type == "product"]{ _id, mainStoneType, "category": category->name, sku }`,
+    const products = await writeClient.fetch<{ _id: string; name?: string; slug?: string; mainStoneType?: string; category?: string; sku?: string }[]>(
+      `*[_type == "product"]{ _id, name, "slug": slug.current, mainStoneType, "category": category->name, sku }`,
       {},
       { next: { revalidate: 3600 } }
     );
-    // Generate both the computed slug AND the raw SKU as valid static paths
+    // Generate canonical SEO slugs plus legacy raw slugs/SKUs as valid paths.
     const params: { slug: string }[] = [];
     for (const p of products) {
-      params.push({ slug: buildUniqueSlug(p) });
+      params.push({ slug: getProductCanonicalSlug(p) });
+      if (p.slug) params.push({ slug: p.slug });
       if (p.sku) params.push({ slug: p.sku });
     }
     return params;
@@ -76,7 +70,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   }
 
   const slugLower = slug.toLowerCase();
-  const raw = products.find((p: any) => buildUniqueSlug(p) === slug)
+  const raw = products.find((p: any) => getProductCanonicalSlug(p) === slug)
     ?? products.find((p: any) => p.slug === slug)
     // Direct SKU match — enables /products/RNG17288 style URLs
     ?? products.find((p: any) => (p.sku || '').toLowerCase() === slugLower)
@@ -98,8 +92,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   const product: ProductData = {
     _id: raw._id,
-    name: raw.name,
-    slug: buildUniqueSlug(raw),
+    name: getProductDisplayName(raw),
+    slug: getProductCanonicalSlug(raw),
     sku: raw.sku,
     price: raw.price,
     category: raw.category || 'Rings',
@@ -108,7 +102,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     mainStoneType: raw.mainStoneType || 'None',
     totalCaratWeight: raw.totalCaratWeight || 0,
     diamondColorClarity: raw.diamondColorClarity || '',
-    description: raw.description || '',
+    description: correctSpelling(raw.description || ''),
     inStock: raw.inStock,
     stockQuantity: raw.stockQuantity ?? 1,
     images: raw.images || [],
@@ -126,7 +120,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
-    description: product.description || `${product.name} — handcrafted 92.5 sterling silver jewellery from Surya Jewellers, Jaipur.`,
+    description: getProductMetaDescription(raw),
     image: product.images[0] ?? 'https://www.suryajewellers.com/logo_sj.png',
     sku: product.sku,
     brand: {
@@ -134,15 +128,46 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       name: 'Surya Jewellers',
     },
     material: '92.5 Sterling Silver',
+    category: product.category,
     offers: {
       '@type': 'Offer',
-      url: `https://www.suryajewellers.com/products/${product.slug}`,
+      url: `${SITE_URL}/products/${product.slug}`,
       priceCurrency: 'INR',
       price: product.price,
       availability: product.inStock
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/NewCondition',
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'IN',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: 7,
+        returnMethod: 'https://schema.org/ReturnByMail',
+        returnFees: 'https://schema.org/FreeReturn',
+      },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'IN',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 2,
+            unitCode: 'DAY',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 5,
+            maxValue: 7,
+            unitCode: 'DAY',
+          },
+        },
+      },
       seller: {
         '@type': 'Organization',
         name: 'Surya Jewellers',
@@ -158,19 +183,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://www.suryajewellers.com',
+        item: SITE_URL,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Collections',
-        item: 'https://www.suryajewellers.com/products',
+        item: `${SITE_URL}/products`,
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: product.name,
-        item: `https://www.suryajewellers.com/products/${product.slug}`,
+        item: `${SITE_URL}/products/${product.slug}`,
       },
     ],
   };
@@ -180,8 +205,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .slice(0, 3)
     .map((p: any) => ({
       _id: p._id,
-      name: p.name,
-      slug: buildUniqueSlug(p),
+      name: correctSpelling(p.name),
+      slug: getProductCanonicalSlug(p),
       price: p.price,
       images: p.images || [],
       mainStoneType: p.mainStoneType || 'None',

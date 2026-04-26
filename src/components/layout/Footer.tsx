@@ -4,15 +4,16 @@ const LINKS_COL1 = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About Us' },
   { href: '/products', label: 'Collections' },
-  { href: '/products?category=rings', label: 'Rings' },
-  { href: '/products?category=necklaces', label: 'Necklaces' },
-  { href: '/products?category=earrings', label: 'Earrings' },
+  { href: '/925-silver-rings', label: '925 Silver Rings' },
+  { href: '/silver-rings-jaipur', label: 'Silver Rings Jaipur' },
+  { href: '/silver-necklaces-jaipur', label: 'Silver Necklaces' },
 ];
 
 const LINKS_COL2 = [
-  { href: '/products?category=bracelets', label: 'Bracelets' },
-  { href: '/products?category=pendants', label: 'Pendants' },
-  { href: '/products?category=studs', label: 'Studs / Tops' },
+  { href: '/silver-bracelets-jaipur', label: 'Silver Bracelets' },
+  { href: '/silver-pendants-jaipur', label: 'Silver Pendants' },
+  { href: '/ruby-silver-earrings', label: 'Ruby Silver Earrings' },
+  { href: '/wholesale-silver-jewellery-jaipur', label: 'Wholesale Silver Jewellery' },
   { href: '/shipping', label: 'Shipping & Returns' },
   { href: '/blog/size-guide', label: 'Size Guide' },
   { href: '/contact', label: 'Contact Us' },

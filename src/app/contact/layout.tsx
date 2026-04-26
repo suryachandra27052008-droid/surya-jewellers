@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Contact Us | Visit Surya Jewellers in Jaipur',
+  title: { absolute: 'Contact Surya Jewellers | Jaipur Showroom & Studio' },
   description:
     'Contact Surya Jewellers in Jaipur. Visit us at B-169 Anandpuri, Moti Doongri Rd. Open Mon–Sat 10AM–8PM. Call +91 99839 39306 or WhatsApp us for enquiries.',
   alternates: {

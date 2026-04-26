@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Shipping & Returns | Surya Jewellers',
+  title: { absolute: 'Shipping & Returns | Surya Jewellers Jaipur' },
   description:
     'Free shipping across India on all orders. Standard delivery in 5–7 business days. 7-day return window for unused pieces. International shipping available with full insurance.',
   alternates: {

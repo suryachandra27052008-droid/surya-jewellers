@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { motion } from 'motion/react';
 
 const collections = [
-  { name: 'Rings',     description: 'Elegant bands & statement pieces',    image: '/categories/rings.jpg' },
-  { name: 'Necklaces', description: 'Graceful chains & pendants',           image: '/categories/necklaces.webp' },
-  { name: 'Earrings',  description: 'Drops, hoops & statement pieces',      image: '/categories/earrings.jpg' },
-  { name: 'Bracelets', description: 'Delicate cuffs & bangles',             image: '/categories/bracelets.webp' },
-  { name: 'Pendants',  description: 'Delicate drops & statement charms',    image: '/categories/pendants.webp' },
-  { name: 'Studs',     description: 'Classic & gemstone ear tops',          image: '/categories/studs.jpg' },
+  { name: 'Rings',     href: '/silver-rings-jaipur',       description: 'Elegant bands & statement pieces',    image: '/categories/rings.jpg' },
+  { name: 'Necklaces', href: '/silver-necklaces-jaipur',   description: 'Graceful chains & pendants',           image: '/categories/necklaces.webp' },
+  { name: 'Earrings',  href: '/products?category=Earrings', description: 'Drops, hoops & statement pieces',     image: '/categories/earrings.jpg' },
+  { name: 'Bracelets', href: '/silver-bracelets-jaipur',   description: 'Delicate cuffs & bangles',             image: '/categories/bracelets.webp' },
+  { name: 'Pendants',  href: '/silver-pendants-jaipur',    description: 'Delicate drops & statement charms',    image: '/categories/pendants.webp' },
+  { name: 'Studs',     href: '/products?category=Studs',   description: 'Classic & gemstone ear tops',          image: '/categories/studs.jpg' },
 ];
 
 export default function FeaturedCollections() {
@@ -33,7 +33,7 @@ export default function FeaturedCollections() {
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {collections.map((collection, index) => (
             <AnimatedSection key={collection.name} delay={index * 0.08}>
-              <Link href={`/products?category=${collection.name}`}>
+              <Link href={collection.href}>
                 <motion.div
                   whileHover={{ y: -4 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}

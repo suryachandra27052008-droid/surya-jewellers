@@ -1,22 +1,9 @@
 import type { MetadataRoute } from 'next';
 import { client } from '@/lib/sanity/client';
 import { posts } from '@/app/blog/data';
+import { getProductCanonicalSlug, SITE_URL } from '@/lib/seo/product';
 
-const BASE_URL = 'https://www.suryajewellers.com';
-
-const buildUniqueSlug = (p: {
-  mainStoneType?: string;
-  category?: string;
-  sku?: string;
-  _id: string;
-  _updatedAt?: string;
-}) => {
-  const stone = (p.mainStoneType && p.mainStoneType !== 'None' ? p.mainStoneType : 'silver')
-    .toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const cat = (p.category || 'jewellery').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const sku = String(p.sku || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || p._id.slice(-6);
-  return `${stone}-${cat}-${sku}`.replace(/-+/g, '-');
-};
+const BASE_URL = SITE_URL;
 
 function parseBlogDate(date: string): Date {
   if (date === 'Pinned' || !date) return new Date('2025-01-01');
@@ -28,15 +15,17 @@ async function getProducts(): Promise<{ slug: string; updatedAt: Date }[]> {
   try {
     const products = await client.fetch<{
       _id: string;
+      name?: string;
+      slug?: string;
       mainStoneType?: string;
       category?: string;
       sku?: string;
       _updatedAt?: string;
     }[]>(
-      `*[_type == "product" && defined(slug.current)]{ _id, mainStoneType, "category": category->name, sku, _updatedAt }`
+      `*[_type == "product" && defined(slug.current)]{ _id, name, "slug": slug.current, mainStoneType, "category": category->name, sku, _updatedAt }`
     );
     return products.map((p) => ({
-      slug: buildUniqueSlug(p),
+      slug: getProductCanonicalSlug(p),
       updatedAt: p._updatedAt ? new Date(p._updatedAt) : new Date('2025-01-01'),
     }));
   } catch {
@@ -56,6 +45,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/wholesale`, lastModified: new Date('2025-01-01') },
     { url: `${BASE_URL}/shipping`, lastModified: new Date('2025-01-01') },
     { url: `${BASE_URL}/jaipur-jewellery`, lastModified: new Date('2026-04-18') },
+    { url: `${BASE_URL}/silver-rings-jaipur`, lastModified: new Date('2026-04-26') },
+    { url: `${BASE_URL}/925-silver-rings`, lastModified: new Date('2026-04-26') },
+    { url: `${BASE_URL}/emerald-silver-rings`, lastModified: new Date('2026-04-26') },
+    { url: `${BASE_URL}/ruby-silver-earrings`, lastModified: new Date('2026-04-26') },
+    { url: `${BASE_URL}/silver-necklaces-jaipur`, lastModified: new Date('2026-04-26') },
+    { url: `${BASE_URL}/silver-bracelets-jaipur`, lastModified: new Date('2026-04-26') },
+    { url: `${BASE_URL}/silver-pendants-jaipur`, lastModified: new Date('2026-04-26') },
+    { url: `${BASE_URL}/wholesale-silver-jewellery-jaipur`, lastModified: new Date('2026-04-26') },
   ];
 
   const productRoutes: MetadataRoute.Sitemap = products.map(({ slug, updatedAt }) => ({

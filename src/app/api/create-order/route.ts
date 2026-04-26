@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       currency,
       receipt: `receipt_${Date.now()}`,
       notes: {
-        website: 'https://suryajewellers.com',
+        website: 'https://www.suryajewellers.com',
       },
     });
 

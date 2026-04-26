@@ -43,6 +43,9 @@ export const metadata: Metadata = {
     google: "-6zyoc8a4UjXayuNcv5Ij90FqUG8S8s9oGdd6W7gc3E",
   },
   metadataBase: new URL("https://www.suryajewellers.com"),
+  alternates: {
+    canonical: "https://www.suryajewellers.com",
+  },
   openGraph: {
     title: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",
     description:
@@ -111,19 +114,12 @@ const websiteSchema = {
   '@type': 'WebSite',
   name: 'Surya Jewellers',
   url: 'https://www.suryajewellers.com',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: {
-      '@type': 'EntryPoint',
-      urlTemplate: 'https://www.suryajewellers.com/products?q={search_term_string}',
-    },
-    'query-input': 'required name=search_term_string',
-  },
 };
 
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
+  '@id': 'https://www.suryajewellers.com/#organization',
   name: 'Surya Jewellers',
   url: 'https://www.suryajewellers.com',
   logo: 'https://www.suryajewellers.com/logo_sj.png',

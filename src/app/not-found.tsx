@@ -14,13 +14,13 @@ const breadcrumbSchema = {
       '@type': 'ListItem',
       position: 1,
       name: 'Home',
-      item: 'https://suryajewellers.com',
+      item: 'https://www.suryajewellers.com',
     },
     {
       '@type': 'ListItem',
       position: 2,
       name: 'Page Not Found',
-      item: 'https://suryajewellers.com/404',
+      item: 'https://www.suryajewellers.com/404',
     },
   ],
 };

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About Us | Surya Jewellers Jaipur',
+  title: { absolute: 'About Surya Jewellers | Est. 2003, Jaipur' },
   description:
     'Learn about Surya Jewellers founded by Sanjay and Pooja Chandra in 2003. Premium silver jewellery manufacturers in Jaipur with global presence in Hong Kong, Bangkok and Europe.',
   alternates: {

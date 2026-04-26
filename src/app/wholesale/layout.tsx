@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Wholesale & B2B | Partner with Surya Jewellers Jaipur',
+  title: { absolute: 'Wholesale Silver Jewellery | Surya Jewellers Jaipur' },
   description:
     'Wholesale silver jewellery partnerships for retailers and distributors. Factory-direct pricing, 90% exclusive designs, Certificate of Authenticity on every piece. Based in Jaipur.',
   alternates: {

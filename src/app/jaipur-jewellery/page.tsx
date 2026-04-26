@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Jewellers in Jaipur — 92.5 Sterling Silver | Surya Jewellers',
+  title: { absolute: 'Jewellers in Jaipur | 92.5 Sterling Silver | Surya Jewellers' },
   description:
     'Surya Jewellers, Jaipur. Family-owned silver jewellery manufacturer since 2003 near Moti Doongri. Handcrafted rings, necklaces, earrings with natural diamonds & gemstones. Visit our showroom or shop online.',
   alternates: {
