@@ -1,40 +1,54 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ShaderAnimation } from './ui/shader-lines'
 
 export default function IntroAnimation() {
   const [visible, setVisible] = useState(true)
   const [fading, setFading] = useState(false)
+  const doneRef = useRef(false)
+
+  const startFade = useCallback(() => {
+    if (doneRef.current) return
+    doneRef.current = true
+    setFading(true)
+    setTimeout(() => {
+      setVisible(false)
+      sessionStorage.setItem('introShown', 'true')
+    }, 1200)
+  }, [])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const shown = sessionStorage.getItem('introShown')
       if (shown) { setVisible(false); return }
     }
-    const timer = setTimeout(() => startFade(), 4500)
-    return () => clearTimeout(timer)
-  }, [])
-
-  const startFade = () => {
-    setFading(true)
-    setTimeout(() => {
-      setVisible(false)
-      sessionStorage.setItem('introShown', 'true')
-    }, 1200)
-  }
+    const timer = setTimeout(startFade, 4500)
+    window.addEventListener('keydown', startFade)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('keydown', startFade)
+    }
+  }, [startFade])
 
   if (!visible) return null
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
-      background: '#000',
-      opacity: fading ? 0 : 1,
-      transition: 'opacity 1.2s ease-in-out',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      overflow: 'hidden'
-    }}>
-      <ShaderAnimation />
+    <div
+      onClick={startFade}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: '#000',
+        opacity: fading ? 0 : 1,
+        transition: 'opacity 1.2s ease-in-out',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        overflow: 'hidden',
+        cursor: 'pointer'
+      }}
+    >
+      {/* Shader sits behind everything and doesn't intercept pointer events */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <ShaderAnimation />
+      </div>
 
       {/* Center content */}
       <div style={{
@@ -42,7 +56,8 @@ export default function IntroAnimation() {
         textAlign: 'center',
         animation: 'introFadeIn 1.5s ease forwards',
         animationDelay: '0.5s',
-        opacity: 0
+        opacity: 0,
+        pointerEvents: 'none'
       }}>
         <p style={{
           fontFamily: 'Cinzel, serif',
@@ -107,8 +122,9 @@ export default function IntroAnimation() {
           color: 'rgba(255,255,255,0.5)',
           fontFamily: 'Cinzel, serif',
           fontSize: '11px', letterSpacing: '4px',
-          cursor: 'pointer', zIndex: 10,
-          transition: 'color 0.3s'
+          cursor: 'pointer', zIndex: 20,
+          transition: 'color 0.3s',
+          pointerEvents: 'auto'
         }}
         onMouseEnter={e => (e.currentTarget.style.color = '#c9a84c')}
         onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
