@@ -51,7 +51,9 @@ export default function CategoryProductCard({ p }: { p: LandingProduct }) {
           ₹{p.price.toLocaleString('en-IN')}
         </p>
         <button
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
             if (atMax) return;
             addItem({
               _id: p._id,

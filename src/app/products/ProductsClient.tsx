@@ -790,7 +790,9 @@ export default function ProductsClient({
                         {/* Always-visible Add to Bag */}
                         <div className="mt-2 sm:mt-3">
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
                               if (atMax) return;
                               addItem({
                                 _id: product._id,

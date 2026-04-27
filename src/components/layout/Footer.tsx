@@ -21,30 +21,42 @@ const LINKS_COL2 = [
   { href: '/jaipur-jewellery', label: 'Jewellers in Jaipur' },
 ];
 
+const MOBILE_LINKS = [
+  { href: '/', label: 'Home' },
+  { href: '/products', label: 'Collections' },
+  { href: '/silver-rings-jaipur', label: 'Rings' },
+  { href: '/silver-necklaces-jaipur', label: 'Necklaces' },
+  { href: '/silver-bracelets-jaipur', label: 'Bracelets' },
+  { href: '/contact', label: 'Contact' },
+];
+
 export default function Footer() {
   return (
     <footer className="bg-charcoal text-white/80">
       {/* Gold accent line */}
       <div className="h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-14">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
 
           {/* Col 1 — Brand (25%) */}
           <div className="lg:col-span-1">
-            <h3 className="font-serif text-2xl tracking-[0.2em] text-white mb-2">
+            <h3 className="font-serif text-xl sm:text-2xl tracking-[0.2em] text-white mb-1 sm:mb-2">
               SURYA
             </h3>
             <p
-              className="text-[0.7rem] tracking-[0.35em] uppercase mb-6"
+              className="text-[0.65rem] sm:text-[0.7rem] tracking-[0.35em] uppercase mb-4 sm:mb-6"
               style={{ color: '#D4AF37' }}
             >
               Jewellers
             </p>
-            <p className="text-sm leading-relaxed text-white/60 mb-6">
+            <p className="hidden sm:block text-sm leading-relaxed text-white/60 mb-6">
               Crafting timeless elegance in 92.5 sterling silver.
               Every piece tells a story of artistry, precision, and the finest
               precious stones.
+            </p>
+            <p className="sm:hidden text-sm leading-relaxed text-white/60 mb-4">
+              Handcrafted 92.5 sterling silver jewellery from Jaipur.
             </p>
             {/* Social icons */}
             <div className="flex gap-4">
@@ -73,8 +85,29 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Col 2 — Quick Links part 1 (20%) */}
-          <div className="lg:col-span-1">
+          {/* Mobile quick links — 2-column grid, only shown below sm */}
+          <div className="sm:hidden">
+            <h4
+              className="text-xs tracking-[0.2em] uppercase mb-3 font-semibold"
+              style={{ color: '#D4AF37' }}
+            >
+              Quick Links
+            </h4>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+              {MOBILE_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm text-white/60 hover:text-gold transition-colors duration-300"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Col 2 — Quick Links part 1 (20%) — hidden on mobile */}
+          <div className="hidden sm:block lg:col-span-1">
             <h4
               className="text-sm tracking-[0.2em] uppercase mb-6 font-semibold"
               style={{ color: '#D4AF37' }}
@@ -95,8 +128,8 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 3 — Quick Links part 2 (20%) */}
-          <div className="lg:col-span-1">
+          {/* Col 3 — Quick Links part 2 (20%) — hidden on mobile */}
+          <div className="hidden sm:block lg:col-span-1">
             <h4
               className="text-sm tracking-[0.2em] uppercase mb-6 font-semibold invisible"
               aria-hidden="true"
@@ -117,8 +150,8 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 4 — Trust & Assurance + Visit Us (35%) */}
-          <div className="lg:col-span-1">
+          {/* Col 4 — Trust & Assurance + Visit Us (35%) — hidden on mobile */}
+          <div className="hidden sm:block lg:col-span-1">
             <h4
               className="text-sm tracking-[0.2em] uppercase mb-6 font-semibold"
               style={{ color: '#D4AF37' }}
@@ -175,11 +208,11 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
           <p className="text-xs text-white/40">
             © {new Date().getFullYear()} Surya Jewellers. All rights reserved.
           </p>
-          <p className="text-xs text-white/30">
+          <p className="hidden sm:block text-xs text-white/30">
             Crafted with ♦ for those who appreciate the extraordinary
           </p>
         </div>
