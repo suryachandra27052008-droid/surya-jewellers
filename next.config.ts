@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: '/__clerk/:path*',
+        destination: 'https://clerk.suryajewellers.com/:path*',
+      },
+    ];
+  },
   async redirects() {
     return [
       {

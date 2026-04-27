@@ -138,7 +138,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider proxyUrl="https://clerk.suryajewellers.com">
+    <ClerkProvider proxyUrl="https://www.suryajewellers.com/__clerk">
       <html lang="en" className={`${playfair.variable} ${inter.variable} ${cinzel.variable}`}>
         <body className="min-h-screen flex flex-col antialiased">
           <script
