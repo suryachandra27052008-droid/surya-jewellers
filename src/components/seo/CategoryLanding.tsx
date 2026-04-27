@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
-import { getProductCanonicalSlug, getProductDisplayName, getProductImageAlt } from '@/lib/seo/product';
+import CategoryProductCard from './CategoryProductCard';
 
 export interface LandingProduct {
   _id: string;
@@ -37,7 +36,7 @@ export default function CategoryLanding({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <div className="pt-32 pb-20 min-h-screen bg-cream">
+      <div className="pt-8 pb-20 min-h-screen bg-cream">
         {/* Hero */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-center">
           <span className="text-gold text-xs tracking-[0.4em] uppercase">
@@ -55,38 +54,10 @@ export default function CategoryLanding({
         {/* Product grid */}
         {products.length > 0 ? (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-              {products.map((p) => {
-                const slug = getProductCanonicalSlug(p);
-                const img = p.images[0];
-                const name = getProductDisplayName(p);
-                const altText = getProductImageAlt(p);
-                return (
-                  <Link key={p._id} href={`/products/${slug}`} className="group block">
-                    <div className="aspect-square relative overflow-hidden rounded-sm bg-gray-100">
-                      {img ? (
-                        <Image
-                          src={img}
-                          alt={altText}
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-charcoal-muted text-xs text-center px-2">
-                          {name}
-                        </div>
-                      )}
-                    </div>
-                    <div className="pt-2 pb-1">
-                      <p className="text-charcoal text-sm font-medium line-clamp-2">{name}</p>
-                      <p className="text-gold text-sm mt-0.5">
-                        ₹{p.price.toLocaleString('en-IN')}
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+              {products.map((p) => (
+                <CategoryProductCard key={p._id} p={p} />
+              ))}
             </div>
             <div className="text-center mt-10">
               <Link

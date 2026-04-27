@@ -6,12 +6,12 @@ import Link from 'next/link';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: { absolute: '925 Silver Rings | Hallmarked Sterling Silver | Surya Jewellers Jaipur' },
+  title: { absolute: '925 Sterling Silver Rings | Surya Jewellers Jaipur' },
   description:
-    'Certified hallmarked 925 sterling silver rings with natural gemstones from Surya Jewellers Jaipur. One-of-a-kind designs, Certificate of Authenticity, since 2003.',
+    'Hallmarked 925 sterling silver rings with natural gemstones from Surya Jewellers Jaipur. Unique designs, Certificate of Authenticity, since 2003.',
   alternates: { canonical: 'https://www.suryajewellers.com/925-silver-rings' },
   openGraph: {
-    title: '925 Silver Rings | Hallmarked Sterling Silver | Surya Jewellers Jaipur',
+    title: '925 Sterling Silver Rings | Surya Jewellers Jaipur',
     description:
       'Hallmarked 925 sterling silver rings with certified natural gemstones from Surya Jewellers Jaipur. Each ring includes a Certificate of Authenticity.',
     url: 'https://www.suryajewellers.com/925-silver-rings',

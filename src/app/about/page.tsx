@@ -2,16 +2,16 @@ import type { Metadata } from 'next';
 import AboutClient from './AboutClient';
 
 export const metadata: Metadata = {
-  title: 'About Surya Jewellers — Our Story, Founders & Craft in Jaipur',
+  title: { absolute: 'About Surya Jewellers | Story, Founders & Craft Jaipur' },
   description:
-    'Learn about Surya Jewellers, founded in 2003 by Sanjay and Pooja Chandra in Jaipur. We craft 92.5 sterling silver jewellery set with natural diamonds and precious gemstones, with 90% one-of-a-kind designs.',
+    'Family-owned silver jeweller in Jaipur since 2003. Handcrafted 92.5 sterling silver set with certified natural gemstones. 90% one-of-a-kind designs.',
   alternates: {
     canonical: 'https://www.suryajewellers.com/about',
   },
   openGraph: {
-    title: 'About Surya Jewellers — Our Story, Founders & Craft in Jaipur',
+    title: 'About Surya Jewellers | Story, Founders & Craft Jaipur',
     description:
-      'Family-owned since 2003. Sanjay and Pooja Chandra craft 92.5 sterling silver jewellery in Jaipur with natural gemstones. 90% one-piece, one-design creations.',
+      'Family-owned silver jeweller in Jaipur since 2003. Certified natural gemstones, Certificate of Authenticity, lifetime maintenance, worldwide shipping.',
     type: 'website',
     url: 'https://www.suryajewellers.com/about',
     siteName: 'Surya Jewellers',

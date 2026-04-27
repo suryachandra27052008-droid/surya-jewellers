@@ -58,7 +58,9 @@
       "Bash(mv rings.jpg.jpeg rings.jpg)",
       "Bash(xargs sed *)",
       "Bash(vercel --version)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(vercel --prod)",
+      "Bash(wait)"
     ]
   }
 }

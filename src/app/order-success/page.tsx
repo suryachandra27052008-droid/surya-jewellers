@@ -91,7 +91,7 @@ function OrderSuccessContent() {
 
   if (capturing) {
     return (
-      <div className="pt-32 pb-20 min-h-screen flex items-center justify-center">
+      <div className="pt-8 pb-20 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-charcoal-muted text-sm">Confirming your PayPal payment…</p>
@@ -101,7 +101,7 @@ function OrderSuccessContent() {
   }
 
   return (
-    <div className="pt-32 pb-20 min-h-screen flex items-center">
+    <div className="pt-8 pb-20 min-h-screen flex items-center">
       <div className="max-w-lg mx-auto px-4 text-center">
         {/* Animated Checkmark */}
         <motion.div
@@ -188,7 +188,7 @@ export default function OrderSuccessPage() {
   return (
     <Suspense
       fallback={
-        <div className="pt-32 pb-20 min-h-screen flex items-center justify-center">
+        <div className="pt-8 pb-20 min-h-screen flex items-center justify-center">
           <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
         </div>
       }

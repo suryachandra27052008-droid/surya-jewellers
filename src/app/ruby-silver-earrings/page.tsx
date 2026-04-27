@@ -6,12 +6,12 @@ import Link from 'next/link';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: { absolute: 'Ruby Silver Earrings in 92.5 Sterling Silver | Surya Jewellers Jaipur' },
+  title: { absolute: 'Ruby Silver Earrings | 92.5 Sterling | Surya Jewellers' },
   description:
-    'Shop natural ruby earrings in hallmarked 92.5 sterling silver from Surya Jewellers Jaipur. Certified natural rubies, Certificate of Authenticity, free shipping.',
+    'Natural ruby earrings in hallmarked 92.5 sterling silver from Surya Jewellers Jaipur. Certified rubies, Certificate of Authenticity, free shipping.',
   alternates: { canonical: 'https://www.suryajewellers.com/ruby-silver-earrings' },
   openGraph: {
-    title: 'Ruby Silver Earrings in 92.5 Sterling Silver | Surya Jewellers Jaipur',
+    title: 'Ruby Silver Earrings | 92.5 Sterling | Surya Jewellers',
     description:
       'Natural ruby earrings handcrafted in 92.5 sterling silver from Surya Jewellers Jaipur. Certified genuine rubies, Certificate of Authenticity.',
     url: 'https://www.suryajewellers.com/ruby-silver-earrings',

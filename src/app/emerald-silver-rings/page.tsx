@@ -6,12 +6,12 @@ import Link from 'next/link';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: { absolute: 'Emerald Silver Rings in 92.5 Sterling Silver | Surya Jewellers Jaipur' },
+  title: { absolute: 'Natural Emerald Silver Rings | Surya Jewellers Jaipur' },
   description:
-    'Shop natural emerald rings in hallmarked 92.5 sterling silver from Surya Jewellers Jaipur. Certified natural emeralds, Certificate of Authenticity, free shipping.',
+    'Natural emerald rings in hallmarked 92.5 sterling silver from Surya Jewellers Jaipur. Certified emeralds, Certificate of Authenticity, free shipping.',
   alternates: { canonical: 'https://www.suryajewellers.com/emerald-silver-rings' },
   openGraph: {
-    title: 'Emerald Silver Rings in 92.5 Sterling Silver | Surya Jewellers Jaipur',
+    title: 'Natural Emerald Silver Rings | Surya Jewellers Jaipur',
     description:
       'Natural emerald rings handcrafted in 92.5 sterling silver from Surya Jewellers Jaipur. Certified genuine emeralds, Certificate of Authenticity.',
     url: 'https://www.suryajewellers.com/emerald-silver-rings',

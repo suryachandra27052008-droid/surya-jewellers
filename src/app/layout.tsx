@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, Cinzel } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -26,6 +26,12 @@ const cinzel = Cinzel({
   weight: ["400", "600", "700"],
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
+
 export const metadata: Metadata = {
   icons: {
     icon: [{ url: "/logo_sj.png", type: "image/png" }],
@@ -37,7 +43,7 @@ export const metadata: Metadata = {
     template: "%s | Surya Jewellers",
   },
   description:
-    "Surya Jewellers, Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Handcrafted rings, necklaces, earrings with natural diamonds and precious gemstones. Certificate of Authenticity.",
+    "Premier 92.5 sterling silver jeweller in Jaipur since 2003. Handcrafted rings, necklaces & earrings set with certified natural diamonds and gemstones.",
   verification: {
     google: "-6zyoc8a4UjXayuNcv5Ij90FqUG8S8s9oGdd6W7gc3E",
   },
@@ -48,7 +54,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",
     description:
-      "Surya Jewellers, Jaipur's premier 92.5 sterling silver jewellery manufacturer since 2003. Handcrafted rings, necklaces, earrings with natural diamonds and precious gemstones. Certificate of Authenticity.",
+      "Premier 92.5 sterling silver jeweller in Jaipur since 2003. Handcrafted rings, necklaces & earrings set with certified natural diamonds and gemstones.",
     type: "website",
     url: "https://www.suryajewellers.com",
     siteName: "Surya Jewellers",

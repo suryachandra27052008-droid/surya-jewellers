@@ -1,10 +1,11 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 const images = [
-  '/hero-bg.jpg',
-  '/hero-bg-2.jpg',
-  '/hero-bg-3.jpg'
+  { src: '/hero-bg.jpg',    alt: 'Surya Jewellers showroom' },
+  { src: '/hero-bg-2.jpg',  alt: 'Surya Jewellers jewellery collection' },
+  { src: '/hero-bg-3.webp', alt: 'Surya Jewellers gold jewellery' },
 ]
 
 export default function HeroSlideshow({ children }) {
@@ -19,20 +20,29 @@ export default function HeroSlideshow({ children }) {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
-      {images.map((img, i) => (
+      {images.map(({ src, alt }, i) => (
         <div
-          key={img}
+          key={src}
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: `url(${img})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
             opacity: i === current ? 1 : 0,
             transition: 'opacity 1.5s ease-in-out',
             zIndex: i === current ? 1 : 0
           }}
-        />
+        >
+          <Image
+            src={src}
+            alt={alt}
+            fill
+            sizes="100vw"
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+            {...(i === 0
+              ? { preload: true, loading: 'eager' }
+              : { loading: 'lazy' }
+            )}
+          />
+        </div>
       ))}
       <div style={{
         position: 'absolute',

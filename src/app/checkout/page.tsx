@@ -51,7 +51,7 @@ export default function CheckoutPage() {
 
   if (!mounted) {
     return (
-      <div className="pt-32 pb-16 text-center">
+      <div className="pt-8 pb-16 text-center">
         <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin mx-auto" />
       </div>
     );
@@ -66,7 +66,7 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="pt-32 pb-16 text-center">
+      <div className="pt-8 pb-16 text-center">
         <h1 className="font-serif text-3xl text-charcoal mb-4">Your bag is empty</h1>
         <p className="text-charcoal-muted mb-8">Add some pieces before checking out.</p>
         <a href="/products" className="btn-gold">Shop Now</a>
@@ -185,7 +185,7 @@ export default function CheckoutPage() {
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
-      <div className="pt-28 pb-20">
+      <div className="pt-8 pb-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection className="text-center mb-12">
             <span className="text-gold text-xs tracking-[0.4em] uppercase">

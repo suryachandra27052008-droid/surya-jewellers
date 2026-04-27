@@ -23,11 +23,18 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   // Storefront pages get the full navbar + footer
   return (
     <>
-      {/* Fixed header: shipping banner (if active) sits above the navbar */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        {showShippingBanner && <ShippingBanner />}
+      {/* Shipping banner: in normal document flow — scrolls away on mobile */}
+      {showShippingBanner && <ShippingBanner />}
+
+      {/* Sticky navbar — sticks to top after banner scrolls away.
+          padding-top: env(safe-area-inset-top) keeps content below the device notch. */}
+      <div
+        className="sticky top-0 z-50 w-full bg-white"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
         <Navbar />
       </div>
+
       <main className="flex-1">{children}</main>
       <Footer />
       {/* Payment & Trust Marquee Banner */}

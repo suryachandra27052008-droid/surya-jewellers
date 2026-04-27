@@ -65,5 +65,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: parseBlogDate(post.date),
   }));
 
-  return [...staticRoutes, ...productRoutes, ...blogRoutes];
+  const all = [...staticRoutes, ...productRoutes, ...blogRoutes];
+  const seen = new Set<string>();
+  return all.filter(({ url }) => {
+    if (seen.has(url)) return false;
+    seen.add(url);
+    return true;
+  });
 }

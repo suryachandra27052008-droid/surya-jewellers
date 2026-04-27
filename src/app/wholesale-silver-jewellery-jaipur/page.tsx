@@ -6,12 +6,12 @@ import Link from 'next/link';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: { absolute: 'Wholesale Silver Jewellery Jaipur | Factory Direct | Surya Jewellers' },
+  title: { absolute: 'Wholesale Silver Jewellery Jaipur | Surya Jewellers' },
   description:
-    'Factory-direct 92.5 sterling silver jewellery wholesale from Surya Jewellers Jaipur. Supplying retailers, boutiques, and exporters since 2003. Certificate of Authenticity on every piece.',
+    'Wholesale 925 silver jewellery direct from Jaipur manufacturer. Supplying global retailers since 2003. Competitive pricing, Certificate of Authenticity.',
   alternates: { canonical: 'https://www.suryajewellers.com/wholesale-silver-jewellery-jaipur' },
   openGraph: {
-    title: 'Wholesale Silver Jewellery Jaipur | Factory Direct | Surya Jewellers',
+    title: 'Wholesale Silver Jewellery Jaipur | Surya Jewellers',
     description:
       'Partner with Surya Jewellers for factory-direct 92.5 sterling silver jewellery wholesale from Jaipur. Serving global retailers since 2003.',
     url: 'https://www.suryajewellers.com/wholesale-silver-jewellery-jaipur',

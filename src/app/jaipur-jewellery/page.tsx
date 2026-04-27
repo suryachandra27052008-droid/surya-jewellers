@@ -4,14 +4,14 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: { absolute: 'Jewellers in Jaipur | 92.5 Sterling Silver | Surya Jewellers' },
   description:
-    'Surya Jewellers, Jaipur. Family-owned silver jewellery manufacturer since 2003 near Moti Doongri. Handcrafted rings, necklaces, earrings with natural diamonds & gemstones. Visit our showroom or shop online.',
+    'Family-owned 92.5 silver jewellery manufacturer in Jaipur since 2003. Rings, necklaces & earrings with natural diamonds. Visit showroom or shop online.',
   alternates: {
     canonical: 'https://www.suryajewellers.com/jaipur-jewellery',
   },
   openGraph: {
     title: 'Jewellers in Jaipur — 92.5 Sterling Silver | Surya Jewellers',
     description:
-      'Family-owned silver jewellery manufacturer in Jaipur since 2003. Natural certified gemstones, Certificate of Authenticity, lifetime maintenance. Visit B-169 Anandpuri, Moti Doongri Rd.',
+      'Family-owned silver jeweller in Jaipur since 2003. Certified natural gemstones, Certificate of Authenticity, lifetime maintenance, worldwide shipping.',
     type: 'website',
     url: 'https://www.suryajewellers.com/jaipur-jewellery',
     siteName: 'Surya Jewellers',
@@ -95,7 +95,7 @@ export default function JaipurJewelleryPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
-      <main className="pt-28 pb-20">
+      <main className="pt-8 pb-20">
         {/* Hero */}
         <section className="bg-charcoal text-white py-20 px-4 sm:px-6 lg:px-8 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-charcoal via-[#1a1208] to-charcoal" />

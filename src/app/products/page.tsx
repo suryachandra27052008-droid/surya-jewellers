@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { client } from '@/lib/sanity/client';
-import ProductsClient from './ProductsClient';
+import ProductsClient, { type InitialProduct } from './ProductsClient';
 import { getProductCanonicalSlug, SITE_URL } from '@/lib/seo/product';
 
 export const metadata: Metadata = {
-  title: 'Collections — 92.5 Sterling Silver Jewellery',
+  title: { absolute: 'Collections — 92.5 Sterling Silver | Surya Jewellers' },
   description:
-    'Shop Surya Jewellers\' complete range of handcrafted 92.5 sterling silver jewellery — rings, necklaces, earrings, bracelets, pendants and studs set with natural diamonds, rubies, emeralds and sapphires. Made in Jaipur.',
+    'Handcrafted 92.5 sterling silver jewellery from Surya Jewellers, Jaipur. Rings, necklaces, earrings & pendants with natural diamonds and gemstones.',
   alternates: {
     canonical: `${SITE_URL}/products`,
   },
@@ -30,9 +30,37 @@ async function getProductListItems() {
   }
 }
 
+// Fetch the full product list server-side so the initial HTML includes real
+// product cards and images — LCP element is discoverable from byte 1.
+async function getInitialProducts(): Promise<InitialProduct[]> {
+  try {
+    return await client.fetch<InitialProduct[]>(
+      `*[_type == "product" && inStock != false] | order(_createdAt desc) {
+        _id, name,
+        "slug": slug.current,
+        sku, price,
+        "category": category->name,
+        silverWeight,
+        mainStoneType,
+        secondaryStoneType,
+        "images": images[0..0][].asset->url,
+        inStock,
+        stockQuantity,
+        _createdAt
+      }`,
+      {},
+      { next: { revalidate: 300 } }
+    );
+  } catch {
+    return [];
+  }
+}
 
 export default async function ProductsPage() {
-  const itemListElements = await getProductListItems();
+  const [initialProducts, itemListElements] = await Promise.all([
+    getInitialProducts(),
+    getProductListItems(),
+  ]);
 
   const itemListSchema = {
     '@context': 'https://schema.org',
@@ -52,7 +80,7 @@ export default async function ProductsPage() {
       />
 
       {/* Page title */}
-      <div className="pt-24 pb-0">
+      <div className="pt-6 pb-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <span className="text-gold text-xs tracking-[0.4em] uppercase">Our Catalog</span>
@@ -70,9 +98,8 @@ export default async function ProductsPage() {
 
       {/* Interactive client component for filters + product grid */}
       <Suspense>
-        <ProductsClient />
+        <ProductsClient initialProducts={initialProducts} />
       </Suspense>
-
     </>
   );
 }
