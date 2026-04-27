@@ -49,7 +49,7 @@ export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
     await auth.protect();
   }
-}, { proxyUrl: 'https://www.suryajewellers.com/__clerk' });
+});
 
 export const config = {
   matcher: [
