@@ -4,8 +4,11 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'motion/react';
+import { Heart } from 'lucide-react';
+import { getSalePrice, useSeasonalSale } from '@/hooks/use-seasonal-sale';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
+import { useWishlistStore } from '@/stores/wishlist-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
 export interface RelatedProduct {
@@ -85,6 +88,11 @@ export default function ProductDetailClient({
 
   const { addItem, items } = useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
+  const { sale } = useSeasonalSale();
+  const toggleWishlist = useWishlistStore((s) => s.toggleItem);
+  const isWishlisted = useWishlistStore((s) => s.isWishlisted);
+  const wished = isWishlisted(product._id);
+  const salePrice = getSalePrice(product.price, sale);
 
   const cartItem = items.find((i) => i._id === product._id);
   const atMaxQty = cartItem ? cartItem.quantity >= (product.stockQuantity ?? 1) : false;
@@ -181,6 +189,11 @@ export default function ProductDetailClient({
                     <span className="text-xs text-charcoal font-medium">{product.mainStoneType}</span>
                   </div>
                 )}
+                {sale && product.price > 0 && (
+                  <div className="absolute top-4 left-4 rounded bg-gold px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
+                    {sale.percent}% off
+                  </div>
+                )}
               </div>
 
               {product.images && product.images.length > 1 && (
@@ -218,17 +231,54 @@ export default function ProductDetailClient({
                 {product.category}
               </span>
 
-              <h1 className="font-serif text-3xl sm:text-4xl text-charcoal">
-                {product.name ||
-                  `${product.mainStoneType !== 'None' ? product.mainStoneType + ' ' : ''}${product.category} Piece`}
-              </h1>
+              <div className="flex items-start gap-4">
+                <h1 className="font-serif text-3xl sm:text-4xl text-charcoal flex-1">
+                  {product.name ||
+                    `${product.mainStoneType !== 'None' ? product.mainStoneType + ' ' : ''}${product.category} Piece`}
+                </h1>
+                <button
+                  type="button"
+                  onClick={() =>
+                    toggleWishlist({
+                      _id: product._id,
+                      name: product.name,
+                      price: product.price,
+                      image: product.images?.[0] || '',
+                      slug: product.slug,
+                      category: product.category,
+                      mainStoneType: product.mainStoneType,
+                      silverWeight: product.silverWeight,
+                      stockQuantity: product.stockQuantity ?? 1,
+                    })
+                  }
+                  aria-label={wished ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
+                  className={`mt-1 rounded-full border p-3 transition-colors ${
+                    wished
+                      ? 'border-gold bg-gold/10 text-gold'
+                      : 'border-charcoal/15 text-charcoal-muted hover:border-gold/40 hover:text-gold'
+                  }`}
+                >
+                  <Heart className="h-5 w-5" fill={wished ? 'currentColor' : 'none'} strokeWidth={1.8} />
+                </button>
+              </div>
 
               <div className="flex items-baseline gap-3">
                 {product.price ? (
                   <>
-                    <span className="text-2xl font-semibold text-charcoal">
-                      {formatPrice(product.price, currency)}
-                    </span>
+                    {salePrice ? (
+                      <span className="flex items-baseline gap-3">
+                        <span className="text-2xl font-semibold text-gold">
+                          {formatPrice(salePrice, currency)}
+                        </span>
+                        <span className="text-base text-charcoal-muted line-through">
+                          {formatPrice(product.price, currency)}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-2xl font-semibold text-charcoal">
+                        {formatPrice(product.price, currency)}
+                      </span>
+                    )}
                     <span className="text-xs text-charcoal-muted">(Incl. of taxes)</span>
                   </>
                 ) : (

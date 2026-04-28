@@ -5,8 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'motion/react';
+import { Heart } from 'lucide-react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, CURRENCIES, type CurrencyCode } from '@/stores/currency-store';
+import { useWishlistStore } from '@/stores/wishlist-store';
 
 const NavAuthSection = dynamic(() => import('./NavAuthSection'), {
   ssr: false,
@@ -37,6 +39,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const toggleCart = useCartStore((s) => s.toggleCart);
   const itemCount = useCartStore((s) => s.getItemCount());
+  const wishlistCount = useWishlistStore((s) => s.getCount());
   const [mounted, setMounted] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const currency = useCurrencyStore((s) => s.currency);
@@ -138,6 +141,23 @@ export default function Navbar() {
 
             {/* Auth — loaded dynamically to defer Clerk UI hydration */}
             <NavAuthSection />
+
+            <Link
+              href="/wishlist"
+              className="relative p-2 text-charcoal hover:text-gold transition-colors"
+              aria-label="Wishlist"
+            >
+              <Heart className="h-6 w-6" strokeWidth={1.5} />
+              {mounted && wishlistCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-gold text-white text-[0.65rem] font-bold rounded-full flex items-center justify-center"
+                >
+                  {wishlistCount}
+                </motion.span>
+              )}
+            </Link>
 
             {/* Cart Button */}
             <button

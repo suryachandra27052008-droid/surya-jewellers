@@ -4,8 +4,11 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Heart } from 'lucide-react';
+import { getSalePrice, useSeasonalSale } from '@/hooks/use-seasonal-sale';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
+import { useWishlistStore } from '@/stores/wishlist-store';
 import {
   getProductCanonicalSlug,
   getProductDisplayName,
@@ -248,6 +251,9 @@ export default function ProductsClient({
 
   const { addItem, items: cartItems } = useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
+  const { sale } = useSeasonalSale();
+  const toggleWishlist = useWishlistStore((s) => s.toggleItem);
+  const isWishlisted = useWishlistStore((s) => s.isWishlisted);
   const [gridView, setGridView] = useState<'compact' | 'comfortable'>('compact');
 
   const handlePriceChange = useCallback((min: number, max: number) => {
@@ -693,6 +699,8 @@ export default function ProductsClient({
                   const cartItem = cartItems.find((i) => i._id === product._id);
                   const atMax = cartItem ? cartItem.quantity >= (product.stockQuantity ?? 1) : false;
                   const aboveFold = index < 4;
+                  const salePrice = getSalePrice(product.price, sale);
+                  const wished = isWishlisted(product._id);
                   return (
                     <div
                       key={product._id}
@@ -730,6 +738,13 @@ export default function ProductsClient({
                               {product.category.name}
                             </span>
                           </div>
+                          {sale && product.price > 0 && (
+                            <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3">
+                              <span className="text-[0.58rem] sm:text-[0.62rem] tracking-[0.12em] uppercase bg-gold text-white px-2 py-1 rounded shadow-sm font-semibold">
+                                {sale.percent}% off
+                              </span>
+                            </div>
+                          )}
                           {((product.mainStoneType && product.mainStoneType !== 'None') || product.secondaryStoneType) && (
                             <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex flex-col gap-1">
                               {product.mainStoneType && product.mainStoneType !== 'None' && (
@@ -753,11 +768,37 @@ export default function ProductsClient({
 
                       {/* Card info — separate from image link */}
                       <div className="p-2 sm:p-4 flex flex-col flex-1">
-                        <Link href={`/products/${product.slug.current}`}>
-                          <h3 className="font-serif text-xs sm:text-base text-charcoal hover:text-gold transition-colors line-clamp-2 leading-snug min-h-[2.25rem] sm:min-h-[3rem]">
-                            {product.displayName || product.name}
-                          </h3>
-                        </Link>
+                        <div className="flex items-start gap-2 min-h-[2.25rem] sm:min-h-[3rem]">
+                          <Link href={`/products/${product.slug.current}`} className="min-w-0 flex-1">
+                            <h3 className="font-serif text-xs sm:text-base text-charcoal hover:text-gold transition-colors line-clamp-2 leading-snug">
+                              {product.displayName || product.name}
+                            </h3>
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toggleWishlist({
+                                _id: product._id,
+                                name: product.displayName || product.name,
+                                price: product.price,
+                                image: product.images?.[0] || '',
+                                slug: product.slug.current,
+                                category: product.category.name,
+                                mainStoneType: product.mainStoneType,
+                                silverWeight: product.silverWeight,
+                                stockQuantity: product.stockQuantity ?? 1,
+                              });
+                            }}
+                            aria-label={wished ? `Remove ${product.displayName || product.name} from wishlist` : `Save ${product.displayName || product.name} to wishlist`}
+                            className={`shrink-0 rounded-full p-1 transition-colors ${
+                              wished ? 'text-gold bg-gold/10' : 'text-charcoal-muted hover:text-gold hover:bg-gold/10'
+                            }`}
+                          >
+                            <Heart className="h-4 w-4" fill={wished ? 'currentColor' : 'none'} strokeWidth={1.8} />
+                          </button>
+                        </div>
                         <div className="flex gap-1 mt-1 flex-wrap min-h-[1.45rem] sm:min-h-[1.75rem] content-start">
                           {product.mainStoneType && product.mainStoneType !== 'None' && (
                             <span
@@ -784,10 +825,23 @@ export default function ProductsClient({
                             </span>
                           )}
                         </div>
-                        <div className="flex items-baseline justify-between mt-1.5 sm:mt-2 min-h-[1.5rem]">
-                          <p className="text-gold font-semibold tracking-wide text-xs sm:text-base">
-                            {product.price ? formatPrice(product.price, currency) : 'Contact'}
-                          </p>
+                        <div className="flex items-end justify-between mt-1.5 sm:mt-2 min-h-[2.4rem]">
+                          <div>
+                            {salePrice ? (
+                              <>
+                                <p className="text-gold font-semibold tracking-wide text-xs sm:text-base">
+                                  {formatPrice(salePrice, currency)}
+                                </p>
+                                <p className="text-[0.6rem] sm:text-[0.65rem] text-charcoal-muted line-through">
+                                  {formatPrice(product.price, currency)}
+                                </p>
+                              </>
+                            ) : (
+                              <p className="text-gold font-semibold tracking-wide text-xs sm:text-base">
+                                {product.price ? formatPrice(product.price, currency) : 'Contact'}
+                              </p>
+                            )}
+                          </div>
                           <span className="text-[0.6rem] sm:text-[0.65rem] text-charcoal-muted whitespace-nowrap ml-1">
                             {product.silverWeight}g
                           </span>
