@@ -72,7 +72,7 @@ export default function CategoryLanding({
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
               {products.map((p, index) => (
-                <CategoryProductCard key={p._id} p={p} priority={index < 4} />
+                <CategoryProductCard key={p._id} p={p} priority={index < 2} />
               ))}
             </div>
             <div className="text-center mt-10">

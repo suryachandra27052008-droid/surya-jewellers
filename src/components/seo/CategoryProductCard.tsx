@@ -31,6 +31,7 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
               alt={altText}
               fill
               priority={priority}
+              fetchPriority={priority ? 'high' : 'auto'}
               loading={priority ? 'eager' : 'lazy'}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover transition-transform duration-500 group-hover:scale-105"

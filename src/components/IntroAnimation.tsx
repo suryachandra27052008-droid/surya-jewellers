@@ -2,16 +2,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 
-// Split Three.js shader out of the main bundle — only loads on first visit
+// Split Three.js shader out of the main bundle; only loads on first desktop visit.
 const ShaderAnimation = dynamic(
   () => import('./ui/shader-lines').then((m) => ({ default: m.ShaderAnimation })),
   { ssr: false }
 )
 
 export default function IntroAnimation() {
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(false)
   const [fading, setFading] = useState(false)
   const doneRef = useRef(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const startFade = useCallback(() => {
     if (doneRef.current) return
@@ -24,19 +25,20 @@ export default function IntroAnimation() {
   }, [])
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const shown = sessionStorage.getItem('introShown')
-      if (shown) { setVisible(false); return }
-      // Skip intro on mobile — avoids blocking hero LCP by 5+ seconds
-      if (window.matchMedia('(max-width: 768px)').matches) {
-        setVisible(false)
-        return
-      }
+    const shown = sessionStorage.getItem('introShown')
+    if (shown) return
+
+    // Mobile LCP should see the real hero immediately, not the cinematic intro.
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      sessionStorage.setItem('introShown', 'true')
+      return
     }
-    const timer = setTimeout(startFade, 4500)
+
+    setVisible(true)
+    timerRef.current = setTimeout(startFade, 4500)
     window.addEventListener('keydown', startFade)
     return () => {
-      clearTimeout(timer)
+      if (timerRef.current) clearTimeout(timerRef.current)
       window.removeEventListener('keydown', startFade)
     }
   }, [startFade])
@@ -56,12 +58,10 @@ export default function IntroAnimation() {
         cursor: 'pointer'
       }}
     >
-      {/* Shader sits behind everything and doesn't intercept pointer events */}
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
         <ShaderAnimation />
       </div>
 
-      {/* Center content */}
       <div style={{
         position: 'relative', zIndex: 10,
         textAlign: 'center',
@@ -78,7 +78,7 @@ export default function IntroAnimation() {
           marginBottom: '24px',
           opacity: 0.8
         }}>
-          — EST. 2003 · JAIPUR, INDIA —
+          - EST. 2003 - JAIPUR, INDIA -
         </p>
 
         <div aria-hidden="true" style={{
@@ -124,7 +124,6 @@ export default function IntroAnimation() {
         </p>
       </div>
 
-      {/* Skip button */}
       <button
         onClick={startFade}
         style={{
@@ -140,7 +139,7 @@ export default function IntroAnimation() {
         onMouseEnter={e => (e.currentTarget.style.color = '#c9a84c')}
         onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
       >
-        SKIP →
+        SKIP
       </button>
 
       <style>{`

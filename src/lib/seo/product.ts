@@ -111,7 +111,8 @@ export function getProductDisplayName(product: ProductSeoInput) {
 
 export function getProductSeoTitle(product: ProductSeoInput) {
   const name = getProductDisplayName(product);
-  return `${name} | Surya Jewellers`;
+  const sku = getSku(product);
+  return `${[name, sku].filter(Boolean).join(' ')} | Surya Jewellers`;
 }
 
 export function getProductMetaDescription(product: ProductSeoInput) {
