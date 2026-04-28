@@ -83,19 +83,35 @@ function truncateDescription(text: string, maxLength = 158) {
   return `${truncated.slice(0, lastSpace > 120 ? lastSpace : maxLength - 1).trim()}.`;
 }
 
+const TITLE_CASE_MINORS = new Set(['a', 'an', 'and', 'the', 'of', 'in', 'on', 'at', 'for', 'with', 'by', 'to']);
+
+function toTitleCase(text: string): string {
+  return text
+    .split(' ')
+    .map((word, i) => {
+      if (!word) return word;
+      if (i === 0 || !TITLE_CASE_MINORS.has(word.toLowerCase())) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      return word.toLowerCase();
+    })
+    .join(' ');
+}
+
 export function getProductDisplayName(product: ProductSeoInput) {
   const cleanName = correctSpelling(product.name || '');
-  if (cleanName) return cleanName;
+  if (cleanName) return toTitleCase(cleanName);
 
-  return correctSpelling(
-    [product.mainStoneType, product.category || 'Jewellery'].filter(Boolean).join(' ')
+  return toTitleCase(
+    correctSpelling(
+      [product.mainStoneType, product.category || 'Jewellery'].filter(Boolean).join(' ')
+    )
   );
 }
 
 export function getProductSeoTitle(product: ProductSeoInput) {
   const name = getProductDisplayName(product);
-  // SKU lives in meta description / schema — not the title tag
-  return `${name} in 92.5 Sterling Silver | Surya Jewellers`;
+  return `${name} | Surya Jewellers`;
 }
 
 export function getProductMetaDescription(product: ProductSeoInput) {

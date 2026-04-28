@@ -3,10 +3,23 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth, UserButton } from '@clerk/nextjs';
+import { useAuth } from '@clerk/nextjs';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, CURRENCIES, type CurrencyCode } from '@/stores/currency-store';
+
+const NavAuthSection = dynamic(() => import('./NavAuthSection'), {
+  ssr: false,
+  loading: () => (
+    <Link
+      href="/sign-in"
+      className="hidden md:inline-block text-xs tracking-[0.15em] uppercase text-charcoal hover:text-gold transition-colors duration-300 border border-charcoal/20 hover:border-gold/40 px-4 py-2"
+    >
+      Sign In
+    </Link>
+  ),
+});
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -114,27 +127,8 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Auth */}
-            {isSignedIn ? (
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: 'w-8 h-8 border border-gold/30',
-                    userButtonPopoverCard: 'bg-white border border-gray-200 shadow-2xl',
-                    userButtonPopoverActionButton: 'text-charcoal hover:bg-cream',
-                    userButtonPopoverActionButtonText: 'text-charcoal',
-                    userButtonPopoverFooter: 'border-t border-gray-100',
-                  },
-                }}
-              />
-            ) : (
-              <Link
-                href="/sign-in"
-                className="hidden md:inline-block text-xs tracking-[0.15em] uppercase text-charcoal hover:text-gold transition-colors duration-300 border border-charcoal/20 hover:border-gold/40 px-4 py-2"
-              >
-                Sign In
-              </Link>
-            )}
+            {/* Auth — loaded dynamically to defer Clerk UI hydration */}
+            <NavAuthSection />
 
             {/* Cart Button */}
             <button

@@ -215,11 +215,13 @@ function PriceRangeSlider({
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded overflow-hidden border border-cream-dark">
+    <div className="bg-white rounded overflow-hidden border border-cream-dark flex flex-col">
       <div className="aspect-square bg-cream-dark animate-pulse" />
-      <div className="p-4 space-y-2">
-        <div className="h-4 bg-cream-dark rounded animate-pulse w-3/4" />
-        <div className="h-3 bg-cream-dark rounded animate-pulse w-1/2" />
+      <div className="p-2 sm:p-4 flex flex-col flex-1">
+        <div className="h-3 bg-cream-dark rounded animate-pulse w-4/5 mb-1" />
+        <div className="h-3 bg-cream-dark rounded animate-pulse w-3/5 mb-auto" />
+        <div className="h-3 bg-cream-dark rounded animate-pulse w-2/5 mt-1.5 mb-2 sm:mb-3" />
+        <div className="h-[40px] bg-cream-dark rounded animate-pulse w-full" />
       </div>
     </div>
   );

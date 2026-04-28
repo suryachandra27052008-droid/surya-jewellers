@@ -10,7 +10,7 @@ import {
 } from '@/lib/seo/product';
 import type { LandingProduct } from './CategoryLanding';
 
-export default function CategoryProductCard({ p }: { p: LandingProduct }) {
+export default function CategoryProductCard({ p, priority = false }: { p: LandingProduct; priority?: boolean }) {
   const { addItem, items: cartItems } = useCartStore();
 
   const slug = getProductCanonicalSlug(p);
@@ -30,6 +30,8 @@ export default function CategoryProductCard({ p }: { p: LandingProduct }) {
               src={img}
               alt={altText}
               fill
+              priority={priority}
+              loading={priority ? 'eager' : 'lazy'}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
