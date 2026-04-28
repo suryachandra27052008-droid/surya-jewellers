@@ -696,7 +696,7 @@ export default function ProductsClient({
                   return (
                     <div
                       key={product._id}
-                      className="product-card group bg-white rounded overflow-hidden border border-cream-dark hover:border-gold/20 flex flex-col"
+                      className="product-card group h-full bg-white rounded overflow-hidden border border-cream-dark hover:border-gold/20 flex flex-col"
                     >
                       {/* Image — full area tappable link */}
                       <Link href={`/products/${product.slug.current}`}>
@@ -754,39 +754,37 @@ export default function ProductsClient({
                       {/* Card info — separate from image link */}
                       <div className="p-2 sm:p-4 flex flex-col flex-1">
                         <Link href={`/products/${product.slug.current}`}>
-                          <h3 className="font-serif text-xs sm:text-base text-charcoal hover:text-gold transition-colors line-clamp-2 leading-snug mb-1">
+                          <h3 className="font-serif text-xs sm:text-base text-charcoal hover:text-gold transition-colors line-clamp-2 leading-snug min-h-[2.25rem] sm:min-h-[3rem]">
                             {product.displayName || product.name}
                           </h3>
                         </Link>
-                        {((product.mainStoneType && product.mainStoneType !== 'None') || product.secondaryStoneType) && (
-                          <div className="flex gap-1 mt-1 flex-wrap">
-                            {product.mainStoneType && product.mainStoneType !== 'None' && (
-                              <span
-                                className="text-[0.55rem] sm:text-[0.6rem] px-1 sm:px-1.5 py-0.5 rounded"
-                                style={{
-                                  background: `${stoneColors[product.mainStoneType] || '#ccc'}22`,
-                                  color: stoneColors[product.mainStoneType] || '#666',
-                                  border: `1px solid ${stoneColors[product.mainStoneType] || '#ccc'}55`,
-                                }}
-                              >
-                                {product.mainStoneType}
-                              </span>
-                            )}
-                            {product.secondaryStoneType && (
-                              <span
-                                className="text-[0.55rem] sm:text-[0.6rem] px-1 sm:px-1.5 py-0.5 rounded"
-                                style={{
-                                  background: `${stoneColors[product.secondaryStoneType] || '#aaa'}22`,
-                                  color: stoneColors[product.secondaryStoneType] || '#666',
-                                  border: `1px solid ${stoneColors[product.secondaryStoneType] || '#aaa'}55`,
-                                }}
-                              >
-                                {product.secondaryStoneType}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        <div className="flex items-baseline justify-between mt-1.5 sm:mt-2">
+                        <div className="flex gap-1 mt-1 flex-wrap min-h-[1.45rem] sm:min-h-[1.75rem] content-start">
+                          {product.mainStoneType && product.mainStoneType !== 'None' && (
+                            <span
+                              className="text-[0.55rem] sm:text-[0.6rem] px-1 sm:px-1.5 py-0.5 rounded"
+                              style={{
+                                background: `${stoneColors[product.mainStoneType] || '#ccc'}22`,
+                                color: stoneColors[product.mainStoneType] || '#666',
+                                border: `1px solid ${stoneColors[product.mainStoneType] || '#ccc'}55`,
+                              }}
+                            >
+                              {product.mainStoneType}
+                            </span>
+                          )}
+                          {product.secondaryStoneType && (
+                            <span
+                              className="text-[0.55rem] sm:text-[0.6rem] px-1 sm:px-1.5 py-0.5 rounded"
+                              style={{
+                                background: `${stoneColors[product.secondaryStoneType] || '#aaa'}22`,
+                                color: stoneColors[product.secondaryStoneType] || '#666',
+                                border: `1px solid ${stoneColors[product.secondaryStoneType] || '#aaa'}55`,
+                              }}
+                            >
+                              {product.secondaryStoneType}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-baseline justify-between mt-1.5 sm:mt-2 min-h-[1.5rem]">
                           <p className="text-gold font-semibold tracking-wide text-xs sm:text-base">
                             {product.price ? formatPrice(product.price, currency) : 'Contact'}
                           </p>
@@ -795,7 +793,7 @@ export default function ProductsClient({
                           </span>
                         </div>
                         {/* Always-visible Add to Bag */}
-                        <div className="mt-2 sm:mt-3">
+                        <div className="mt-auto pt-2 sm:pt-3">
                           <button
                             onClick={(e) => {
                               e.preventDefault();
@@ -818,7 +816,7 @@ export default function ProductsClient({
                                 ? `In bag — ${product.displayName || product.name}`
                                 : `Add to bag — ${product.displayName || product.name}`
                             }
-                            className={`w-full text-center py-2.5 min-h-[40px] rounded transition-all ${
+                            className={`w-full text-center py-2.5 min-h-[44px] rounded transition-all ${
                               atMax
                                 ? 'bg-charcoal/10 text-charcoal/40 cursor-not-allowed text-xs uppercase tracking-wider font-semibold'
                                 : 'btn-gold'

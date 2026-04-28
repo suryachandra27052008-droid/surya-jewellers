@@ -22,7 +22,7 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
   const atMax = !!cartItem;
 
   return (
-    <div className="group flex flex-col">
+    <div className="group h-full flex flex-col">
       <Link href={`/products/${slug}`} className="block">
         <div className="aspect-square relative overflow-hidden rounded-sm bg-gray-100">
           {img ? (
@@ -45,11 +45,11 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
 
       <div className="pt-2 pb-1 flex flex-col flex-1">
         <Link href={`/products/${slug}`}>
-          <p className="text-charcoal text-xs sm:text-sm font-medium line-clamp-2 leading-snug">
+          <p className="text-charcoal text-xs sm:text-sm font-medium line-clamp-2 leading-snug min-h-[2.25rem] sm:min-h-[2.75rem]">
             {name}
           </p>
         </Link>
-        <p className="text-gold text-xs sm:text-sm mt-0.5 mb-2 font-semibold">
+        <p className="text-gold text-xs sm:text-sm mt-0.5 mb-2 font-semibold min-h-[1.5rem]">
           ₹{p.price.toLocaleString('en-IN')}
         </p>
         <button
@@ -69,7 +69,7 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
           }}
           disabled={atMax}
           aria-label={atMax ? `In bag — ${name}` : `Add to bag — ${name}`}
-          className={`w-full text-center text-[0.65rem] sm:text-xs py-2.5 min-h-[40px] uppercase font-semibold tracking-wider rounded transition-all mt-auto ${
+          className={`w-full text-center text-[0.65rem] sm:text-xs py-2.5 min-h-[44px] uppercase font-semibold tracking-wider rounded transition-all mt-auto ${
             atMax
               ? 'bg-charcoal/10 text-charcoal/40 cursor-not-allowed'
               : 'btn-gold'
