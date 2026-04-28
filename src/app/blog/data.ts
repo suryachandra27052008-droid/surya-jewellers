@@ -10,6 +10,7 @@ export interface BlogPost {
   slug: string;
   category: string;
   title: string;
+  metaTitle?: string;
   subtitle: string;
   excerpt: string;
   readTime: string;
@@ -124,6 +125,7 @@ export const posts: BlogPost[] = [
     slug: 'care-for-sterling-silver',
     category: 'Care & Maintenance',
     title: 'How to Care for 92.5 Sterling Silver Jewellery',
+    metaTitle: 'Caring for Sterling Silver Jewellery',
     subtitle: 'A complete guide to keeping your silver pieces radiant for a lifetime',
     author: 'Sanjay Chandra',
     authorRole: 'Founder & Master Craftsman, Surya Jewellers',
@@ -216,6 +218,7 @@ export const posts: BlogPost[] = [
     slug: 'guide-to-natural-gemstones',
     category: 'Education',
     title: 'A Guide to Natural Gemstones — Diamonds, Rubies, Emeralds & Sapphires',
+    metaTitle: 'Guide to Natural Gemstones for Jewellery',
     subtitle: 'Understanding the stones that make fine jewellery truly precious',
     author: 'Sanjay Chandra',
     authorRole: 'Founder & Master Craftsman, Surya Jewellers',
@@ -324,6 +327,7 @@ export const posts: BlogPost[] = [
     slug: 'jaipur-workshop-behind-scenes',
     category: 'Our Story',
     title: 'Behind the Scenes: Our Jaipur Workshop & the One Piece, One Design Philosophy',
+    metaTitle: 'Inside Our Jaipur Jewellery Workshop',
     subtitle: 'A journey into the studio where each piece of Surya Jewellery is born',
     author: 'Sanjay Chandra',
     authorRole: 'Founder & Master Craftsman, Surya Jewellers',
@@ -415,6 +419,7 @@ export const posts: BlogPost[] = [
     slug: 'style-silver-jewellery',
     category: 'Style Guide',
     title: 'How to Style Silver Jewellery for Every Occasion',
+    metaTitle: 'How to Style Silver Jewellery',
     subtitle: 'From morning meetings to moonlit evenings — silver for every moment',
     author: 'Pooja Chandra',
     authorRole: 'Co-Founder, Surya Jewellers',

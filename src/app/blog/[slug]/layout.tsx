@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: { absolute: 'Article Not Found | Surya Jewellers' } };
   }
 
-  const title = `${post.title} | Surya Jewellers Journal`;
+  const title = `${post.metaTitle ?? post.title} | Surya Jewellers`;
   const description = post.excerpt.slice(0, 160);
   const url = `https://www.suryajewellers.com/blog/${slug}`;
   const dateISO = parseDateISO(post.date);

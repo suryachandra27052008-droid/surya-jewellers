@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth } from '@clerk/nextjs';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, CURRENCIES, type CurrencyCode } from '@/stores/currency-store';
 
@@ -21,13 +20,23 @@ const NavAuthSection = dynamic(() => import('./NavAuthSection'), {
   ),
 });
 
+const MobileAuthLink = dynamic(() => import('./MobileAuthLink'), {
+  ssr: false,
+  loading: () => (
+    <Link
+      href="/sign-in"
+      className="text-lg tracking-[0.2em] uppercase text-charcoal/60 hover:text-gold transition-colors"
+    >
+      Sign In
+    </Link>
+  ),
+});
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const toggleCart = useCartStore((s) => s.toggleCart);
   const itemCount = useCartStore((s) => s.getItemCount());
-  const { isSignedIn } = useAuth();
-
   const [mounted, setMounted] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const currency = useCurrencyStore((s) => s.currency);
@@ -220,13 +229,10 @@ export default function Navbar() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: navLinks.length * 0.1 }}
               >
-                <Link
-                  href={isSignedIn ? '/account' : '/sign-in'}
-                  onClick={() => setMobileOpen(false)}
+                <MobileAuthLink
+                  onClose={() => setMobileOpen(false)}
                   className="text-lg tracking-[0.2em] uppercase text-charcoal/60 hover:text-gold transition-colors"
-                >
-                  {isSignedIn ? 'My Account' : 'Sign In'}
-                </Link>
+                />
               </motion.div>
             </nav>
           </motion.div>

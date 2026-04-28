@@ -3,6 +3,7 @@ import Hero from '@/components/home/Hero';
 import FeaturedCollections from '@/components/home/FeaturedCollections';
 import Testimonials from '@/components/home/Testimonials';
 import TrustSection from '@/components/home/TrustSection';
+import IntroAnimation from '@/components/IntroAnimation';
 
 export const metadata: Metadata = {
   alternates: {
@@ -130,6 +131,7 @@ const faqSchema = {
 export default function HomePage() {
   return (
     <>
+      <IntroAnimation />
       <Hero />
       <FeaturedCollections />
       <Testimonials />

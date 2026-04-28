@@ -3,7 +3,6 @@ import { Playfair_Display, Inter, Cinzel } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import LayoutShell from "@/components/layout/LayoutShell";
-import IntroAnimation from "@/components/IntroAnimation";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -159,8 +158,7 @@ export default function RootLayout({
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
           />
-            <IntroAnimation />
-          <LayoutShell>{children}</LayoutShell>
+            <LayoutShell>{children}</LayoutShell>
         </body>
       </html>
     </ClerkProvider>

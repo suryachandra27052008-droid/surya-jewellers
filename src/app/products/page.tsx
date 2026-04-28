@@ -56,6 +56,42 @@ async function getInitialProducts(): Promise<InitialProduct[]> {
   }
 }
 
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded overflow-hidden border border-[#F5F0E8] flex flex-col">
+      <div className="aspect-square bg-[#F5F0E8] animate-pulse" />
+      <div className="p-2 sm:p-4 flex flex-col flex-1">
+        <div className="h-3 bg-[#F5F0E8] rounded animate-pulse w-4/5 mb-1" />
+        <div className="h-3 bg-[#F5F0E8] rounded animate-pulse w-3/5 mb-auto" />
+        <div className="h-3 bg-[#F5F0E8] rounded animate-pulse w-2/5 mt-1.5 mb-2 sm:mb-3" />
+        <div className="h-[40px] bg-[#F5F0E8] rounded animate-pulse w-full" />
+      </div>
+    </div>
+  );
+}
+
+function ProductsGridSkeleton() {
+  return (
+    <div className="pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Desktop sidebar placeholder — same width as real sidebar */}
+          <div className="hidden lg:block lg:w-64 flex-shrink-0">
+            <div className="sticky top-20 p-6 rounded min-h-[420px] bg-[#161616]/5" />
+          </div>
+          {/* Product grid */}
+          <div className="flex-1 min-w-0">
+            <div className="h-5 w-20 bg-[#F5F0E8] rounded animate-pulse mb-4" />
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
+              {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default async function ProductsPage() {
   const [initialProducts, itemListElements] = await Promise.all([
     getInitialProducts(),
@@ -96,8 +132,9 @@ export default async function ProductsPage() {
         </div>
       </div>
 
-      {/* Interactive client component for filters + product grid */}
-      <Suspense>
+      {/* Interactive client component — Suspense fallback reserves stable height so the
+          footer never jumps when the client hydrates (CLS fix). */}
+      <Suspense fallback={<ProductsGridSkeleton />}>
         <ProductsClient initialProducts={initialProducts} />
       </Suspense>
     </>
