@@ -364,8 +364,8 @@ export default function ProductsClient({
 
   const gridClass =
     gridView === 'comfortable'
-      ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6'
-      : 'grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6';
+      ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6'
+      : 'grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-5 xl:gap-6';
 
   // Stone options excluding 'All' (shown separately as first item)
   const stoneOptions = availableStones.slice(1);
@@ -558,7 +558,7 @@ export default function ProductsClient({
 
   return (
     <div className="pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
 
         {/* Mobile top bar: filter toggle + view switcher */}
         <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
@@ -661,11 +661,11 @@ export default function ProductsClient({
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-7 xl:gap-8">
           {/* Desktop sidebar — hidden on mobile */}
           <aside className="hidden lg:block lg:w-64 flex-shrink-0">
             <div
-              className="sticky top-20 space-y-7 p-6 rounded"
+              className="sticky top-20 space-y-7 p-5 rounded"
               style={sidebarStyle}
             >
               {filterContent}
@@ -681,8 +681,8 @@ export default function ProductsClient({
             </div>
 
             {loading && (
-              <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
-                {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+              <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-5 xl:gap-6">
+                {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
               </div>
             )}
 
@@ -719,7 +719,7 @@ export default function ProductsClient({
                               placeholder="blur"
                               blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YwZWNlMyIvPjwvc3ZnPg=="
                               className="object-cover product-image transition-transform duration-500 group-hover:scale-105"
-                              sizes="(max-width: 640px) 50vw, (max-width: 1280px) 50vw, 33vw"
+                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1536px) 33vw, 25vw"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">

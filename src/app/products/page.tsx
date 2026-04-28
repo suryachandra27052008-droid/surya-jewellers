@@ -73,17 +73,17 @@ function SkeletonCard() {
 function ProductsGridSkeleton() {
   return (
     <div className="pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+        <div className="flex flex-col lg:flex-row gap-7 xl:gap-8">
           {/* Desktop sidebar placeholder — same width as real sidebar */}
           <div className="hidden lg:block lg:w-64 flex-shrink-0">
-            <div className="sticky top-20 p-6 rounded min-h-[420px] bg-[#161616]/5" />
+            <div className="sticky top-20 p-5 rounded min-h-[420px] bg-[#161616]/5" />
           </div>
           {/* Product grid */}
           <div className="flex-1 min-w-0">
             <div className="h-5 w-20 bg-[#F5F0E8] rounded animate-pulse mb-4" />
-            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
-              {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+            <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-5 xl:gap-6">
+              {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
           </div>
         </div>
@@ -116,14 +116,14 @@ export default async function ProductsPage() {
       />
 
       {/* Page title */}
-      <div className="pt-6 pb-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
+      <div className="pt-5 sm:pt-6 pb-0">
+        <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+          <div className="text-center mb-6">
             <span className="text-gold text-xs tracking-[0.4em] uppercase">Our Catalog</span>
-            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl mt-4 text-charcoal">
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl mt-3 text-charcoal">
               Collections — 92.5 Sterling Silver Jewellery
             </h1>
-            <p className="text-charcoal-muted text-sm mt-6 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-charcoal-muted text-sm mt-4 max-w-2xl mx-auto leading-relaxed">
               Discover Surya Jewellers&rsquo; complete range of handcrafted <strong>92.5 sterling silver jewellery</strong> made in
               Jaipur, India. Every piece is set with certified natural gemstones — diamonds, rubies,
               emeralds, sapphires, and more — and comes with a Certificate of Authenticity.
