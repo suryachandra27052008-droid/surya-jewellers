@@ -60,7 +60,7 @@ export default function Hero() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link href="/products" className="btn-gold text-sm">
-              Explore Collections
+              Shop Jewellery
             </Link>
           </motion.div>
 

@@ -192,6 +192,8 @@ function PriceRangeSlider({
           value={minVal}
           onChange={handleMin}
           className="price-range-input"
+          aria-label="Minimum price"
+          aria-valuetext={formatINR(minVal)}
           style={{ zIndex: minVal > PRICE_MAX - 10000 ? 5 : 3 }}
         />
         <input
@@ -202,6 +204,8 @@ function PriceRangeSlider({
           value={maxVal}
           onChange={handleMax}
           className="price-range-input"
+          aria-label="Maximum price"
+          aria-valuetext={formatINR(maxVal)}
           style={{ zIndex: 4 }}
         />
       </div>
@@ -484,6 +488,7 @@ export default function ProductsClient({
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           className="gold-select"
+          aria-label="Sort products by"
         >
           {sortOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -808,8 +813,8 @@ export default function ProductsClient({
                             disabled={atMax}
                             aria-label={
                               atMax
-                                ? `${product.displayName || product.name} already in bag`
-                                : `Add ${product.displayName || product.name} to bag`
+                                ? `In bag — ${product.displayName || product.name}`
+                                : `Add to bag — ${product.displayName || product.name}`
                             }
                             className={`w-full text-center py-2.5 min-h-[40px] rounded transition-all ${
                               atMax

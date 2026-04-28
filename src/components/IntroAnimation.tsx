@@ -1,6 +1,12 @@
 'use client'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ShaderAnimation } from './ui/shader-lines'
+import dynamic from 'next/dynamic'
+
+// Split Three.js shader out of the main bundle — only loads on first visit
+const ShaderAnimation = dynamic(
+  () => import('./ui/shader-lines').then((m) => ({ default: m.ShaderAnimation })),
+  { ssr: false }
+)
 
 export default function IntroAnimation() {
   const [visible, setVisible] = useState(true)

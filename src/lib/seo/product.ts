@@ -94,12 +94,8 @@ export function getProductDisplayName(product: ProductSeoInput) {
 
 export function getProductSeoTitle(product: ProductSeoInput) {
   const name = getProductDisplayName(product);
-  const sku = getSku(product);
-  const nameWithSku = sku && !name.toLowerCase().includes(sku.toLowerCase())
-    ? `${name} ${sku}`
-    : name;
-
-  return `${nameWithSku} in 92.5 Sterling Silver | Surya Jewellers Jaipur`;
+  // SKU lives in meta description / schema — not the title tag
+  return `${name} in 92.5 Sterling Silver | Surya Jewellers`;
 }
 
 export function getProductMetaDescription(product: ProductSeoInput) {

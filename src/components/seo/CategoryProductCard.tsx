@@ -66,7 +66,7 @@ export default function CategoryProductCard({ p }: { p: LandingProduct }) {
             });
           }}
           disabled={atMax}
-          aria-label={atMax ? `${name} already in bag` : `Add ${name} to bag`}
+          aria-label={atMax ? `In bag — ${name}` : `Add to bag — ${name}`}
           className={`w-full text-center text-[0.65rem] sm:text-xs py-2.5 min-h-[40px] uppercase font-semibold tracking-wider rounded transition-all mt-auto ${
             atMax
               ? 'bg-charcoal/10 text-charcoal/40 cursor-not-allowed'

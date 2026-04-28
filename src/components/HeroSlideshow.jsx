@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 
 const images = [
-  { src: '/hero-bg.jpg',    alt: 'Surya Jewellers showroom' },
-  { src: '/hero-bg-2.jpg',  alt: 'Surya Jewellers jewellery collection' },
-  { src: '/hero-bg-3.webp', alt: 'Surya Jewellers gold jewellery' },
+  { src: '/hero-bg.jpg',    alt: 'Surya Jewellers showroom — handcrafted silver jewellery, Jaipur' },
+  { src: '/hero-bg-2.jpg',  alt: 'Surya Jewellers jewellery collection — 92.5 sterling silver' },
+  { src: '/hero-bg-3.webp', alt: 'Surya Jewellers gold and silver jewellery' },
 ]
 
 export default function HeroSlideshow({ children }) {
@@ -19,10 +19,15 @@ export default function HeroSlideshow({ children }) {
   }, [])
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
+    <div
+      role="region"
+      aria-label="Hero slideshow"
+      style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}
+    >
       {images.map(({ src, alt }, i) => (
         <div
           key={src}
+          aria-hidden={i !== current}
           style={{
             position: 'absolute',
             inset: 0,
@@ -38,44 +43,72 @@ export default function HeroSlideshow({ children }) {
             sizes="100vw"
             style={{ objectFit: 'cover', objectPosition: 'center' }}
             {...(i === 0
-              ? { preload: true, loading: 'eager' }
+              ? { priority: true, fetchPriority: 'high' }
               : { loading: 'lazy' }
             )}
           />
         </div>
       ))}
+
+      {/* Overlay */}
       <div style={{
         position: 'absolute',
         inset: 0,
         background: 'rgba(0,0,0,0.45)',
         zIndex: 2
       }}/>
+
+      {/* Slot for Hero content */}
       <div style={{ position: 'relative', zIndex: 3, height: '100%' }}>
         {children}
       </div>
-      <div style={{
-        position: 'absolute',
-        bottom: '24px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        gap: '10px',
-        zIndex: 4
-      }}>
-        {images.map((_, i) => (
+
+      {/* Carousel dot navigation */}
+      <div
+        role="tablist"
+        aria-label="Slide navigation"
+        style={{
+          position: 'absolute',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          gap: '4px',
+          zIndex: 4
+        }}
+      >
+        {images.map((img, i) => (
           <button
             key={i}
+            role="tab"
+            aria-selected={i === current}
+            aria-label={`Slide ${i + 1}: ${img.alt}`}
             onClick={() => setCurrent(i)}
             style={{
-              width: '10px',
-              height: '10px',
-              borderRadius: '50%',
-              border: '1px solid #c9a84c',
-              background: i === current ? '#c9a84c' : 'transparent',
+              /* 24×24 touch target, visual dot is 10×10 via inner span */
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'transparent',
+              border: 'none',
               cursor: 'pointer',
-              padding: 0
+              padding: 0,
             }}
-          />
+          >
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                border: '1px solid #c9a84c',
+                background: i === current ? '#c9a84c' : 'transparent',
+                display: 'block',
+                pointerEvents: 'none',
+              }}
+            />
+          </button>
         ))}
       </div>
     </div>

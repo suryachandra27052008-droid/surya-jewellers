@@ -26,7 +26,7 @@ export default function ShippingBanner() {
 
   return (
     <div className="w-full text-center py-2.5 px-4" style={{ backgroundColor: '#c9a84c' }}>
-      <p className="text-white text-xs font-semibold tracking-[0.25em] uppercase">
+      <p className="text-charcoal text-xs font-semibold tracking-[0.25em] uppercase">
         ✦ &nbsp; Free Shipping — Limited Time Offer! Valid till {formatDate(settings.freeShippingEndDate)} &nbsp; ✦
       </p>
     </div>
