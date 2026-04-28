@@ -2,14 +2,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 
-// Split Three.js shader out of the main bundle; only loads on first desktop visit.
+// Split Three.js shader out of the main bundle; only loads when the intro appears.
 const ShaderAnimation = dynamic(
   () => import('./ui/shader-lines').then((m) => ({ default: m.ShaderAnimation })),
   { ssr: false }
 )
 
 export default function IntroAnimation() {
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(true)
   const [fading, setFading] = useState(false)
   const doneRef = useRef(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -26,11 +26,8 @@ export default function IntroAnimation() {
 
   useEffect(() => {
     const shown = sessionStorage.getItem('introShown')
-    if (shown) return
-
-    // Mobile LCP should see the real hero immediately, not the cinematic intro.
-    if (window.matchMedia('(max-width: 768px)').matches) {
-      sessionStorage.setItem('introShown', 'true')
+    if (shown) {
+      setVisible(false)
       return
     }
 
@@ -78,7 +75,7 @@ export default function IntroAnimation() {
           marginBottom: '24px',
           opacity: 0.8
         }}>
-          - EST. 2003 - JAIPUR, INDIA -
+          EST. 2003 - JAIPUR, INDIA
         </p>
 
         <div aria-hidden="true" style={{
