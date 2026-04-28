@@ -2,6 +2,12 @@
   "showFreeShippingBanner": true,
   "freeShippingEndDate": "2026-05-04",
   "freeShippingMinOrder": 2000,
+  "saleEnabled": false,
+  "saleName": "Spring Sale",
+  "saleDiscountPercent": 20,
+  "saleStartDate": "",
+  "saleEndDate": "",
+  "showSaleBanner": true,
   "whatsappNumber": "+91 99839 39306",
   "instagramHandle": ""
 }

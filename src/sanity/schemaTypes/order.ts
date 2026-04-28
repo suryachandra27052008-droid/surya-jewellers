@@ -35,6 +35,17 @@ export const order = defineType({
       ],
     }),
     defineField({ name: 'subtotal', title: 'Subtotal (INR)', type: 'number' }),
+    defineField({
+      name: 'discount',
+      title: 'Discount Applied',
+      type: 'object',
+      fields: [
+        defineField({ name: 'name', type: 'string', title: 'Sale Name' }),
+        defineField({ name: 'percent', type: 'number', title: 'Discount Percent' }),
+        defineField({ name: 'amount', type: 'number', title: 'Discount Amount (INR)' }),
+        defineField({ name: 'subtotalBeforeDiscount', type: 'number', title: 'Subtotal Before Discount (INR)' }),
+      ],
+    }),
     defineField({ name: 'shipping', title: 'Shipping (INR)', type: 'number' }),
     defineField({ name: 'total', title: 'Total (INR)', type: 'number' }),
     defineField({

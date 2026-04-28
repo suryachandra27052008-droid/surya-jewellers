@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-  Store, Truck, CreditCard, Share2, AlertTriangle,
+  Store, Truck, CreditCard, Share2, AlertTriangle, Percent,
   CheckCircle2, Clock, Save, Download, Trash2, ToggleLeft, ToggleRight,
 } from 'lucide-react';
 
@@ -25,6 +25,15 @@ interface ShippingSettings {
 interface SocialSettings {
   whatsapp: string;
   instagram: string;
+}
+
+interface SaleSettings {
+  saleEnabled: boolean;
+  saleName: string;
+  saleDiscountPercent: number;
+  saleStartDate: string;
+  saleEndDate: string;
+  showSaleBanner: boolean;
 }
 
 // ── Shared UI ──────────────────────────────────────────────────────────────
@@ -125,6 +134,15 @@ const DEFAULT_SOCIAL: SocialSettings = {
   instagram: '',
 };
 
+const DEFAULT_SALE: SaleSettings = {
+  saleEnabled: false,
+  saleName: 'Spring Sale',
+  saleDiscountPercent: 20,
+  saleStartDate: '',
+  saleEndDate: '',
+  showSaleBanner: true,
+};
+
 function load<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
   try {
@@ -140,10 +158,12 @@ export default function SettingsPage() {
   const [store, setStore] = useState<StoreInfo>(DEFAULT_STORE);
   const [shipping, setShipping] = useState<ShippingSettings>(DEFAULT_SHIPPING);
   const [social, setSocial] = useState<SocialSettings>(DEFAULT_SOCIAL);
+  const [sale, setSale] = useState<SaleSettings>(DEFAULT_SALE);
 
   const [storeSaved, setStoreSaved] = useState(false);
   const [shippingSaved, setShippingSaved] = useState(false);
   const [socialSaved, setSocialSaved] = useState(false);
+  const [saleSaved, setSaleSaved] = useState(false);
 
   const [clearConfirm, setClearConfirm] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -166,8 +186,19 @@ export default function SettingsPage() {
           freeShippingEndDate: data.freeShippingEndDate ?? DEFAULT_SHIPPING.freeShippingEndDate,
           freeShippingMinOrder: data.freeShippingMinOrder ?? DEFAULT_SHIPPING.freeShippingMinOrder,
         });
+        setSale({
+          saleEnabled: data.saleEnabled ?? DEFAULT_SALE.saleEnabled,
+          saleName: data.saleName ?? DEFAULT_SALE.saleName,
+          saleDiscountPercent: data.saleDiscountPercent ?? DEFAULT_SALE.saleDiscountPercent,
+          saleStartDate: data.saleStartDate ?? DEFAULT_SALE.saleStartDate,
+          saleEndDate: data.saleEndDate ?? DEFAULT_SALE.saleEndDate,
+          showSaleBanner: data.showSaleBanner ?? DEFAULT_SALE.showSaleBanner,
+        });
       })
-      .catch(() => setShipping(load('sj_shipping', DEFAULT_SHIPPING)));
+      .catch(() => {
+        setShipping(load('sj_shipping', DEFAULT_SHIPPING));
+        setSale(load('sj_sale', DEFAULT_SALE));
+      });
   }, []);
 
   function save<T>(key: string, value: T, setSaved: (v: boolean) => void) {
@@ -189,6 +220,22 @@ export default function SettingsPage() {
     });
     setShippingSaved(true);
     setTimeout(() => setShippingSaved(false), 2500);
+  }
+
+  async function saveSale() {
+    const cleanSale = {
+      ...sale,
+      saleDiscountPercent: Math.max(0, Math.min(90, Number(sale.saleDiscountPercent) || 0)),
+    };
+    setSale(cleanSale);
+    localStorage.setItem('sj_sale', JSON.stringify(cleanSale));
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cleanSale),
+    });
+    setSaleSaved(true);
+    setTimeout(() => setSaleSaved(false), 2500);
   }
 
   async function handleClearProducts() {
@@ -368,6 +415,86 @@ export default function SettingsPage() {
       </SectionCard>
 
       {/* ── 3. Payment Gateways ── */}
+      <SectionCard icon={Percent} title="Seasonal Sale Manager">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-3 bg-amber-50/60 rounded-lg">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Sitewide Seasonal Sale</p>
+              <p className="text-xs text-gray-500">Apply one active sale discount to every checkout total</p>
+            </div>
+            <button
+              onClick={() => setSale({ ...sale, saleEnabled: !sale.saleEnabled })}
+              className="flex-shrink-0"
+              aria-label={sale.saleEnabled ? 'Disable seasonal sale' : 'Enable seasonal sale'}
+            >
+              {sale.saleEnabled ? (
+                <ToggleRight className="w-8 h-8 text-[#c9a84c]" />
+              ) : (
+                <ToggleLeft className="w-8 h-8 text-gray-300" />
+              )}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="Sale Name">
+              <Input
+                value={sale.saleName}
+                placeholder="Spring Sale"
+                onChange={(e) => setSale({ ...sale, saleName: e.target.value })}
+              />
+            </Field>
+            <Field label="Discount (%)">
+              <Input
+                type="number"
+                min={0}
+                max={90}
+                value={sale.saleDiscountPercent}
+                onChange={(e) => setSale({ ...sale, saleDiscountPercent: Number(e.target.value) })}
+              />
+            </Field>
+            <Field label="Start Date">
+              <Input
+                type="date"
+                value={sale.saleStartDate}
+                onChange={(e) => setSale({ ...sale, saleStartDate: e.target.value })}
+              />
+            </Field>
+            <Field label="End Date">
+              <Input
+                type="date"
+                value={sale.saleEndDate}
+                onChange={(e) => setSale({ ...sale, saleEndDate: e.target.value })}
+              />
+            </Field>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Show Sale Banner</p>
+              <p className="text-xs text-gray-500">Use the sale name and percentage in the top promo banner</p>
+            </div>
+            <button
+              onClick={() => setSale({ ...sale, showSaleBanner: !sale.showSaleBanner })}
+              className="flex-shrink-0"
+              aria-label={sale.showSaleBanner ? 'Hide sale banner' : 'Show sale banner'}
+            >
+              {sale.showSaleBanner ? (
+                <ToggleRight className="w-8 h-8 text-[#c9a84c]" />
+              ) : (
+                <ToggleLeft className="w-8 h-8 text-gray-300" />
+              )}
+            </button>
+          </div>
+
+          <div className="rounded-lg bg-gray-50 p-3 text-xs text-gray-500">
+            Preview: {sale.saleEnabled ? `${sale.saleName || 'Seasonal Sale'} - ${Math.max(0, Math.min(90, Number(sale.saleDiscountPercent) || 0))}% off all jewellery` : 'Sale disabled'}
+          </div>
+        </div>
+        <div className="mt-5 flex justify-end">
+          <SaveButton onClick={saveSale} saved={saleSaved} />
+        </div>
+      </SectionCard>
+
       <SectionCard icon={CreditCard} title="Payment Gateways Status">
         <div className="space-y-3">
           {/* Razorpay */}

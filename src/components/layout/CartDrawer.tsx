@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
+import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -10,8 +12,18 @@ export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal } =
     useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
+  const [saleSettings, setSaleSettings] = useState<SeasonalSaleSettings | null>(null);
 
   const subtotal = getSubtotal();
+  const { sale, discountAmount, discountedSubtotal } = calculateSaleTotals(subtotal, saleSettings);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then(setSaleSettings)
+      .catch(() => setSaleSettings(null));
+  }, [isOpen]);
 
   return (
     <AnimatePresence>
@@ -198,6 +210,26 @@ export default function CartDrawer() {
                     {formatPrice(subtotal, currency)}
                   </span>
                 </div>
+                {sale && discountAmount > 0 && (
+                  <div className="flex items-center justify-between text-green-700">
+                    <span className="text-sm tracking-[0.08em] uppercase">
+                      {sale.name} {sale.percent}%
+                    </span>
+                    <span className="text-sm font-semibold">
+                      -{formatPrice(discountAmount, currency)}
+                    </span>
+                  </div>
+                )}
+                {sale && discountAmount > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm tracking-[0.1em] uppercase text-charcoal-muted">
+                      After Discount
+                    </span>
+                    <span className="text-lg font-serif font-semibold">
+                      {formatPrice(discountedSubtotal, currency)}
+                    </span>
+                  </div>
+                )}
                 <p className="text-xs text-charcoal-muted">
                   Shipping & taxes calculated at checkout
                 </p>

@@ -17,6 +17,7 @@ interface Order {
   customer: { name: string; email: string; phone: string; address: string };
   items: OrderItem[];
   subtotal: number;
+  discount?: { name: string; percent: number; amount: number; subtotalBeforeDiscount: number } | null;
   shipping: number;
   total: number;
   status: string;
@@ -140,6 +141,9 @@ export default function OrdersPage() {
                         {order.shipping === 0 && (
                           <p className="text-xs text-green-600">Free shipping</p>
                         )}
+                        {order.discount?.amount ? (
+                          <p className="text-xs text-green-600">{order.discount.name}</p>
+                        ) : null}
                       </td>
                       <td className="px-5 py-3.5">
                         <span className="text-xs text-gray-500 whitespace-nowrap">
@@ -201,6 +205,16 @@ export default function OrdersPage() {
                                   </div>
                                 ))}
                                 <div className="flex justify-between text-gray-500 text-xs pt-1 border-t border-gray-200 mt-1">
+                                  <span>Subtotal</span>
+                                  <span>{fmt(order.subtotal || 0)}</span>
+                                </div>
+                                {order.discount?.amount ? (
+                                  <div className="flex justify-between text-green-700 text-xs">
+                                    <span>{order.discount.name} ({order.discount.percent}% off)</span>
+                                    <span>-{fmt(order.discount.amount)}</span>
+                                  </div>
+                                ) : null}
+                                <div className="flex justify-between text-gray-500 text-xs">
                                   <span>Shipping</span>
                                   <span>{order.shipping === 0 ? 'Free' : fmt(order.shipping)}</span>
                                 </div>

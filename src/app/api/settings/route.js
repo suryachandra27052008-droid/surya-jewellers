@@ -15,20 +15,39 @@ function fileDefaults() {
   try {
     return JSON.parse(readFileSync(join(process.cwd(), 'src/data/settings.json'), 'utf8'));
   } catch {
-    return { showFreeShippingBanner: true, freeShippingEndDate: '2026-05-04', freeShippingMinOrder: 2000 };
+    return {
+      showFreeShippingBanner: true,
+      freeShippingEndDate: '2026-05-04',
+      freeShippingMinOrder: 2000,
+      saleEnabled: false,
+      saleName: 'Spring Sale',
+      saleDiscountPercent: 20,
+      saleStartDate: '',
+      saleEndDate: '',
+      showSaleBanner: true,
+    };
   }
+}
+
+function publicSettings(doc = {}, defaults = fileDefaults()) {
+  return {
+    showFreeShippingBanner: doc.showFreeShippingBanner ?? defaults.showFreeShippingBanner,
+    freeShippingEndDate: doc.freeShippingEndDate ?? defaults.freeShippingEndDate,
+    freeShippingMinOrder: doc.freeShippingMinOrder ?? defaults.freeShippingMinOrder,
+    saleEnabled: doc.saleEnabled ?? defaults.saleEnabled,
+    saleName: doc.saleName ?? defaults.saleName,
+    saleDiscountPercent: doc.saleDiscountPercent ?? defaults.saleDiscountPercent,
+    saleStartDate: doc.saleStartDate ?? defaults.saleStartDate,
+    saleEndDate: doc.saleEndDate ?? defaults.saleEndDate,
+    showSaleBanner: doc.showSaleBanner ?? defaults.showSaleBanner,
+  };
 }
 
 export async function GET() {
   try {
     const doc = await readClient.fetch(`*[_type == "siteSettings" && _id == $id][0]`, { id: DOC_ID });
     if (doc) {
-      const defaults = fileDefaults();
-      return NextResponse.json({
-        showFreeShippingBanner: doc.showFreeShippingBanner ?? defaults.showFreeShippingBanner,
-        freeShippingEndDate:    doc.freeShippingEndDate    ?? defaults.freeShippingEndDate,
-        freeShippingMinOrder:   doc.freeShippingMinOrder   ?? defaults.freeShippingMinOrder,
-      });
+      return NextResponse.json(publicSettings(doc));
     }
   } catch {
     // fall through to file defaults
@@ -38,19 +57,35 @@ export async function GET() {
 
 export async function POST(request) {
   const body = await request.json();
-  const defaults = fileDefaults();
-  const fields = {
-    showFreeShippingBanner: body.showFreeShippingBanner ?? defaults.showFreeShippingBanner,
-    freeShippingEndDate:    body.freeShippingEndDate    ?? defaults.freeShippingEndDate,
-    freeShippingMinOrder:   body.freeShippingMinOrder   ?? defaults.freeShippingMinOrder,
-  };
+  const allowedFields = [
+    'showFreeShippingBanner',
+    'freeShippingEndDate',
+    'freeShippingMinOrder',
+    'saleEnabled',
+    'saleName',
+    'saleDiscountPercent',
+    'saleStartDate',
+    'saleEndDate',
+    'showSaleBanner',
+  ];
+  const fields = {};
+  for (const key of allowedFields) {
+    if (Object.prototype.hasOwnProperty.call(body, key)) fields[key] = body[key];
+  }
+
+  if (Object.prototype.hasOwnProperty.call(fields, 'saleDiscountPercent')) {
+    const percent = Number(fields.saleDiscountPercent);
+    fields.saleDiscountPercent = Number.isFinite(percent) ? Math.max(0, Math.min(90, percent)) : 0;
+  }
+
   try {
     await writeClient
       .transaction()
       .createIfNotExists({ _id: DOC_ID, _type: 'siteSettings' })
       .patch(DOC_ID, { set: fields })
       .commit();
-    return NextResponse.json({ success: true, settings: fields });
+    const doc = await readClient.fetch(`*[_type == "siteSettings" && _id == $id][0]`, { id: DOC_ID });
+    return NextResponse.json({ success: true, settings: publicSettings(doc) });
   } catch (err) {
     console.error('Failed to save settings to Sanity:', err);
     return NextResponse.json({ success: false, error: String(err) }, { status: 500 });

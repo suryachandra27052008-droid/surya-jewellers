@@ -8,6 +8,7 @@ import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice, CURRENCIES } from '@/stores/currency-store';
 import { getShipping, isPromoActive, FREE_SHIPPING_THRESHOLD } from '@/lib/shipping';
+import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
 declare global {
@@ -24,6 +25,7 @@ export default function CheckoutPage() {
   const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [saleSettings, setSaleSettings] = useState<SeasonalSaleSettings | null>(null);
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -37,6 +39,10 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setMounted(true);
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then(setSaleSettings)
+      .catch(() => setSaleSettings(null));
   }, []);
 
   useEffect(() => {
@@ -58,8 +64,18 @@ export default function CheckoutPage() {
   }
 
   const subtotal = getSubtotal();
-  const shipping = getShipping(subtotal);
-  const total = subtotal + shipping;
+  const saleTotals = calculateSaleTotals(subtotal, saleSettings);
+  const { sale, discountAmount, discountedSubtotal } = saleTotals;
+  const shipping = getShipping(discountedSubtotal);
+  const total = discountedSubtotal + shipping;
+  const discountSnapshot = sale
+    ? {
+        name: sale.name,
+        percent: sale.percent,
+        amount: discountAmount,
+        subtotalBeforeDiscount: subtotal,
+      }
+    : null;
 
   const paypalCurrency = (currency === 'USD' || currency === 'GBP') ? currency : 'USD';
   const convertedTotal = total * CURRENCIES[paypalCurrency].rate;
@@ -148,6 +164,7 @@ export default function CheckoutPage() {
               })),
               customer: form,
               subtotal,
+              discount: discountSnapshot,
               shipping,
               total,
             }),
@@ -294,6 +311,12 @@ export default function CheckoutPage() {
                       <span className="text-charcoal-muted">Subtotal</span>
                       <span className="text-charcoal">{formatPrice(subtotal, currency)}</span>
                     </div>
+                    {sale && discountAmount > 0 && (
+                      <div className="flex justify-between text-green-700">
+                        <span>{sale.name} {sale.percent}%</span>
+                        <span>-{formatPrice(discountAmount, currency)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-charcoal-muted">Shipping</span>
                       <span className="text-charcoal">
@@ -374,6 +397,7 @@ export default function CheckoutPage() {
                                 })),
                                 customer: form,
                                 subtotal,
+                                discount: discountSnapshot,
                                 shipping,
                                 total,
                               })

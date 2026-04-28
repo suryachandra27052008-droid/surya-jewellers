@@ -12,6 +12,7 @@ export async function GET() {
         customer,
         items,
         subtotal,
+        discount,
         shipping,
         total,
         status,
@@ -53,6 +54,7 @@ export async function PATCH(request: Request) {
             customer,
             items,
             subtotal,
+            discount,
             shipping,
             total
           }`,

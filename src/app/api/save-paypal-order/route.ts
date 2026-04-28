@@ -20,6 +20,13 @@ interface CustomerInfo {
   pincode: string;
 }
 
+interface DiscountSnapshot {
+  name: string;
+  percent: number;
+  amount: number;
+  subtotalBeforeDiscount: number;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -29,6 +36,7 @@ export async function POST(request: Request) {
       items,
       customer,
       subtotal,
+      discount,
       shipping,
       total,
     }: {
@@ -37,6 +45,7 @@ export async function POST(request: Request) {
       items?: OrderItem[];
       customer?: CustomerInfo;
       subtotal?: number;
+      discount?: DiscountSnapshot | null;
       shipping?: number;
       total?: number;
     } = body;
@@ -68,6 +77,7 @@ export async function POST(request: Request) {
         quantity: item.quantity,
       })),
       subtotal: subtotal || 0,
+      discount: discount || undefined,
       shipping: shipping || 0,
       total: total || 0,
       status: 'paid',
@@ -117,6 +127,7 @@ export async function POST(request: Request) {
             image: imageMap[item._id] || '',
           })),
           subtotal: subtotal || 0,
+          discount: discount || undefined,
           shipping: shipping || 0,
           total: total || 0,
         });

@@ -48,6 +48,7 @@ function OrderSuccessContent() {
           items: { _id: string; name: string; price: number; quantity: number }[];
           customer: { fullName: string; email: string; phone: string; address1: string; address2?: string; city: string; state: string; pincode: string };
           subtotal: number;
+          discount?: { name: string; percent: number; amount: number; subtotalBeforeDiscount: number } | null;
           shipping: number;
           total: number;
         } | null = null;
@@ -69,6 +70,7 @@ function OrderSuccessContent() {
             items: pending?.items ?? [],
             customer: pending?.customer ?? {},
             subtotal: pending?.subtotal ?? 0,
+            discount: pending?.discount ?? null,
             shipping: pending?.shipping ?? 0,
             total: pending?.total ?? 0,
           }),

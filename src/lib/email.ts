@@ -75,12 +75,13 @@ interface OrderEmailData {
   customer: { name: string; email: string; phone: string; address: string };
   items: Array<{ name: string; price: number; quantity: number; image?: string }>;
   subtotal: number;
+  discount?: { name: string; percent: number; amount: number; subtotalBeforeDiscount: number } | null;
   shipping: number;
   total: number;
 }
 
 export async function sendOrderConfirmation(data: OrderEmailData) {
-  const { orderId, customer, items, subtotal, shipping, total } = data;
+  const { orderId, customer, items, subtotal, discount, shipping, total } = data;
 
   const body = `
     <!-- Hero -->
@@ -110,6 +111,11 @@ export async function sendOrderConfirmation(data: OrderEmailData) {
           <td style="padding:10px 0 4px;font-family:Arial,sans-serif;font-size:12px;color:#7a6a3a;">Subtotal</td>
           <td style="padding:10px 0 4px;text-align:right;font-family:Arial,sans-serif;font-size:12px;color:#9a8c6a;">₹${subtotal.toLocaleString('en-IN')}</td>
         </tr>
+        ${discount && discount.amount > 0 ? `
+        <tr>
+          <td style="padding:4px 0;font-family:Arial,sans-serif;font-size:12px;color:#4caf50;">${discount.name} (${discount.percent}% off)</td>
+          <td style="padding:4px 0;text-align:right;font-family:Arial,sans-serif;font-size:12px;color:#4caf50;">-â‚¹${discount.amount.toLocaleString('en-IN')}</td>
+        </tr>` : ''}
         <tr>
           <td style="padding:4px 0;font-family:Arial,sans-serif;font-size:12px;color:#7a6a3a;">Shipping</td>
           <td style="padding:4px 0;text-align:right;font-family:Arial,sans-serif;font-size:12px;color:${shipping === 0 ? '#4caf50' : '#9a8c6a'};">${shipping === 0 ? 'Free' : '₹' + shipping.toLocaleString('en-IN')}</td>
