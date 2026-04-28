@@ -2,15 +2,16 @@
 
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'motion/react';
 
 const collections = [
-  { name: 'Rings',     href: '/silver-rings-jaipur',       description: 'Elegant bands & statement pieces',    image: '/categories/rings.jpg' },
+  { name: 'Rings',     href: '/silver-rings-jaipur',       description: 'Elegant bands & statement pieces',    image: '/categories/rings.webp' },
   { name: 'Necklaces', href: '/silver-necklaces-jaipur',   description: 'Graceful chains & pendants',           image: '/categories/necklaces.webp' },
-  { name: 'Earrings',  href: '/products?category=Earrings', description: 'Drops, hoops & statement pieces',     image: '/categories/earrings.jpg' },
+  { name: 'Earrings',  href: '/products?category=Earrings', description: 'Drops, hoops & statement pieces',     image: '/categories/earrings.webp' },
   { name: 'Bracelets', href: '/silver-bracelets-jaipur',   description: 'Delicate cuffs & bangles',             image: '/categories/bracelets.webp' },
   { name: 'Pendants',  href: '/silver-pendants-jaipur',    description: 'Delicate drops & statement charms',    image: '/categories/pendants.webp' },
-  { name: 'Studs',     href: '/products?category=Studs',   description: 'Classic & gemstone ear tops',          image: '/categories/studs.jpg' },
+  { name: 'Studs',     href: '/products?category=Studs',   description: 'Classic & gemstone ear tops',          image: '/categories/studs.webp' },
 ];
 
 export default function FeaturedCollections() {
@@ -41,11 +42,15 @@ export default function FeaturedCollections() {
                 >
                   {/* Image tile */}
                   <div className="aspect-[4/5] relative overflow-hidden rounded-sm">
-                    <img
+                    <Image
                       src={collection.image}
                       alt={collection.name}
-                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.7s ease' }}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      style={{ objectFit: 'cover', transition: 'transform 0.7s ease' }}
                       className="group-hover:scale-105"
+                      priority={index < 2}
+                      loading={index >= 2 ? 'lazy' : undefined}
                     />
 
                     {/* Overlay */}

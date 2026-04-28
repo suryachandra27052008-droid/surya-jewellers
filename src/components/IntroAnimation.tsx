@@ -27,6 +27,11 @@ export default function IntroAnimation() {
     if (typeof window !== 'undefined') {
       const shown = sessionStorage.getItem('introShown')
       if (shown) { setVisible(false); return }
+      // Skip intro on mobile — avoids blocking hero LCP by 5+ seconds
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        setVisible(false)
+        return
+      }
     }
     const timer = setTimeout(startFade, 4500)
     window.addEventListener('keydown', startFade)

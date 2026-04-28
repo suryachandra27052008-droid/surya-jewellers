@@ -3,20 +3,28 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 
 const images = [
-  { src: '/hero-bg.jpg',    alt: 'Surya Jewellers showroom — handcrafted silver jewellery, Jaipur' },
-  { src: '/hero-bg-2.jpg',  alt: 'Surya Jewellers jewellery collection — 92.5 sterling silver' },
+  { src: '/hero-bg.webp',   alt: 'Surya Jewellers showroom — handcrafted silver jewellery, Jaipur' },
+  { src: '/hero-bg-2.webp', alt: 'Surya Jewellers jewellery collection — 92.5 sterling silver' },
   { src: '/hero-bg-3.webp', alt: 'Surya Jewellers gold and silver jewellery' },
 ]
 
 export default function HeroSlideshow({ children }) {
   const [current, setCurrent] = useState(0)
+  // Defer non-first images: absolutely-positioned images overlap the viewport,
+  // so loading="lazy" is ignored by the browser — mount them after first paint.
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
     const timer = setInterval(() => {
       setCurrent(prev => (prev + 1) % images.length)
     }, 4000)
     return () => clearInterval(timer)
-  }, [])
+  }, [mounted])
 
   return (
     <div
@@ -24,31 +32,35 @@ export default function HeroSlideshow({ children }) {
       aria-label="Hero slideshow"
       style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}
     >
-      {images.map(({ src, alt }, i) => (
-        <div
-          key={src}
-          aria-hidden={i !== current}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            opacity: i === current ? 1 : 0,
-            transition: 'opacity 1.5s ease-in-out',
-            zIndex: i === current ? 1 : 0
-          }}
-        >
-          <Image
-            src={src}
-            alt={alt}
-            fill
-            sizes="100vw"
-            style={{ objectFit: 'cover', objectPosition: 'center' }}
-            {...(i === 0
-              ? { priority: true, fetchPriority: 'high' }
-              : { loading: 'lazy' }
-            )}
-          />
-        </div>
-      ))}
+      {images.map(({ src, alt }, i) => {
+        // Only render the first image before mount to avoid loading all 3 on first paint
+        if (i > 0 && !mounted) return null
+        return (
+          <div
+            key={src}
+            aria-hidden={i !== current}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              opacity: i === current ? 1 : 0,
+              transition: 'opacity 1.5s ease-in-out',
+              zIndex: i === current ? 1 : 0
+            }}
+          >
+            <Image
+              src={src}
+              alt={alt}
+              fill
+              sizes="(max-width: 768px) 100vw, 100vw"
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
+              {...(i === 0
+                ? { priority: true, fetchPriority: 'high' }
+                : { loading: 'lazy' }
+              )}
+            />
+          </div>
+        )
+      })}
 
       {/* Overlay */}
       <div style={{
