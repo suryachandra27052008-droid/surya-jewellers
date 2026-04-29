@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import Hero from '@/components/home/Hero';
 import FeaturedCollections from '@/components/home/FeaturedCollections';
 import Testimonials from '@/components/home/Testimonials';
@@ -25,6 +26,7 @@ const aggregateRatingSchema = {
   },
 };
 
+/*
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -128,6 +130,8 @@ const faqSchema = {
   ],
 };
 
+*/
+
 export default function HomePage() {
   return (
     <>
@@ -181,34 +185,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FAQ Section with JSON-LD FAQPage schema */}
-      <section className="py-20 bg-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <span className="text-gold text-xs tracking-[0.4em] uppercase">Help & Information</span>
-            <h2 className="font-serif text-3xl sm:text-4xl mt-4 text-charcoal">
-              Frequently Asked Questions
-            </h2>
-            <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto mt-6" />
-          </div>
-
-          <div className="space-y-6">
-            {faqSchema.mainEntity.map((faq, i) => (
-              <div key={i} className="border border-cream-dark rounded p-6 bg-cream/40">
-                <h3 className="font-serif text-lg text-charcoal mb-3">{faq.name}</h3>
-                <p className="text-charcoal-muted text-sm leading-relaxed">
-                  {faq.acceptedAnswer.text}
-                </p>
-              </div>
-            ))}
-          </div>
+      <section className="py-12 bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <span className="text-gold text-xs tracking-[0.4em] uppercase">Help & Information</span>
+          <h2 className="font-serif text-2xl sm:text-3xl mt-3 text-charcoal">
+            Have Questions Before You Order?
+          </h2>
+          <p className="text-charcoal-muted text-sm mt-3 mb-6">
+            Find answers about silver purity, certificates, shipping, returns, wholesale and showroom visits.
+          </p>
+          <Link href="/faqs" className="inline-flex items-center justify-center btn-gold min-h-[44px] px-6 rounded">
+            View FAQs
+          </Link>
         </div>
       </section>
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(aggregateRatingSchema) }}

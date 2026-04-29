@@ -42,6 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/about`, lastModified: new Date('2025-06-01') },
     { url: `${BASE_URL}/blog`, lastModified: new Date('2025-03-01') },
     { url: `${BASE_URL}/contact`, lastModified: new Date('2025-01-01') },
+    { url: `${BASE_URL}/faqs`, lastModified: new Date('2026-04-29') },
     { url: `${BASE_URL}/wholesale`, lastModified: new Date('2025-01-01') },
     { url: `${BASE_URL}/shipping`, lastModified: new Date('2025-01-01') },
     { url: `${BASE_URL}/jaipur-jewellery`, lastModified: new Date('2026-04-18') },

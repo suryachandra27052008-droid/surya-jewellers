@@ -364,8 +364,8 @@ export default function ProductsClient({
 
   const gridClass =
     gridView === 'comfortable'
-      ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6'
-      : 'grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-5 xl:gap-6';
+      ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-6'
+      : 'grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-5 xl:gap-6';
 
   // Stone options excluding 'All' (shown separately as first item)
   const stoneOptions = availableStones.slice(1);
@@ -558,7 +558,7 @@ export default function ProductsClient({
 
   return (
     <div className="pb-20">
-      <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+      <div className="max-w-[1680px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
 
         {/* Mobile top bar: filter toggle + view switcher */}
         <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
@@ -708,7 +708,7 @@ export default function ProductsClient({
                     >
                       {/* Image — full area tappable link */}
                       <Link href={`/products/${product.slug.current}`}>
-                        <div className="aspect-square bg-gradient-to-br from-cream-dark to-cream relative overflow-hidden">
+                        <div className={`${gridView === 'comfortable' ? 'aspect-[4/3] sm:aspect-square' : 'aspect-square'} bg-gradient-to-br from-cream-dark to-cream relative overflow-hidden`}>
                           {product.images && product.images.length > 0 ? (
                             <Image
                               src={product.images[0]}
@@ -768,7 +768,7 @@ export default function ProductsClient({
 
                       {/* Card info — separate from image link */}
                       <div className="p-2 sm:p-4 flex flex-col flex-1">
-                        <div className="flex items-start gap-2 min-h-[2.25rem] sm:min-h-[3rem]">
+                        <div className="flex items-start gap-1.5 sm:gap-2 min-h-[2rem] sm:min-h-[3rem]">
                           <Link href={`/products/${product.slug.current}`} className="min-w-0 flex-1">
                             <h3 className="font-serif text-xs sm:text-base text-charcoal hover:text-gold transition-colors line-clamp-2 leading-snug">
                               {product.displayName || product.name}
@@ -799,7 +799,7 @@ export default function ProductsClient({
                             <Heart className="h-4 w-4" fill={wished ? 'currentColor' : 'none'} strokeWidth={1.8} />
                           </button>
                         </div>
-                        <div className="flex gap-1 mt-1 flex-wrap min-h-[1.45rem] sm:min-h-[1.75rem] content-start">
+                        <div className="flex gap-1 mt-1 flex-wrap min-h-[1.2rem] sm:min-h-[1.75rem] content-start">
                           {product.mainStoneType && product.mainStoneType !== 'None' && (
                             <span
                               className="text-[0.55rem] sm:text-[0.6rem] px-1 sm:px-1.5 py-0.5 rounded"
@@ -825,7 +825,7 @@ export default function ProductsClient({
                             </span>
                           )}
                         </div>
-                        <div className="flex items-end justify-between mt-1.5 sm:mt-2 min-h-[2.4rem]">
+                        <div className="flex items-end justify-between mt-1 sm:mt-2 min-h-[2rem] sm:min-h-[2.4rem]">
                           <div>
                             {salePrice ? (
                               <>
@@ -847,7 +847,7 @@ export default function ProductsClient({
                           </span>
                         </div>
                         {/* Always-visible Add to Bag */}
-                        <div className="mt-auto pt-2 sm:pt-3">
+                        <div className="mt-auto pt-1.5 sm:pt-3">
                           <button
                             onClick={(e) => {
                               e.preventDefault();
@@ -870,7 +870,7 @@ export default function ProductsClient({
                                 ? `In bag — ${product.displayName || product.name}`
                                 : `Add to bag — ${product.displayName || product.name}`
                             }
-                            className={`w-full text-center py-2.5 min-h-[44px] rounded transition-all ${
+                            className={`w-full text-center py-2 sm:py-2.5 min-h-[38px] sm:min-h-[44px] rounded transition-all text-[0.68rem] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.16em] font-semibold ${
                               atMax
                                 ? 'bg-charcoal/10 text-charcoal/40 cursor-not-allowed text-xs uppercase tracking-wider font-semibold'
                                 : 'btn-gold'
