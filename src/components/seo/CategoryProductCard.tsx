@@ -30,7 +30,7 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
   const atMax = !!cartItem;
 
   return (
-    <div className="group h-full flex flex-col">
+    <div className="group relative h-full flex flex-col">
       <Link href={`/products/${slug}`} className="block">
         <div className="aspect-square relative overflow-hidden rounded-sm bg-gray-100">
           {img ? (
@@ -56,38 +56,36 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
           )}
         </div>
       </Link>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleWishlist({
+            _id: p._id,
+            name,
+            price: p.price,
+            image: img || '',
+            slug,
+            category: p.category,
+            mainStoneType: p.mainStoneType,
+            stockQuantity: 1,
+          });
+        }}
+        aria-label={wished ? `Remove ${name} from wishlist` : `Save ${name} to wishlist`}
+        className={`absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full border border-white/70 shadow-sm backdrop-blur transition-colors sm:h-9 sm:w-9 ${
+          wished ? 'bg-gold text-white' : 'bg-white/90 text-charcoal hover:text-gold'
+        }`}
+      >
+        <Heart className="h-4 w-4" fill={wished ? 'currentColor' : 'none'} strokeWidth={1.8} />
+      </button>
 
       <div className="pt-2 pb-1 flex flex-col flex-1">
-        <div className="flex items-start gap-2 min-h-[2.25rem] sm:min-h-[2.75rem]">
-          <Link href={`/products/${slug}`} className="min-w-0 flex-1">
-            <p className="text-charcoal text-xs sm:text-sm font-medium line-clamp-2 leading-snug">
-              {name}
-            </p>
-          </Link>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              toggleWishlist({
-                _id: p._id,
-                name,
-                price: p.price,
-                image: img || '',
-                slug,
-                category: p.category,
-                mainStoneType: p.mainStoneType,
-                stockQuantity: 1,
-              });
-            }}
-            aria-label={wished ? `Remove ${name} from wishlist` : `Save ${name} to wishlist`}
-            className={`shrink-0 rounded-full p-1 transition-colors ${
-              wished ? 'text-gold bg-gold/10' : 'text-charcoal-muted hover:text-gold hover:bg-gold/10'
-            }`}
-          >
-            <Heart className="h-4 w-4" fill={wished ? 'currentColor' : 'none'} strokeWidth={1.8} />
-          </button>
-        </div>
+        <Link href={`/products/${slug}`} className="block min-h-[2.25rem] sm:min-h-[2.75rem]">
+          <p className="text-charcoal text-xs sm:text-sm font-medium line-clamp-2 leading-snug">
+            {name}
+          </p>
+        </Link>
         <div className="mt-0.5 mb-2 min-h-[2rem]">
           {salePrice ? (
             <>

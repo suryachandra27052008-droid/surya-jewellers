@@ -704,7 +704,7 @@ export default function ProductsClient({
                   return (
                     <div
                       key={product._id}
-                      className="product-card group h-full bg-white rounded overflow-hidden border border-cream-dark hover:border-gold/20 flex flex-col"
+                      className="product-card group relative h-full bg-white rounded overflow-hidden border border-cream-dark hover:border-gold/20 flex flex-col"
                     >
                       {/* Image — full area tappable link */}
                       <Link href={`/products/${product.slug.current}`}>
@@ -746,7 +746,7 @@ export default function ProductsClient({
                             </div>
                           )}
                           {((product.mainStoneType && product.mainStoneType !== 'None') || product.secondaryStoneType) && (
-                            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex flex-col gap-1">
+                            <div className="absolute top-10 right-2 sm:top-12 sm:right-3 flex flex-col gap-1">
                               {product.mainStoneType && product.mainStoneType !== 'None' && (
                                 <span
                                   className="w-3 h-3 sm:w-4 sm:h-4 rounded-full block border-2 border-white shadow-sm"
@@ -767,38 +767,37 @@ export default function ProductsClient({
                       </Link>
 
                       {/* Card info — separate from image link */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleWishlist({
+                            _id: product._id,
+                            name: product.displayName || product.name,
+                            price: product.price,
+                            image: product.images?.[0] || '',
+                            slug: product.slug.current,
+                            category: product.category.name,
+                            mainStoneType: product.mainStoneType,
+                            silverWeight: product.silverWeight,
+                            stockQuantity: product.stockQuantity ?? 1,
+                          });
+                        }}
+                        aria-label={wished ? `Remove ${product.displayName || product.name} from wishlist` : `Save ${product.displayName || product.name} to wishlist`}
+                        className={`absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full border border-white/70 shadow-sm backdrop-blur transition-colors sm:right-3 sm:top-3 sm:h-9 sm:w-9 ${
+                          wished ? 'bg-gold text-white' : 'bg-white/90 text-charcoal hover:text-gold'
+                        }`}
+                      >
+                        <Heart className="h-4 w-4" fill={wished ? 'currentColor' : 'none'} strokeWidth={1.8} />
+                      </button>
+
                       <div className="p-2 sm:p-4 flex flex-col flex-1">
-                        <div className="flex items-start gap-1.5 sm:gap-2 min-h-[2rem] sm:min-h-[3rem]">
-                          <Link href={`/products/${product.slug.current}`} className="min-w-0 flex-1">
-                            <h3 className="font-serif text-xs sm:text-base text-charcoal hover:text-gold transition-colors line-clamp-2 leading-snug">
-                              {product.displayName || product.name}
-                            </h3>
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              toggleWishlist({
-                                _id: product._id,
-                                name: product.displayName || product.name,
-                                price: product.price,
-                                image: product.images?.[0] || '',
-                                slug: product.slug.current,
-                                category: product.category.name,
-                                mainStoneType: product.mainStoneType,
-                                silverWeight: product.silverWeight,
-                                stockQuantity: product.stockQuantity ?? 1,
-                              });
-                            }}
-                            aria-label={wished ? `Remove ${product.displayName || product.name} from wishlist` : `Save ${product.displayName || product.name} to wishlist`}
-                            className={`shrink-0 rounded-full p-1 transition-colors ${
-                              wished ? 'text-gold bg-gold/10' : 'text-charcoal-muted hover:text-gold hover:bg-gold/10'
-                            }`}
-                          >
-                            <Heart className="h-4 w-4" fill={wished ? 'currentColor' : 'none'} strokeWidth={1.8} />
-                          </button>
-                        </div>
+                        <Link href={`/products/${product.slug.current}`} className="block min-h-[2rem] sm:min-h-[3rem]">
+                          <h3 className="font-serif text-xs sm:text-base text-charcoal hover:text-gold transition-colors line-clamp-2 leading-snug">
+                            {product.displayName || product.name}
+                          </h3>
+                        </Link>
                         <div className="flex gap-1 mt-1 flex-wrap min-h-[1.2rem] sm:min-h-[1.75rem] content-start">
                           {product.mainStoneType && product.mainStoneType !== 'None' && (
                             <span
