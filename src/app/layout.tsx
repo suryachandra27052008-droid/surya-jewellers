@@ -33,9 +33,9 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   icons: {
-    icon: [{ url: "/logo_sj.png", type: "image/png" }],
-    apple: "/logo_sj.png",
-    shortcut: "/logo_sj.png",
+    icon: [{ url: "/logo_sj-icon.png", type: "image/png", sizes: "180x180" }],
+    apple: "/logo_sj-icon.png",
+    shortcut: "/logo_sj-icon.png",
   },
   title: {
     default: "Surya Jewellers | 92.5 Sterling Silver Jewellery, Jaipur",

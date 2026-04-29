@@ -41,7 +41,8 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
               priority={priority}
               fetchPriority={priority ? 'high' : 'auto'}
               loading={priority ? 'eager' : 'lazy'}
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              sizes="(max-width: 640px) 46vw, (max-width: 1024px) 31vw, 24vw"
+              quality={60}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (

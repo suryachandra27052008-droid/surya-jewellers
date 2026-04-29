@@ -11,8 +11,11 @@ const ShaderAnimation = dynamic(
 export default function IntroAnimation() {
   const [visible, setVisible] = useState(true)
   const [fading, setFading] = useState(false)
+  const [mobileIntro, setMobileIntro] = useState(false)
+  const [fadeMs, setFadeMs] = useState(1200)
   const doneRef = useRef(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fadeMsRef = useRef(1200)
 
   const startFade = useCallback(() => {
     if (doneRef.current) return
@@ -21,7 +24,7 @@ export default function IntroAnimation() {
     setTimeout(() => {
       setVisible(false)
       sessionStorage.setItem('introShown', 'true')
-    }, 1200)
+    }, fadeMsRef.current)
   }, [])
 
   useEffect(() => {
@@ -31,8 +34,14 @@ export default function IntroAnimation() {
       return
     }
 
+    const isMobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches
+    const mobileFadeMs = isMobile ? 450 : 1200
+    setMobileIntro(isMobile)
+    setFadeMs(mobileFadeMs)
+    fadeMsRef.current = mobileFadeMs
+
     setVisible(true)
-    timerRef.current = setTimeout(startFade, 4500)
+    timerRef.current = setTimeout(startFade, isMobile ? 1200 : 4500)
     window.addEventListener('keydown', startFade)
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
@@ -49,30 +58,32 @@ export default function IntroAnimation() {
         position: 'fixed', inset: 0, zIndex: 9999,
         background: '#000',
         opacity: fading ? 0 : 1,
-        transition: 'opacity 1.2s ease-in-out',
+        transition: `opacity ${fadeMs}ms ease-in-out`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
         cursor: 'pointer'
       }}
     >
+      {!mobileIntro && (
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
         <ShaderAnimation />
       </div>
+      )}
 
       <div style={{
         position: 'relative', zIndex: 10,
         textAlign: 'center',
-        animation: 'introFadeIn 1.5s ease forwards',
-        animationDelay: '0.5s',
+        animation: `${mobileIntro ? 'introFadeIn 0.6s' : 'introFadeIn 1.5s'} ease forwards`,
+        animationDelay: mobileIntro ? '0.15s' : '0.5s',
         opacity: 0,
         pointerEvents: 'none'
       }}>
         <p style={{
           fontFamily: 'Cinzel, serif',
           fontSize: '11px',
-          letterSpacing: '8px',
+          letterSpacing: mobileIntro ? '4px' : '8px',
           color: '#c9a84c',
-          marginBottom: '24px',
+          marginBottom: mobileIntro ? '16px' : '24px',
           opacity: 0.8
         }}>
           EST. 2003 - JAIPUR, INDIA
@@ -80,9 +91,9 @@ export default function IntroAnimation() {
 
         <div aria-hidden="true" style={{
           fontFamily: 'Cinzel, serif',
-          fontSize: 'clamp(60px, 12vw, 140px)',
+          fontSize: mobileIntro ? 'clamp(42px, 15vw, 72px)' : 'clamp(60px, 12vw, 140px)',
           fontWeight: '300',
-          letterSpacing: 'clamp(20px, 5vw, 60px)',
+          letterSpacing: mobileIntro ? 'clamp(10px, 4vw, 20px)' : 'clamp(20px, 5vw, 60px)',
           color: '#ffffff',
           lineHeight: 1,
           marginBottom: '8px',
@@ -93,12 +104,12 @@ export default function IntroAnimation() {
 
         <div aria-hidden="true" style={{
           fontFamily: 'Cinzel, serif',
-          fontSize: 'clamp(14px, 2.5vw, 22px)',
+          fontSize: mobileIntro ? 'clamp(12px, 4vw, 16px)' : 'clamp(14px, 2.5vw, 22px)',
           fontWeight: '400',
-          letterSpacing: 'clamp(10px, 3vw, 24px)',
+          letterSpacing: mobileIntro ? 'clamp(5px, 2.6vw, 10px)' : 'clamp(10px, 3vw, 24px)',
           color: '#c9a84c',
           marginBottom: '20px',
-          textIndent: 'clamp(10px, 3vw, 24px)'
+          textIndent: mobileIntro ? 'clamp(5px, 2.6vw, 10px)' : 'clamp(10px, 3vw, 24px)'
         }}>
           JEWELLERS
         </div>
@@ -114,7 +125,7 @@ export default function IntroAnimation() {
           fontSize: 'clamp(14px, 1.8vw, 20px)',
           fontStyle: 'italic',
           fontWeight: '300',
-          letterSpacing: '3px',
+          letterSpacing: mobileIntro ? '1.5px' : '3px',
           color: 'rgba(255,255,255,0.7)'
         }}>
           Crafted in 92.5 Sterling Silver

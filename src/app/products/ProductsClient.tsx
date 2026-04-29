@@ -698,7 +698,7 @@ export default function ProductsClient({
                 {filteredProducts.map((product, index) => {
                   const cartItem = cartItems.find((i) => i._id === product._id);
                   const atMax = cartItem ? cartItem.quantity >= (product.stockQuantity ?? 1) : false;
-                  const aboveFold = index < 4;
+                  const aboveFold = index < 2;
                   const salePrice = getSalePrice(product.price, sale);
                   const wished = wishlistItems.some((item) => item._id === product._id);
                   return (
@@ -719,7 +719,8 @@ export default function ProductsClient({
                               placeholder="blur"
                               blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YwZWNlMyIvPjwvc3ZnPg=="
                               className="object-cover product-image transition-transform duration-500 group-hover:scale-105"
-                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1536px) 33vw, 25vw"
+                              sizes="(max-width: 640px) 46vw, (max-width: 1024px) 31vw, (max-width: 1536px) 31vw, 24vw"
+                              quality={60}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
