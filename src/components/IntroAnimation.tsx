@@ -35,13 +35,13 @@ export default function IntroAnimation() {
     }
 
     const isMobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches
-    const mobileFadeMs = isMobile ? 450 : 1200
+    const mobileFadeMs = isMobile ? 700 : 1200
     setMobileIntro(isMobile)
     setFadeMs(mobileFadeMs)
     fadeMsRef.current = mobileFadeMs
 
     setVisible(true)
-    timerRef.current = setTimeout(startFade, isMobile ? 1200 : 4500)
+    timerRef.current = setTimeout(startFade, isMobile ? 2600 : 4500)
     window.addEventListener('keydown', startFade)
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
@@ -64,11 +64,9 @@ export default function IntroAnimation() {
         cursor: 'pointer'
       }}
     >
-      {!mobileIntro && (
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
         <ShaderAnimation />
       </div>
-      )}
 
       <div style={{
         position: 'relative', zIndex: 10,
