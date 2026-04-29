@@ -253,7 +253,7 @@ export default function ProductsClient({
   const currency = useCurrencyStore((s) => s.currency);
   const { sale } = useSeasonalSale();
   const toggleWishlist = useWishlistStore((s) => s.toggleItem);
-  const isWishlisted = useWishlistStore((s) => s.isWishlisted);
+  const wishlistItems = useWishlistStore((s) => s.items);
   const [gridView, setGridView] = useState<'compact' | 'comfortable'>('compact');
 
   const handlePriceChange = useCallback((min: number, max: number) => {
@@ -700,7 +700,7 @@ export default function ProductsClient({
                   const atMax = cartItem ? cartItem.quantity >= (product.stockQuantity ?? 1) : false;
                   const aboveFold = index < 4;
                   const salePrice = getSalePrice(product.price, sale);
-                  const wished = isWishlisted(product._id);
+                  const wished = wishlistItems.some((item) => item._id === product._id);
                   return (
                     <div
                       key={product._id}

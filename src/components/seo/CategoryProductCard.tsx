@@ -17,14 +17,14 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
   const { addItem, items: cartItems } = useCartStore();
   const { sale } = useSeasonalSale();
   const toggleWishlist = useWishlistStore((s) => s.toggleItem);
-  const isWishlisted = useWishlistStore((s) => s.isWishlisted);
+  const wishlistItems = useWishlistStore((s) => s.items);
 
   const slug = getProductCanonicalSlug(p);
   const img = p.images[0];
   const name = getProductDisplayName(p);
   const altText = getProductImageAlt(p);
   const salePrice = getSalePrice(p.price, sale);
-  const wished = isWishlisted(p._id);
+  const wished = wishlistItems.some((item) => item._id === p._id);
 
   const cartItem = cartItems.find((i) => i._id === p._id);
   const atMax = !!cartItem;

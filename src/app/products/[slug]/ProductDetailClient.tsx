@@ -90,8 +90,8 @@ export default function ProductDetailClient({
   const currency = useCurrencyStore((s) => s.currency);
   const { sale } = useSeasonalSale();
   const toggleWishlist = useWishlistStore((s) => s.toggleItem);
-  const isWishlisted = useWishlistStore((s) => s.isWishlisted);
-  const wished = isWishlisted(product._id);
+  const wishlistItems = useWishlistStore((s) => s.items);
+  const wished = wishlistItems.some((item) => item._id === product._id);
   const salePrice = getSalePrice(product.price, sale);
 
   const cartItem = items.find((i) => i._id === product._id);
