@@ -364,8 +364,8 @@ export default function ProductsClient({
 
   const gridClass =
     gridView === 'comfortable'
-      ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-6'
-      : 'grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-5 xl:gap-6';
+      ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-5'
+      : 'grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-4 xl:gap-5';
 
   // Stone options excluding 'All' (shown separately as first item)
   const stoneOptions = availableStones.slice(1);
@@ -708,7 +708,7 @@ export default function ProductsClient({
                     >
                       {/* Image — full area tappable link */}
                       <Link href={`/products/${product.slug.current}`}>
-                        <div className={`${gridView === 'comfortable' ? 'aspect-[4/3] sm:aspect-square' : 'aspect-square'} bg-gradient-to-br from-cream-dark to-cream relative overflow-hidden`}>
+                        <div className={`${gridView === 'comfortable' ? 'aspect-[4/3] sm:aspect-[1/1.06]' : 'aspect-[1/1.06]'} bg-gradient-to-br from-cream-dark to-cream relative overflow-hidden`}>
                           {product.images && product.images.length > 0 ? (
                             <Image
                               src={product.images[0]}
@@ -792,13 +792,13 @@ export default function ProductsClient({
                         <Heart className="h-4 w-4" fill={wished ? 'currentColor' : 'none'} strokeWidth={1.8} />
                       </button>
 
-                      <div className="p-2 sm:p-4 flex flex-col flex-1">
-                        <Link href={`/products/${product.slug.current}`} className="block min-h-[2rem] sm:min-h-[3rem]">
+                      <div className="p-2 sm:p-3 flex flex-col flex-1">
+                        <Link href={`/products/${product.slug.current}`} className="block min-h-[1.8rem] sm:min-h-[2.45rem]">
                           <h3 className="font-serif text-xs sm:text-base text-charcoal hover:text-gold transition-colors line-clamp-2 leading-snug">
                             {product.displayName || product.name}
                           </h3>
                         </Link>
-                        <div className="flex gap-1 mt-1 flex-wrap min-h-[1.2rem] sm:min-h-[1.75rem] content-start">
+                        <div className="flex gap-1 mt-1 flex-wrap min-h-[1.05rem] sm:min-h-[1.35rem] content-start">
                           {product.mainStoneType && product.mainStoneType !== 'None' && (
                             <span
                               className="text-[0.55rem] sm:text-[0.6rem] px-1 sm:px-1.5 py-0.5 rounded"
@@ -824,7 +824,7 @@ export default function ProductsClient({
                             </span>
                           )}
                         </div>
-                        <div className="flex items-end justify-between mt-1 sm:mt-2 min-h-[2rem] sm:min-h-[2.4rem]">
+                        <div className="flex items-end justify-between mt-1 min-h-[1.75rem] sm:min-h-[2rem]">
                           <div>
                             {salePrice ? (
                               <>
@@ -846,7 +846,7 @@ export default function ProductsClient({
                           </span>
                         </div>
                         {/* Always-visible Add to Bag */}
-                        <div className="mt-auto pt-1.5 sm:pt-3">
+                        <div className="mt-auto pt-1 sm:pt-2">
                           <button
                             onClick={(e) => {
                               e.preventDefault();
@@ -869,7 +869,7 @@ export default function ProductsClient({
                                 ? `In bag — ${product.displayName || product.name}`
                                 : `Add to bag — ${product.displayName || product.name}`
                             }
-                            className={`w-full text-center py-2 sm:py-2.5 min-h-[38px] sm:min-h-[44px] rounded transition-all text-[0.68rem] sm:text-xs uppercase tracking-[0.14em] sm:tracking-[0.16em] font-semibold ${
+                            className={`w-full text-center py-1.5 sm:py-2 min-h-[34px] sm:min-h-[38px] rounded transition-all text-[0.66rem] sm:text-[0.72rem] uppercase tracking-[0.14em] sm:tracking-[0.16em] font-semibold ${
                               atMax
                                 ? 'bg-charcoal/10 text-charcoal/40 cursor-not-allowed text-xs uppercase tracking-wider font-semibold'
                                 : 'btn-gold'

@@ -82,7 +82,7 @@ function ProductsGridSkeleton() {
           {/* Product grid */}
           <div className="flex-1 min-w-0">
             <div className="h-5 w-20 bg-[#F5F0E8] rounded animate-pulse mb-4" />
-            <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-5 xl:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-4 xl:gap-5">
               {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
           </div>
