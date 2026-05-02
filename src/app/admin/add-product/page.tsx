@@ -230,9 +230,7 @@ export default function AddProductPage() {
 
       const res = await fetch('/api/admin/products', {
         method: 'POST',
-        headers: {
-            'Authorization': 'Basic ' + btoa('admin:Good@luck123'),
-        },
+        credentials: 'same-origin',
         body: formData,
       });
 

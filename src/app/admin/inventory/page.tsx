@@ -188,9 +188,7 @@ export default function InventoryPage() {
     try {
       const res = await fetch(`/api/admin/products/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': 'Basic ' + btoa('admin:Good@luck123'),
-        },
+        credentials: 'same-origin',
       });
       if (res.ok) {
         setProducts((prev) => prev.filter((p) => p._id !== id));

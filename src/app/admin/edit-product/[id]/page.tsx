@@ -125,7 +125,7 @@ export default function EditProductPage() {
     async function fetchProduct() {
       try {
         const res = await fetch(`/api/admin/products/${id}`, {
-          headers: { 'Authorization': 'Basic ' + btoa('admin:Good@luck123') },
+          credentials: 'same-origin',
         });
         if (res.ok) {
           const data = await res.json();
@@ -235,7 +235,7 @@ export default function EditProductPage() {
 
       const res = await fetch(`/api/admin/products/${id}`, {
         method: 'PATCH',
-        headers: { 'Authorization': 'Basic ' + btoa('admin:Good@luck123') },
+        credentials: 'same-origin',
         body: formData,
       });
 
