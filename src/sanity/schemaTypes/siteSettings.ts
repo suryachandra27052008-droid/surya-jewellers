@@ -50,5 +50,40 @@ export const siteSettings = defineType({
       title: 'Show Sale Banner',
       type: 'boolean',
     }),
+    defineField({
+      name: 'couponEnabled',
+      title: 'Enable Personal Coupon',
+      type: 'boolean',
+    }),
+    defineField({
+      name: 'couponCode',
+      title: 'Coupon Code',
+      type: 'string',
+    }),
+    defineField({
+      name: 'couponName',
+      title: 'Coupon Label',
+      type: 'string',
+    }),
+    defineField({
+      name: 'couponDiscountPercent',
+      title: 'Coupon Discount (%)',
+      type: 'number',
+    }),
+    defineField({
+      name: 'couponCustomerEmail',
+      title: 'Assigned Customer Email',
+      type: 'string',
+    }),
+    defineField({
+      name: 'couponStartDate',
+      title: 'Coupon Start Date',
+      type: 'string',
+    }),
+    defineField({
+      name: 'couponEndDate',
+      title: 'Coupon End Date',
+      type: 'string',
+    }),
   ],
 });

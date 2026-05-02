@@ -36,6 +36,16 @@ interface SaleSettings {
   showSaleBanner: boolean;
 }
 
+interface CouponSettings {
+  couponEnabled: boolean;
+  couponCode: string;
+  couponName: string;
+  couponDiscountPercent: number;
+  couponCustomerEmail: string;
+  couponStartDate: string;
+  couponEndDate: string;
+}
+
 // ── Shared UI ──────────────────────────────────────────────────────────────
 function SectionCard({
   icon: Icon,
@@ -143,6 +153,16 @@ const DEFAULT_SALE: SaleSettings = {
   showSaleBanner: true,
 };
 
+const DEFAULT_COUPON: CouponSettings = {
+  couponEnabled: false,
+  couponCode: '',
+  couponName: 'Personal Coupon',
+  couponDiscountPercent: 10,
+  couponCustomerEmail: '',
+  couponStartDate: '',
+  couponEndDate: '',
+};
+
 function load<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
   try {
@@ -159,11 +179,13 @@ export default function SettingsPage() {
   const [shipping, setShipping] = useState<ShippingSettings>(DEFAULT_SHIPPING);
   const [social, setSocial] = useState<SocialSettings>(DEFAULT_SOCIAL);
   const [sale, setSale] = useState<SaleSettings>(DEFAULT_SALE);
+  const [coupon, setCoupon] = useState<CouponSettings>(DEFAULT_COUPON);
 
   const [storeSaved, setStoreSaved] = useState(false);
   const [shippingSaved, setShippingSaved] = useState(false);
   const [socialSaved, setSocialSaved] = useState(false);
   const [saleSaved, setSaleSaved] = useState(false);
+  const [couponSaved, setCouponSaved] = useState(false);
 
   const [clearConfirm, setClearConfirm] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -199,6 +221,21 @@ export default function SettingsPage() {
         setShipping(load('sj_shipping', DEFAULT_SHIPPING));
         setSale(load('sj_sale', DEFAULT_SALE));
       });
+
+    fetch('/api/admin/coupon', { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => {
+        setCoupon({
+          couponEnabled: data.couponEnabled ?? DEFAULT_COUPON.couponEnabled,
+          couponCode: data.couponCode ?? DEFAULT_COUPON.couponCode,
+          couponName: data.couponName ?? DEFAULT_COUPON.couponName,
+          couponDiscountPercent: data.couponDiscountPercent ?? DEFAULT_COUPON.couponDiscountPercent,
+          couponCustomerEmail: data.couponCustomerEmail ?? DEFAULT_COUPON.couponCustomerEmail,
+          couponStartDate: data.couponStartDate ?? DEFAULT_COUPON.couponStartDate,
+          couponEndDate: data.couponEndDate ?? DEFAULT_COUPON.couponEndDate,
+        });
+      })
+      .catch(() => setCoupon(load('sj_coupon', DEFAULT_COUPON)));
   }, []);
 
   function save<T>(key: string, value: T, setSaved: (v: boolean) => void) {
@@ -236,6 +273,25 @@ export default function SettingsPage() {
     });
     setSaleSaved(true);
     setTimeout(() => setSaleSaved(false), 2500);
+  }
+
+  async function saveCoupon() {
+    const cleanCoupon = {
+      ...coupon,
+      couponCode: coupon.couponCode.trim().toUpperCase().replace(/\s+/g, ''),
+      couponCustomerEmail: coupon.couponCustomerEmail.trim().toLowerCase(),
+      couponDiscountPercent: Math.max(0, Math.min(90, Number(coupon.couponDiscountPercent) || 0)),
+    };
+    setCoupon(cleanCoupon);
+    localStorage.setItem('sj_coupon', JSON.stringify(cleanCoupon));
+    await fetch('/api/admin/coupon', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cleanCoupon),
+    });
+    setCouponSaved(true);
+    setTimeout(() => setCouponSaved(false), 2500);
   }
 
   async function handleClearProducts() {
@@ -492,6 +548,86 @@ export default function SettingsPage() {
         </div>
         <div className="mt-5 flex justify-end">
           <SaveButton onClick={saveSale} saved={saleSaved} />
+        </div>
+      </SectionCard>
+
+      <SectionCard icon={Percent} title="Personal Coupon Code">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-3 bg-amber-50/60 rounded-lg">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Checkout Coupon</p>
+              <p className="text-xs text-gray-500">Create one private code, optionally locked to a customer email</p>
+            </div>
+            <button
+              onClick={() => setCoupon({ ...coupon, couponEnabled: !coupon.couponEnabled })}
+              className="flex-shrink-0"
+              aria-label={coupon.couponEnabled ? 'Disable coupon' : 'Enable coupon'}
+            >
+              {coupon.couponEnabled ? (
+                <ToggleRight className="w-8 h-8 text-[#c9a84c]" />
+              ) : (
+                <ToggleLeft className="w-8 h-8 text-gray-300" />
+              )}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="Coupon Code">
+              <Input
+                value={coupon.couponCode}
+                placeholder="SURYA20"
+                onChange={(e) => setCoupon({ ...coupon, couponCode: e.target.value.toUpperCase().replace(/\s+/g, '') })}
+              />
+            </Field>
+            <Field label="Label">
+              <Input
+                value={coupon.couponName}
+                placeholder="Pooja Special"
+                onChange={(e) => setCoupon({ ...coupon, couponName: e.target.value })}
+              />
+            </Field>
+            <Field label="Discount (%)">
+              <Input
+                type="number"
+                min={0}
+                max={90}
+                value={coupon.couponDiscountPercent}
+                onChange={(e) => setCoupon({ ...coupon, couponDiscountPercent: Number(e.target.value) })}
+              />
+            </Field>
+            <Field label="Customer Email (optional)">
+              <Input
+                type="email"
+                value={coupon.couponCustomerEmail}
+                placeholder="customer@example.com"
+                onChange={(e) => setCoupon({ ...coupon, couponCustomerEmail: e.target.value })}
+              />
+            </Field>
+            <Field label="Start Date">
+              <Input
+                type="date"
+                value={coupon.couponStartDate}
+                onChange={(e) => setCoupon({ ...coupon, couponStartDate: e.target.value })}
+              />
+            </Field>
+            <Field label="End Date">
+              <Input
+                type="date"
+                value={coupon.couponEndDate}
+                onChange={(e) => setCoupon({ ...coupon, couponEndDate: e.target.value })}
+              />
+            </Field>
+          </div>
+
+          <div className="rounded-lg bg-gray-50 p-3 text-xs text-gray-500">
+            Preview:{' '}
+            {coupon.couponEnabled && coupon.couponCode
+              ? `${coupon.couponCode.trim().toUpperCase()} gives ${Math.max(0, Math.min(90, Number(coupon.couponDiscountPercent) || 0))}% off${coupon.couponCustomerEmail ? ` for ${coupon.couponCustomerEmail.trim().toLowerCase()}` : ''}`
+              : 'Coupon disabled'}
+          </div>
+        </div>
+        <div className="mt-5 flex justify-end">
+          <SaveButton onClick={saveCoupon} saved={couponSaved} />
         </div>
       </SectionCard>
 

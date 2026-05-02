@@ -9,6 +9,7 @@ import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice, CURRENCIES } from '@/stores/currency-store';
 import { getShipping, isPromoActive, FREE_SHIPPING_THRESHOLD } from '@/lib/shipping';
 import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
+import type { ActiveCoupon } from '@/lib/coupon';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 
 declare global {
@@ -26,6 +27,10 @@ export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saleSettings, setSaleSettings] = useState<SeasonalSaleSettings | null>(null);
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<ActiveCoupon | null>(null);
+  const [couponMessage, setCouponMessage] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -65,15 +70,43 @@ export default function CheckoutPage() {
 
   const subtotal = getSubtotal();
   const saleTotals = calculateSaleTotals(subtotal, saleSettings);
-  const { sale, discountAmount, discountedSubtotal } = saleTotals;
+  const { sale } = saleTotals;
+  const couponDiscountAmount = appliedCoupon ? Math.round((subtotal * appliedCoupon.percent) / 100) : 0;
+  const couponIsBetter = appliedCoupon && couponDiscountAmount >= saleTotals.discountAmount;
+  const activeDiscount: {
+    name: string;
+    percent: number;
+    amount: number;
+    code?: string;
+    type: 'coupon' | 'sale';
+  } | null = couponIsBetter
+    ? {
+        name: `${appliedCoupon.name} (${appliedCoupon.code})`,
+        percent: appliedCoupon.percent,
+        amount: couponDiscountAmount,
+        code: appliedCoupon.code,
+        type: 'coupon',
+      }
+    : sale
+      ? {
+          name: sale.name,
+          percent: sale.percent,
+          amount: saleTotals.discountAmount,
+          type: 'sale',
+        }
+      : null;
+  const discountAmount = activeDiscount?.amount ?? 0;
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
   const shipping = getShipping(discountedSubtotal);
   const total = discountedSubtotal + shipping;
-  const discountSnapshot = sale
+  const discountSnapshot = activeDiscount && discountAmount > 0
     ? {
-        name: sale.name,
-        percent: sale.percent,
+        name: activeDiscount.name,
+        percent: activeDiscount.percent,
         amount: discountAmount,
         subtotalBeforeDiscount: subtotal,
+        code: activeDiscount.code,
+        type: activeDiscount.type,
       }
     : null;
 
@@ -106,6 +139,47 @@ export default function CheckoutPage() {
     );
   };
 
+  const validateCoupon = async (code = couponInput, quiet = false) => {
+    const cleanCode = code.trim().toUpperCase();
+    if (!cleanCode) {
+      setCouponMessage('Enter a coupon code.');
+      return false;
+    }
+
+    setCouponLoading(true);
+    if (!quiet) setCouponMessage('');
+
+    try {
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: cleanCode,
+          email: form.email,
+          subtotal,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setAppliedCoupon(null);
+        setCouponMessage(data.error || 'Coupon could not be applied.');
+        return false;
+      }
+
+      setAppliedCoupon(data.coupon);
+      setCouponInput(data.coupon.code);
+      setCouponMessage(`${data.coupon.name} applied: ${data.coupon.percent}% off.`);
+      return true;
+    } catch {
+      setAppliedCoupon(null);
+      setCouponMessage('Coupon check failed. Please try again.');
+      return false;
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   const handlePayment = async () => {
     if (!isFormValid()) {
       alert('Please fill in all required fields.');
@@ -115,6 +189,14 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
+      if (appliedCoupon) {
+        const stillValid = await validateCoupon(appliedCoupon.code, true);
+        if (!stillValid) {
+          setLoading(false);
+          return;
+        }
+      }
+
       const convertedTotalRazorpay = total * CURRENCIES[currency].rate;
 
       const res = await fetch('/api/create-order', {
@@ -305,15 +387,51 @@ export default function CheckoutPage() {
 
                   <div className="h-[1px] bg-cream-dark mb-4" />
 
+                  <div className="mb-4 rounded border border-cream-dark bg-cream/40 p-3">
+                    <label className="block text-[0.65rem] tracking-[0.15em] uppercase text-charcoal-muted mb-2">
+                      Coupon Code
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        value={couponInput}
+                        onChange={(e) => {
+                          setCouponInput(e.target.value.toUpperCase().replace(/\s+/g, ''));
+                          if (appliedCoupon) setAppliedCoupon(null);
+                          if (couponMessage) setCouponMessage('');
+                        }}
+                        className="input-field h-10 text-sm uppercase"
+                        placeholder="SURYA20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => validateCoupon()}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="px-4 text-xs tracking-[0.12em] uppercase bg-charcoal text-white hover:bg-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {couponLoading ? 'Checking' : 'Apply'}
+                      </button>
+                    </div>
+                    {couponMessage && (
+                      <p className={`mt-2 text-xs ${appliedCoupon ? 'text-green-700' : 'text-red-600'}`}>
+                        {couponMessage}
+                      </p>
+                    )}
+                    {appliedCoupon && sale && saleTotals.discountAmount > couponDiscountAmount && (
+                      <p className="mt-2 text-xs text-charcoal-muted">
+                        Seasonal sale gives a better discount, so it will be used instead.
+                      </p>
+                    )}
+                  </div>
+
                   {/* Totals */}
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-charcoal-muted">Subtotal</span>
                       <span className="text-charcoal">{formatPrice(subtotal, currency)}</span>
                     </div>
-                    {sale && discountAmount > 0 && (
+                    {activeDiscount && discountAmount > 0 && (
                       <div className="flex justify-between text-green-700">
-                        <span>{sale.name} {sale.percent}%</span>
+                        <span>{activeDiscount?.name} {activeDiscount?.percent}%</span>
                         <span>-{formatPrice(discountAmount, currency)}</span>
                       </div>
                     )}
