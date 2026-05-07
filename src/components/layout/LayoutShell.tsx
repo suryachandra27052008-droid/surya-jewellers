@@ -38,7 +38,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
       <main className="flex-1">{children}</main>
       <Footer />
       {/* Payment & Trust Marquee Banner */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 overflow-hidden" style={{ backgroundColor: '#1a1a1a', borderTop: '1px solid #2d2a1e' }}>
+      <div className="relative z-10 overflow-hidden md:fixed md:bottom-0 md:left-0 md:right-0 md:z-40" style={{ backgroundColor: '#1a1a1a', borderTop: '1px solid #2d2a1e' }}>
         <div className="flex whitespace-nowrap animate-marquee py-2">
           {[0, 1].map((copy) => (
             <span key={copy} className="flex items-center gap-0 text-[11px] tracking-wide" style={{ color: '#c9a84c' }}>
@@ -74,7 +74,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
         href="https://wa.me/919983939306"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-28 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg md:bottom-28"
         style={{ backgroundColor: '#25D366' }}
         aria-label="Chat on WhatsApp"
       >
