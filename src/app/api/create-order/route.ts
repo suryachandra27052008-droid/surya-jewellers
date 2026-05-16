@@ -1,24 +1,15 @@
 import { NextResponse } from 'next/server';
-
-type SupportedCurrency = 'INR' | 'USD' | 'GBP' | 'JPY' | 'CNY';
-
-// JPY has no decimal subunits; all others use paise/cents/pence × 100
-const SUBUNIT_MULTIPLIER: Record<SupportedCurrency, number> = {
-  INR: 100,
-  USD: 100,
-  GBP: 100,
-  JPY: 1,
-  CNY: 100,
-};
+import { priceCheckout, toPaymentAmount, type CheckoutCurrency } from '@/lib/server/checkout-pricing';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const amount: number = body.amount; // already in target currency (converted by frontend)
-    const currency: SupportedCurrency = body.currency ?? 'INR';
-
-    const multiplier = SUBUNIT_MULTIPLIER[currency] ?? 100;
-    const razorpayAmount = Math.round(amount * multiplier);
+    const currency: CheckoutCurrency = body.currency ?? 'INR';
+    const pricing = await priceCheckout(body.items, {
+      couponCode: body.couponCode,
+      customerEmail: body.customerEmail,
+    });
+    const paymentAmount = toPaymentAmount(pricing.total, currency);
 
     const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -26,8 +17,9 @@ export async function POST(request: Request) {
     if (!keyId || keyId === 'rzp_test_placeholder' || !keySecret || keySecret === 'placeholder_secret') {
       return NextResponse.json({
         id: null,
-        amount: razorpayAmount,
-        currency,
+        amount: paymentAmount.subunits,
+        currency: paymentAmount.currency,
+        pricing,
         demo: true,
         message: 'Razorpay not configured. Running in demo mode.',
       });
@@ -41,20 +33,21 @@ export async function POST(request: Request) {
     });
 
     const order = await razorpay.orders.create({
-      amount: razorpayAmount,
-      currency,
+      amount: paymentAmount.subunits,
+      currency: paymentAmount.currency,
       receipt: `receipt_${Date.now()}`,
       notes: {
         website: 'https://www.suryajewellers.com',
+        serverPricedTotalInr: String(pricing.total),
       },
     });
 
-    return NextResponse.json(order);
+    return NextResponse.json({ ...order, pricing });
   } catch (error) {
     console.error('Order creation error:', error);
     return NextResponse.json(
       { error: 'Failed to create order', details: String(error) },
-      { status: 500 }
+      { status: 400 }
     );
   }
 }

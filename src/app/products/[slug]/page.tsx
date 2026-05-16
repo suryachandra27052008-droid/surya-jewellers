@@ -33,6 +33,28 @@ const PRODUCT_QUERY = `
   }
 `;
 
+type ProductDoc = {
+  _id: string;
+  name?: string;
+  slug?: string;
+  sku?: string;
+  price?: number;
+  category?: string;
+  silverWeight?: number;
+  grossWeight?: number;
+  mainStoneType?: string;
+  totalCaratWeight?: number;
+  diamondWeight?: number;
+  diamondColorClarity?: string;
+  secondaryStoneType?: string;
+  csWeight?: number;
+  barcode?: string;
+  images?: string[];
+  description?: string;
+  inStock?: boolean;
+  stockQuantity?: number;
+};
+
 // Always fetch fresh product data so image updates from bulk upload are instant.
 export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
@@ -60,21 +82,21 @@ export async function generateStaticParams() {
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  let products: any[] = [];
+  let products: ProductDoc[] = [];
   try {
     // Use writeClient (no CDN) so products uploaded after the last build are
     // immediately visible without waiting for CDN cache expiry.
-    products = await writeClient.fetch(PRODUCT_QUERY, {}, { cache: 'no-store' });
+    products = await writeClient.fetch<ProductDoc[]>(PRODUCT_QUERY, {}, { cache: 'no-store' });
   } catch {
     // fall through to not-found
   }
 
   const slugLower = slug.toLowerCase();
-  const raw = products.find((p: any) => getProductCanonicalSlug(p) === slug)
-    ?? products.find((p: any) => p.slug === slug)
+  const raw = products.find((p) => getProductCanonicalSlug(p) === slug)
+    ?? products.find((p) => p.slug === slug)
     // Direct SKU match — enables /products/RNG17288 style URLs
-    ?? products.find((p: any) => (p.sku || '').toLowerCase() === slugLower)
-    ?? products.find((p: any) =>
+    ?? products.find((p) => (p.sku || '').toLowerCase() === slugLower)
+    ?? products.find((p) =>
         (p.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === slug
       );
 
@@ -94,19 +116,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     _id: raw._id,
     name: getProductDisplayName(raw),
     slug: getProductCanonicalSlug(raw),
-    sku: raw.sku,
-    price: raw.price,
+    sku: raw.sku || '',
+    price: raw.price || 0,
     category: raw.category || 'Rings',
     silverWeight: raw.silverWeight || 0,
     grossWeight: raw.grossWeight || 0,
-    mainStoneType: raw.mainStoneType || 'None',
+    mainStoneType: correctSpelling(raw.mainStoneType || 'None'),
     totalCaratWeight: raw.totalCaratWeight || 0,
     diamondColorClarity: raw.diamondColorClarity || '',
     description: correctSpelling(raw.description || ''),
-    inStock: raw.inStock,
+    inStock: raw.inStock ?? true,
     stockQuantity: raw.stockQuantity ?? 1,
     images: raw.images || [],
-    secondaryStoneType: raw.secondaryStoneType || '',
+    secondaryStoneType: correctSpelling(raw.secondaryStoneType || ''),
     csWeight: Number(raw.csWeight) || 0,
     diamondWeight: Number(raw.diamondWeight) > 0
       ? Number(raw.diamondWeight)
@@ -201,15 +223,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   };
 
   const relatedProducts: RelatedProduct[] = products
-    .filter((p: any) => p._id !== raw._id && (p.category || 'Rings') === (raw.category || 'Rings'))
+    .filter((p) => p._id !== raw._id && (p.category || 'Rings') === (raw.category || 'Rings'))
     .slice(0, 3)
-    .map((p: any) => ({
+    .map((p) => ({
       _id: p._id,
-      name: correctSpelling(p.name),
+      name: correctSpelling(p.name || ''),
       slug: getProductCanonicalSlug(p),
-      price: p.price,
+      price: p.price || 0,
       images: p.images || [],
-      mainStoneType: p.mainStoneType || 'None',
+      mainStoneType: correctSpelling(p.mainStoneType || 'None'),
       category: p.category || 'Rings',
     }));
 

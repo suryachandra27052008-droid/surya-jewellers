@@ -24,7 +24,20 @@ interface Product {
   category: string;
   mainStoneType: string;
   silverWeight: number;
-  status: 'In Stock' | 'Low Stock' | 'Out of Stock';
+  status: 'In Stock' | 'Low Stock' | 'Out of Stock' | 'Sold Out';
+  image?: string;
+}
+
+interface ApiProduct {
+  _id: string;
+  name: string;
+  sku: string;
+  price: number;
+  category: string;
+  mainStoneType?: string;
+  silverWeight?: number;
+  inStock?: boolean;
+  images?: string[];
   image?: string;
 }
 
@@ -69,8 +82,8 @@ export default function InventoryPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Parse failed');
       setBulkProducts(data.products);
-    } catch (err: any) {
-      setBulkError(err.message || 'Failed to parse Excel file');
+    } catch (err: unknown) {
+      setBulkError((err as Error).message || 'Failed to parse Excel file');
     } finally {
       setBulkParsing(false);
     }
@@ -95,7 +108,7 @@ export default function InventoryPage() {
       const productsRes = await fetch('/api/admin/products');
       if (productsRes.ok) {
         const pData = await productsRes.json();
-        const mapped = pData.products.map((p: any) => ({
+        const mapped = pData.products.map((p: ApiProduct) => ({
           _id: p._id,
           name: p.name,
           sku: p.sku,
@@ -108,8 +121,8 @@ export default function InventoryPage() {
         }));
         setProducts(mapped.reverse());
       }
-    } catch (err: any) {
-      setBulkError(err.message || 'Failed to upload products');
+    } catch (err: unknown) {
+      setBulkError((err as Error).message || 'Failed to upload products');
     } finally {
       setBulkConfirming(false);
     }
@@ -122,7 +135,7 @@ export default function InventoryPage() {
         if (res.ok) {
           const data = await res.json();
           // Map API products to match local Product interface
-          const apiProducts = data.products.map((p: any) => ({
+          const apiProducts = data.products.map((p: ApiProduct) => ({
             _id: p._id,
             name: p.name,
             sku: p.sku,

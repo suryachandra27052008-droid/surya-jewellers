@@ -15,15 +15,23 @@ const TYPO_PATTERNS = [
   { pattern: /\bamethist\b/g, replacement: 'amethyst' },
   { pattern: /\bShaphire\b/g, replacement: 'Sapphire' },
   { pattern: /\bshaphire\b/g, replacement: 'sapphire' },
+  { pattern: /\bSaphire\b/g, replacement: 'Sapphire' },
+  { pattern: /\bsaphire\b/g, replacement: 'sapphire' },
+  { pattern: /\bKynite\b/g, replacement: 'Kyanite' },
+  { pattern: /\bkynite\b/g, replacement: 'kyanite' },
   { pattern: /\bMalti\b/g, replacement: 'Multi' },
   { pattern: /\bmalti\b/g, replacement: 'multi' },
   { pattern: /\bCristal\b/g, replacement: 'Crystal' },
   { pattern: /\bcristal\b/g, replacement: 'crystal' },
+  { pattern: /\bApppatide\b/g, replacement: 'Apatite' },
+  { pattern: /\bapppatide\b/g, replacement: 'apatite' },
+  { pattern: /\bKunzait\b/g, replacement: 'Kunzite' },
+  { pattern: /\bkunzait\b/g, replacement: 'kunzite' },
   { pattern: /\bearringss\b/gi, replacement: 'Earrings' },
   { pattern: /\bearring\b/gi, replacement: 'Earrings' },
 ];
 
-const TYPO_DETECTOR = /\b(emrald|amethist|shaphire|malti|cristal|earringss)\b/i;
+const TYPO_DETECTOR = /\b(emrald|amethist|shaphire|saphire|kynite|malti|cristal|apppatide|kunzait|earringss)\b/i;
 
 export const SITE_URL = 'https://www.suryajewellers.com';
 
@@ -123,7 +131,7 @@ export function getProductMetaDescription(product: ProductSeoInput) {
   const name = getProductDisplayName(product);
   const sku = getSku(product);
   return truncateDescription(
-    `Shop ${name} in hallmarked 92.5 sterling silver from Surya Jewellers Jaipur. Includes Certificate of Authenticity${sku ? `, SKU ${sku}` : ''}.`
+    `Shop ${name} in hallmarked 92.5 sterling silver from Surya Jewellers Jaipur${sku ? `, SKU ${sku}` : ''}.`
   );
 }
 

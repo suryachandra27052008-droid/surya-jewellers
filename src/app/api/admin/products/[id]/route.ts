@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { writeClient, client } from '@/lib/sanity/client';
 
+type ProductUpdateBody = Record<string, unknown>;
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -44,7 +46,7 @@ export async function PATCH(
     };
 
     const contentType = request.headers.get('content-type') || '';
-    let body: any;
+    let body: ProductUpdateBody;
     let keptImageRefs: { _key: string; assetId: string }[] = [];
     let newImageFiles: File[] = [];
 
@@ -77,7 +79,7 @@ export async function PATCH(
       body = await request.json();
     }
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       name: body.name,
       sku: body.sku,
       price: Number(body.price),
@@ -90,7 +92,7 @@ export async function PATCH(
       csWeight: safeNum(body.csWeight),
       diamondWeight: safeNum(body.diamondWeight),
       grossWeight: safeNum(body.grossWeight),
-      allStones: body.allStones ? JSON.parse(body.allStones) : undefined,
+      allStones: body.allStones ? JSON.parse(String(body.allStones)) : undefined,
       barcode: body.barcode || undefined,
       description: body.description,
       stockQuantity: safeNum(body.stockQuantity),
@@ -100,12 +102,13 @@ export async function PATCH(
 
     const categoryName = body.categoryName ?? body.category;
     if (categoryName) {
-      const categorySlug = slugify(categoryName);
+      const categoryNameText = String(categoryName);
+      const categorySlug = slugify(categoryNameText);
       let category = await writeClient.fetch(`*[_type == "category" && slug.current == $slug][0]`, { slug: categorySlug });
       if (!category) {
         category = await writeClient.create({
           _type: 'category',
-          name: categoryName,
+          name: categoryNameText,
           slug: { _type: 'slug', current: categorySlug },
         });
       }

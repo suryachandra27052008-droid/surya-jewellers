@@ -1,6 +1,14 @@
-export async function POST(request) {
+import { priceCheckout, toPaymentAmount, type CheckoutCurrency } from '@/lib/server/checkout-pricing';
+
+export async function POST(request: Request) {
   try {
-    const { amount, currency } = await request.json();
+    const body = await request.json();
+    const currency: CheckoutCurrency = body.currency ?? 'USD';
+    const pricing = await priceCheckout(body.items, {
+      couponCode: body.couponCode,
+      customerEmail: body.customerEmail,
+    });
+    const paymentAmount = toPaymentAmount(pricing.total, currency);
 
     const auth = Buffer.from(
       `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_SECRET}`
@@ -9,15 +17,15 @@ export async function POST(request) {
     const tokenRes = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${auth}`,
+        Authorization: `Basic ${auth}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: 'grant_type=client_credentials',
     });
     const tokenData = await tokenRes.json();
-    const access_token = tokenData.access_token;
+    const accessToken = tokenData.access_token;
 
-    if (!access_token) {
+    if (!accessToken) {
       console.error('PayPal token error:', tokenData);
       return Response.json({ error: 'Failed to get PayPal access token' }, { status: 500 });
     }
@@ -25,15 +33,21 @@ export async function POST(request) {
     const orderRes = await fetch('https://api-m.paypal.com/v2/checkout/orders', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${access_token}`,
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         intent: 'CAPTURE',
-        purchase_units: [{
-          amount: { currency_code: currency || 'USD', value: String(amount) },
-          description: 'Surya Jewellers — Sterling Silver Jewelry',
-        }],
+        purchase_units: [
+          {
+            amount: {
+              currency_code: paymentAmount.currency,
+              value: paymentAmount.displayValue,
+            },
+            description: 'Surya Jewellers - Sterling Silver Jewelry',
+            custom_id: `server_total_inr_${pricing.total}`,
+          },
+        ],
         application_context: {
           return_url: 'https://www.suryajewellers.com/order-success?payment=paypal',
           cancel_url: 'https://www.suryajewellers.com/checkout',
@@ -49,9 +63,9 @@ export async function POST(request) {
       return Response.json({ error: 'Failed to create PayPal order' }, { status: 500 });
     }
 
-    return Response.json({ id: order.id, links: order.links });
+    return Response.json({ id: order.id, links: order.links, pricing });
   } catch (err) {
     console.error('PayPal create-order exception:', err);
-    return Response.json({ error: 'Internal server error' }, { status: 500 });
+    return Response.json({ error: String(err) }, { status: 400 });
   }
 }

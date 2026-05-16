@@ -77,8 +77,8 @@ export default function BulkUploadPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to parse file');
       setProducts(data.products);
       if (data.debugInfo) setDebugInfo(data.debugInfo);
-    } catch (err: any) {
-      setError(err.message || 'Could not read Excel file');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Could not read Excel file');
     } finally {
       setParsing(false);
     }
@@ -100,8 +100,8 @@ export default function BulkUploadPage() {
       setProducts([]);
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (err: any) {
-      setError(err.message || 'Could not save products');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Could not save products');
     } finally {
       setConfirming(false);
     }

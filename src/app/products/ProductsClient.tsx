@@ -10,6 +10,7 @@ import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { useWishlistStore } from '@/stores/wishlist-store';
 import {
+  correctSpelling,
   getProductCanonicalSlug,
   getProductDisplayName,
   getProductImageAlt,
@@ -94,14 +95,15 @@ const stoneColors: Record<string, string> = {
   'Rose Quartz': '#F4C2C2',
   Garnet: '#7B1818',
   Citrine: '#E4A00E',
-  Amethist: '#9C27B0',
   Pearl: '#F5F5DC',
   'Lemon Topaz': '#FFF44F',
   'London Topaz': '#2C5A8F',
   'Green Topaz': '#00A86B',
   Larimar: '#ADD8E6',
   'Moon Stone': '#D6E4F0',
-  Kunzait: '#FF91AF',
+  Kunzite: '#FF91AF',
+  Kyanite: '#3F51B5',
+  Apatite: '#31A9C8',
   Rhodolite: '#A23B72',
 };
 
@@ -130,8 +132,8 @@ function mapProduct(p: InitialProduct, idx: number): ProductListItem {
       name: p.category || 'Rings',
       slug: { current: (p.category || 'rings').toLowerCase() },
     },
-    mainStoneType: p.mainStoneType || 'None',
-    secondaryStoneType: p.secondaryStoneType || '',
+    mainStoneType: correctSpelling(p.mainStoneType || 'None'),
+    secondaryStoneType: correctSpelling(p.secondaryStoneType || ''),
     silverWeight: p.silverWeight || 0,
     images: p.images ?? [],
     inStock: p.inStock,
@@ -855,7 +857,7 @@ export default function ProductsClient({
                               if (atMax) return;
                               addItem({
                                 _id: product._id,
-                                name: product.name,
+                                name: product.displayName || product.name,
                                 price: product.price,
                                 image: product.images?.[0] || '',
                                 slug: product.slug.current,

@@ -16,13 +16,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 const ALL_STONES = [
-  "Alexander", "Amethist", "Ametrine", "Apppatide", "Aquamarine",
+  "Alexandrite", "Amethyst", "Ametrine", "Apatite", "Aquamarine",
   "B.S DF", "Big Diamond", "Black Opal", "Black Rainbow", "Black Spinel",
   "Blue Opal", "Blue Sapphire", "Blue Topaz", "Cats Eye", "Citrine",
   "Color Opal", "Color Stone", "Coral", "Coral Carbeen", "Coral Flower",
   "Crystal", "Emerald", "Emerald Beads", "Garnet", "Gomed",
-  "Green Amethist", "Green Opal", "Green Topaz", "Honey Quartz",
-  "Italian Coral", "Japanese Coral", "Kunzait", "Kyanite",
+  "Green Amethyst", "Green Opal", "Green Topaz", "Honey Quartz",
+  "Italian Coral", "Japanese Coral", "Kunzite", "Kyanite",
   "Lemon Topaz", "London Topaz", "Lapis Lazuli", "Larimar",
   "Lavender Spinel", "Lemon Quartz", "Multi Sapphire", "Mix Beads",
   "Moon Stone", "Morganite", "Mozambique Heated Ruby", "Munga",

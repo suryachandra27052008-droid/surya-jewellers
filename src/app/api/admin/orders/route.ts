@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import { client, writeClient } from '@/lib/sanity/client';
 import { sendOrderStatusEmail } from '@/lib/email';
 
+interface AdminOrder {
+  total?: number;
+  customer?: {
+    email?: string;
+  };
+}
+
 export async function GET() {
   try {
     const orders = await client.fetch(
@@ -23,7 +30,7 @@ export async function GET() {
       { cache: 'no-store' }
     );
 
-    const totalRevenue = orders.reduce((sum: number, o: any) => sum + (o.total || 0), 0);
+    const totalRevenue = (orders as AdminOrder[]).reduce((sum: number, o) => sum + (o.total || 0), 0);
     const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
 
     return NextResponse.json({ orders, totalRevenue, avgOrderValue, count: orders.length });
@@ -65,9 +72,9 @@ export async function PATCH(request: Request) {
           await sendOrderStatusEmail(order, status);
           console.log(`[orders] status email (${status}) sent to`, order.customer.email);
         }
-      } catch (emailErr: any) {
+      } catch (emailErr: unknown) {
         // Log but never fail the status update because of email errors
-        console.error('[orders] status email error:', emailErr?.message);
+        console.error('[orders] status email error:', (emailErr as Error)?.message);
       }
     }
 

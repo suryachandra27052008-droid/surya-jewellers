@@ -27,14 +27,12 @@ function generateDescription(product: ProductData): string {
   const caratText = product.totalCaratWeight > 0 ? ` (${product.totalCaratWeight} ct)` : '';
   const clarityText = product.diamondColorClarity ? `, graded ${product.diamondColorClarity}` : '';
   const stonePhrase = stone
-    ? `, set with a natural certified ${stone.toLowerCase()} gemstone${caratText}${clarityText}`
+    ? `, set with ${stone.toLowerCase()} gemstone details listed in the specifications${caratText}${clarityText}`
     : '';
   const weightText = product.silverWeight > 0 ? ` Weighing ${product.silverWeight}g` : '';
   return `This ${product.name} is handcrafted in hallmarked 92.5 sterling silver${stonePhrase}.${weightText ? ' ' + weightText + ', it' : ' It'} is part of our ${product.category} collection, made at our Jaipur workshop by skilled artisans who carry forward generations of traditional silversmithing technique.
 
-The natural gemstone${stone ? 's are' : 's are'} ethically sourced and their type and carat weight are documented in the Certificate of Authenticity that accompanies every Surya Jewellers piece. You receive a piece of jewellery that is not only beautiful but also fully verified — 92.5 sterling silver purity, natural stone origin, and exact weight, all in writing.
-
-Whether worn daily or kept for special occasions, this ${product.category.toLowerCase().replace(/s$/, '')} is built to last. Surya Jewellers provides complimentary lifetime maintenance: bring your piece to our Jaipur showroom anytime for professional cleaning and polishing, free of charge. Founded in 2003, Surya Jewellers has been crafting fine silver jewellery from the gemstone capital of India for over two decades.`;
+The product specifications below show the available source details for this piece, including SKU, silver weight, gemstone fields, barcode, and category wherever they are present in the catalogue data. Founded in 2003, Surya Jewellers has been crafting fine silver jewellery from the gemstone capital of India for over two decades.`;
 }
 
 const categoryEmojis: Record<string, string> = {
@@ -143,6 +141,14 @@ export default function ProductDetailClient({
       : []),
     { label: 'Category', value: product.category },
     ...(product.barcode ? [{ label: 'Barcode', value: product.barcode }] : []),
+  ];
+  const trustItems = [
+    ...(product.sku ? [{ text: `SKU ${product.sku}` }] : []),
+    ...(product.silverWeight > 0 ? [{ text: `${product.silverWeight}g silver weight listed` }] : []),
+    ...(product.mainStoneType && product.mainStoneType !== 'None'
+      ? [{ text: `${product.mainStoneType} stone details listed` }]
+      : []),
+    ...(product.barcode ? [{ text: `Barcode ${product.barcode}` }] : []),
   ];
 
   return (
@@ -390,21 +396,16 @@ export default function ProductDetailClient({
               >
                 {atMaxQty ? '✓ In Your Bag' : addedToCart ? '✓ Added to Bag' : 'Add to Bag'}
               </motion.button>
-
-              {/* Trust indicators */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                {[
-                  { icon: '🛡️', text: 'Certificate of Authenticity' },
-                  { icon: '📜', text: 'Certificate Included' },
-                  { icon: '🔄', text: 'Easy Returns' },
-                  { icon: '💎', text: 'Natural Stones' },
-                ].map((item) => (
-                  <div key={item.text} className="flex items-center gap-2 text-xs text-charcoal-muted">
-                    <span>{item.icon}</span>
-                    {item.text}
-                  </div>
-                ))}
-              </div>
+              {trustItems.length > 0 && (
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  {trustItems.map((item) => (
+                    <div key={item.text} className="flex items-center gap-2 text-xs text-charcoal-muted">
+                      <span className="text-gold">+</span>
+                      {item.text}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </AnimatedSection>
         </div>

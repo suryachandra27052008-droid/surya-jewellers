@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
 import Script from 'next/script';
 import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
-import { useCurrencyStore, formatPrice, CURRENCIES } from '@/stores/currency-store';
+import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { getShipping, isPromoActive, FREE_SHIPPING_THRESHOLD } from '@/lib/shipping';
 import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
 import type { ActiveCoupon } from '@/lib/coupon';
@@ -99,26 +100,18 @@ export default function CheckoutPage() {
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
   const shipping = getShipping(discountedSubtotal);
   const total = discountedSubtotal + shipping;
-  const discountSnapshot = activeDiscount && discountAmount > 0
-    ? {
-        name: activeDiscount.name,
-        percent: activeDiscount.percent,
-        amount: discountAmount,
-        subtotalBeforeDiscount: subtotal,
-        code: activeDiscount.code,
-        type: activeDiscount.type,
-      }
-    : null;
-
   const paypalCurrency = (currency === 'USD' || currency === 'GBP') ? currency : 'USD';
-  const convertedTotal = total * CURRENCIES[paypalCurrency].rate;
+  const checkoutItems = items.map((item) => ({
+    _id: item._id,
+    quantity: item.quantity,
+  }));
 
   if (items.length === 0) {
     return (
       <div className="pt-8 pb-16 text-center">
         <h1 className="font-serif text-3xl text-charcoal mb-4">Your bag is empty</h1>
         <p className="text-charcoal-muted mb-8">Add some pieces before checking out.</p>
-        <a href="/products" className="btn-gold">Shop Now</a>
+        <Link href="/products" className="btn-gold">Shop Now</Link>
       </div>
     );
   }
@@ -197,15 +190,23 @@ export default function CheckoutPage() {
         }
       }
 
-      const convertedTotalRazorpay = total * CURRENCIES[currency].rate;
-
       const res = await fetch('/api/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: convertedTotalRazorpay, currency }),
+        body: JSON.stringify({
+          items: checkoutItems,
+          couponCode: appliedCoupon?.code,
+          customerEmail: form.email,
+          currency,
+        }),
       });
 
       const order = await res.json();
+      if (!res.ok) {
+        alert(order.error || 'Could not create payment order. Please refresh your bag and try again.');
+        setLoading(false);
+        return;
+      }
 
       console.log('Razorpay order currency:', order.currency ?? currency);
 
@@ -240,15 +241,10 @@ export default function CheckoutPage() {
               ...response,
               items: items.map((item) => ({
                 _id: item._id,
-                name: item.name,
-                price: item.price,
                 quantity: item.quantity,
               })),
               customer: form,
-              subtotal,
-              discount: discountSnapshot,
-              shipping,
-              total,
+              couponCode: appliedCoupon?.code,
             }),
           });
 
@@ -273,8 +269,7 @@ export default function CheckoutPage() {
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch {
-      clearCart();
-      router.push('/order-success?id=DEMO-' + Date.now());
+      alert('Payment could not be started. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -509,23 +504,20 @@ export default function CheckoutPage() {
                               JSON.stringify({
                                 items: items.map((item) => ({
                                   _id: item._id,
-                                  name: item.name,
-                                  price: item.price,
                                   quantity: item.quantity,
                                 })),
                                 customer: form,
-                                subtotal,
-                                discount: discountSnapshot,
-                                shipping,
-                                total,
+                                couponCode: appliedCoupon?.code,
                               })
                             );
                             const res = await fetch('/api/paypal/create-order', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({
-                                amount: convertedTotal.toFixed(2),
-                                currency: paypalCurrency
+                                items: checkoutItems,
+                                couponCode: appliedCoupon?.code,
+                                customerEmail: form.email,
+                                currency: paypalCurrency,
                               })
                             });
                             const data = await res.json();

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { writeClient } from '@/lib/sanity/client';
 import { sendOrderConfirmation } from '@/lib/email';
+import { priceCheckout } from '@/lib/server/checkout-pricing';
 
 interface OrderItem {
   _id: string;
@@ -20,13 +21,6 @@ interface CustomerInfo {
   pincode: string;
 }
 
-interface DiscountSnapshot {
-  name: string;
-  percent: number;
-  amount: number;
-  subtotalBeforeDiscount: number;
-}
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -35,20 +29,20 @@ export async function POST(request: Request) {
       paypalCaptureId,
       items,
       customer,
-      subtotal,
-      discount,
-      shipping,
-      total,
+      couponCode,
     }: {
       paypalOrderId: string;
       paypalCaptureId: string;
       items?: OrderItem[];
       customer?: CustomerInfo;
-      subtotal?: number;
-      discount?: DiscountSnapshot | null;
-      shipping?: number;
-      total?: number;
+      couponCode?: string;
     } = body;
+
+    const pricing = await priceCheckout(items, {
+      couponCode,
+      customerEmail: customer?.email,
+      requireInStock: false,
+    });
 
     const addressParts = [
       customer?.address1,
@@ -69,26 +63,26 @@ export async function POST(request: Request) {
         phone: customer?.phone || '',
         address: addressParts.join(', '),
       },
-      items: (items || []).map((item, i) => ({
+      items: pricing.items.map((item, i) => ({
         _key: `item-${i}`,
         productId: item._id,
         name: item.name,
         price: item.price,
         quantity: item.quantity,
       })),
-      subtotal: subtotal || 0,
-      discount: discount || undefined,
-      shipping: shipping || 0,
-      total: total || 0,
+      subtotal: pricing.subtotal,
+      discount: pricing.discount || undefined,
+      shipping: pricing.shipping,
+      total: pricing.total,
       status: 'paid',
       paidAt: new Date().toISOString(),
     };
 
     await writeClient.create(orderDoc);
 
-    if (items && items.length > 0) {
+    if (pricing.items.length > 0) {
       await Promise.all(
-        items.map((item) =>
+        pricing.items.map((item) =>
           writeClient
             .patch(item._id)
             .set({ inStock: false, stockQuantity: 0 })
@@ -99,7 +93,7 @@ export async function POST(request: Request) {
 
     if (customer?.email) {
       try {
-        const productIds = (items || []).map((i) => i._id).filter(Boolean);
+        const productIds = pricing.items.map((i) => i._id).filter(Boolean);
         const imageMap: Record<string, string> = {};
         if (productIds.length > 0) {
           const withImages = await writeClient.fetch(
@@ -120,16 +114,16 @@ export async function POST(request: Request) {
             phone: customer.phone || '',
             address: addressParts.join(', '),
           },
-          items: (items || []).map((item) => ({
+          items: pricing.items.map((item) => ({
             name: item.name,
             price: item.price,
             quantity: item.quantity,
             image: imageMap[item._id] || '',
           })),
-          subtotal: subtotal || 0,
-          discount: discount || undefined,
-          shipping: shipping || 0,
-          total: total || 0,
+          subtotal: pricing.subtotal,
+          discount: pricing.discount || undefined,
+          shipping: pricing.shipping,
+          total: pricing.total,
         });
       } catch (emailErr: unknown) {
         console.error('[save-paypal-order] email error:', (emailErr as Error)?.message);

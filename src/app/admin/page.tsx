@@ -11,8 +11,17 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+interface AdminProduct {
+  _id: string;
+  name?: string;
+  sku?: string;
+  price?: number;
+  category?: string;
+  inStock?: boolean;
+}
+
 export default function AdminDashboard() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<AdminProduct[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
   const [avgOrderValue, setAvgOrderValue] = useState(0);
