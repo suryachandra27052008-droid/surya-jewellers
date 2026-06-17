@@ -7,6 +7,7 @@ const CAT: Record<string, string> = {
   earring: 'Earrings', earrings: 'Earrings',
   pendant: 'Pendants', pendants: 'Pendants',
   bracelet: 'Bracelets', bracelets: 'Bracelets',
+  brooch: 'Brooches', brooches: 'Brooches', broach: 'Brooches', broaches: 'Brooches',
   tops: 'Studs', stud: 'Studs', studs: 'Studs',
   ring: 'Rings', rings: 'Rings',
   necklace: 'Necklaces', necklaces: 'Necklaces',

@@ -64,6 +64,7 @@ function generateSKU(category: string) {
     Necklaces: 'N',
     Earrings: 'E',
     Bracelets: 'B',
+    Brooches: 'BRO',
     Pendants: 'P',
     Studs: 'ST',
   };
@@ -355,6 +356,7 @@ export default function AddProductPage() {
                 <option value="Necklaces">Necklaces</option>
                 <option value="Earrings">Earrings</option>
                 <option value="Bracelets">Bracelets</option>
+                <option value="Brooches">Brooches</option>
                 <option value="Pendants">Pendants</option>
                 <option value="Studs">Studs</option>
               </select>

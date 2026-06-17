@@ -40,6 +40,7 @@ const categoryEmojis: Record<string, string> = {
   Necklaces: '📿',
   Earrings: '✨',
   Bracelets: '⭐',
+  Brooches: '⭐',
 };
 
 const stoneColors: Record<string, string> = {

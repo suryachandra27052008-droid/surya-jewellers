@@ -731,6 +731,7 @@ export default function ProductsClient({
                                  product.category.name === 'Necklaces' ? '📿' :
                                  product.category.name === 'Earrings' ? '✨' :
                                  product.category.name === 'Bracelets' ? '⭐' :
+                                 product.category.name === 'Brooches' ? '⭐' :
                                  product.category.name === 'Pendants' ? '🔮' :
                                  product.category.name === 'Studs' ? '🌟' : '⭐'}
                               </span>

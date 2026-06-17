@@ -58,6 +58,7 @@ const productOptions = [
   'Necklaces',
   'Earrings',
   'Bracelets',
+  'Brooches',
   'Pendants',
   'Studs',
 ];
