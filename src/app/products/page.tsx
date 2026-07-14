@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 async function getProductListItems() {
   try {
     const products = await client.fetch<{ _id: string; name?: string; slug?: string; mainStoneType?: string; category?: string; sku?: string }[]>(
-      `*[_type == "product" && defined(slug.current)]{ _id, name, "slug": slug.current, mainStoneType, "category": category->name, sku }`,
+      `*[_type == "product" && defined(slug.current) && price >= 1000]{ _id, name, "slug": slug.current, mainStoneType, "category": category->name, sku }`,
       {},
       { next: { revalidate: 300 } }
     );
@@ -35,7 +35,7 @@ async function getProductListItems() {
 async function getInitialProducts(): Promise<InitialProduct[]> {
   try {
     return await client.fetch<InitialProduct[]>(
-      `*[_type == "product" && inStock != false] | order(_createdAt desc) {
+      `*[_type == "product" && inStock != false && price >= 1000] | order(_createdAt desc) {
         _id, name,
         "slug": slug.current,
         sku, price,

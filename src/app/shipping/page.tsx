@@ -4,9 +4,8 @@ import { motion } from 'motion/react';
 import Link from 'next/link';
 
 const shipping = [
-  { icon: '✦', title: 'Free Shipping Across India', desc: 'All orders ship free within India — no minimum order value.' },
+  { icon: '✦', title: 'Free Shipping Across India', desc: 'Free standard shipping within India on orders of ₹2,000 or more. A ₹150 fee applies below that amount.' },
   { icon: '✦', title: 'Standard Delivery', desc: '5–7 business days from the date your order is confirmed.' },
-  { icon: '✦', title: 'Express Delivery', desc: '2–3 business days. Available at checkout for select pin codes.' },
   { icon: '✦', title: 'International Shipping', desc: 'We ship to all countries worldwide. Duties and taxes may apply.' },
   { icon: '✦', title: 'Insured & Tracked', desc: 'Every order is fully insured and comes with end-to-end tracking.' },
   { icon: '✦', title: 'Premium Gift Packaging', desc: 'Each piece is packed in our signature gift box — ready to gift.' },

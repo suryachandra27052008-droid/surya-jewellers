@@ -1,6 +1,6 @@
 {
-  "showFreeShippingBanner": true,
-  "freeShippingEndDate": "2026-05-04",
+  "showFreeShippingBanner": false,
+  "freeShippingEndDate": "",
   "freeShippingMinOrder": 2000,
   "saleEnabled": false,
   "saleName": "Spring Sale",
@@ -9,5 +9,5 @@
   "saleEndDate": "",
   "showSaleBanner": true,
   "whatsappNumber": "+91 99839 39306",
-  "instagramHandle": ""
+  "instagramHandle": "suryajewellersjaipur"
 }

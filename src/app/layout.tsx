@@ -111,6 +111,7 @@ const localBusinessSchema = {
     { '@type': 'Person', name: 'Pooja Chandra' },
   ],
   foundingDate: '2003',
+  sameAs: ['https://www.instagram.com/suryajewellersjaipur/'],
 };
 
 const websiteSchema = {
@@ -128,6 +129,7 @@ const organizationSchema = {
   url: 'https://www.suryajewellers.com',
   logo: 'https://www.suryajewellers.com/logo_sj.png',
   foundingDate: '2003',
+  sameAs: ['https://www.instagram.com/suryajewellersjaipur/'],
   contactPoint: {
     '@type': 'ContactPoint',
     telephone: '+91 99839 39306',

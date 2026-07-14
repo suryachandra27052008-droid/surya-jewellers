@@ -8,7 +8,7 @@ import Script from 'next/script';
 import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
-import { getShipping, isPromoActive, FREE_SHIPPING_THRESHOLD } from '@/lib/shipping';
+import { getShipping, FREE_SHIPPING_THRESHOLD } from '@/lib/shipping';
 import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
 import type { ActiveCoupon } from '@/lib/coupon';
 import AnimatedSection from '@/components/ui/AnimatedSection';
@@ -44,21 +44,24 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    setMounted(true);
+    const mountTimer = window.setTimeout(() => setMounted(true), 0);
     fetch('/api/settings')
       .then((r) => r.json())
       .then(setSaleSettings)
       .catch(() => setSaleSettings(null));
+    return () => window.clearTimeout(mountTimer);
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+    const userTimer = window.setTimeout(() => {
       setForm((prev) => ({
         ...prev,
         fullName: prev.fullName || [user.firstName, user.lastName].filter(Boolean).join(' '),
         email: prev.email || user.primaryEmailAddress?.emailAddress || '',
       }));
-    }
+    }, 0);
+    return () => window.clearTimeout(userTimer);
   }, [user]);
 
   if (!mounted) {
@@ -210,11 +213,7 @@ export default function CheckoutPage() {
 
       console.log('Razorpay order currency:', order.currency ?? currency);
 
-      if (!order.id) {
-        clearCart();
-        router.push('/order-success?id=DEMO-' + Date.now());
-        return;
-      }
+      if (!order.id) throw new Error('Payment order was not created.');
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -440,10 +439,7 @@ export default function CheckoutPage() {
                         )}
                       </span>
                     </div>
-                    {shipping === 0 && isPromoActive() && (
-                      <p className="text-xs text-green-600">Free shipping — limited time offer till 4th May 2026!</p>
-                    )}
-                    {shipping === 0 && !isPromoActive() && (
+                    {shipping === 0 && (
                       <p className="text-xs text-green-600">Free shipping on orders above {formatPrice(FREE_SHIPPING_THRESHOLD, currency)}!</p>
                     )}
                     {shipping > 0 && (

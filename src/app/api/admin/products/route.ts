@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
-import { writeClient, client } from '@/lib/sanity/client';
+import { writeClient } from '@/lib/sanity/client';
 
 // Helper to create a slug
 const slugify = (text: string) =>

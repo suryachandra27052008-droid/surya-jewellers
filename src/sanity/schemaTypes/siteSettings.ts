@@ -85,5 +85,15 @@ export const siteSettings = defineType({
       title: 'Coupon End Date',
       type: 'string',
     }),
+    defineField({
+      name: 'whatsappNumber',
+      title: 'WhatsApp Number',
+      type: 'string',
+    }),
+    defineField({
+      name: 'instagramHandle',
+      title: 'Instagram Handle',
+      type: 'string',
+    }),
   ],
 });

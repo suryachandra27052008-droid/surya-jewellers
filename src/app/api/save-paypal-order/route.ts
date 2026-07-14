@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { writeClient } from '@/lib/sanity/client';
 import { sendOrderConfirmation } from '@/lib/email';
-import { priceCheckout } from '@/lib/server/checkout-pricing';
+import { priceCheckout, toPaymentAmount } from '@/lib/server/checkout-pricing';
+import { getPayPalOrder } from '@/lib/server/paypal';
 
 interface OrderItem {
   _id: string;
@@ -38,11 +39,41 @@ export async function POST(request: Request) {
       couponCode?: string;
     } = body;
 
+    if (!paypalOrderId || !paypalCaptureId) {
+      return NextResponse.json({ success: false, error: 'Missing PayPal payment reference.' }, { status: 400 });
+    }
+
+    const paypalOrder = await getPayPalOrder(paypalOrderId);
+    const purchaseUnit = paypalOrder.purchase_units?.[0];
+    const capture = purchaseUnit?.payments?.captures?.find((entry) => entry.id === paypalCaptureId);
+    if (paypalOrder.status !== 'COMPLETED' || capture?.status !== 'COMPLETED') {
+      return NextResponse.json({ success: false, error: 'PayPal payment is not completed.' }, { status: 400 });
+    }
+
     const pricing = await priceCheckout(items, {
       couponCode,
       customerEmail: customer?.email,
       requireInStock: false,
     });
+
+    const currency = capture.amount?.currency_code ?? purchaseUnit?.amount?.currency_code;
+    const expected = toPaymentAmount(pricing.total, currency);
+    const paidValue = capture.amount?.value ?? purchaseUnit?.amount?.value;
+    if (
+      currency !== expected.currency ||
+      paidValue !== expected.displayValue ||
+      purchaseUnit?.custom_id !== `server_total_inr_${pricing.total}`
+    ) {
+      return NextResponse.json({ success: false, error: 'PayPal amount verification failed.' }, { status: 400 });
+    }
+
+    const existingOrder = await writeClient.fetch<string | null>(
+      `*[_type == "order" && razorpayPaymentId == $paymentId][0]._id`,
+      { paymentId: paypalCaptureId }
+    );
+    if (existingOrder) {
+      return NextResponse.json({ success: true, paymentId: paypalCaptureId, duplicate: true });
+    }
 
     const addressParts = [
       customer?.address1,
@@ -53,6 +84,7 @@ export async function POST(request: Request) {
     ].filter(Boolean);
 
     const orderDoc = {
+      _id: `order-paypal-${paypalCaptureId.replace(/[^a-zA-Z0-9_-]/g, '')}`,
       _type: 'order',
       razorpayOrderId: paypalOrderId,
       razorpayPaymentId: paypalCaptureId,
@@ -78,7 +110,7 @@ export async function POST(request: Request) {
       paidAt: new Date().toISOString(),
     };
 
-    await writeClient.create(orderDoc);
+    await writeClient.createIfNotExists(orderDoc);
 
     if (pricing.items.length > 0) {
       await Promise.all(

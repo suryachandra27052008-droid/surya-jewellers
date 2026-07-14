@@ -9,15 +9,14 @@ const API_VER   = process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2024-01-01';
 const DOC_ID    = 'siteSettings';
 
 const readClient = createClient({ projectId: PROJECT_ID, dataset: DATASET, apiVersion: API_VER, useCdn: false });
-const writeClient = createClient({ projectId: PROJECT_ID, dataset: DATASET, apiVersion: API_VER, useCdn: false, token: process.env.SANITY_API_TOKEN });
 
 function fileDefaults() {
   try {
     return JSON.parse(readFileSync(join(process.cwd(), 'src/data/settings.json'), 'utf8'));
   } catch {
     return {
-      showFreeShippingBanner: true,
-      freeShippingEndDate: '2026-05-04',
+      showFreeShippingBanner: false,
+      freeShippingEndDate: '',
       freeShippingMinOrder: 2000,
       saleEnabled: false,
       saleName: 'Spring Sale',
@@ -25,6 +24,8 @@ function fileDefaults() {
       saleStartDate: '',
       saleEndDate: '',
       showSaleBanner: true,
+      whatsappNumber: '+91 99839 39306',
+      instagramHandle: 'suryajewellersjaipur',
     };
   }
 }
@@ -40,6 +41,8 @@ function publicSettings(doc = {}, defaults = fileDefaults()) {
     saleStartDate: doc.saleStartDate ?? defaults.saleStartDate,
     saleEndDate: doc.saleEndDate ?? defaults.saleEndDate,
     showSaleBanner: doc.showSaleBanner ?? defaults.showSaleBanner,
+    whatsappNumber: doc.whatsappNumber ?? defaults.whatsappNumber,
+    instagramHandle: doc.instagramHandle ?? defaults.instagramHandle,
   };
 }
 
@@ -55,39 +58,6 @@ export async function GET() {
   return NextResponse.json(fileDefaults());
 }
 
-export async function POST(request) {
-  const body = await request.json();
-  const allowedFields = [
-    'showFreeShippingBanner',
-    'freeShippingEndDate',
-    'freeShippingMinOrder',
-    'saleEnabled',
-    'saleName',
-    'saleDiscountPercent',
-    'saleStartDate',
-    'saleEndDate',
-    'showSaleBanner',
-  ];
-  const fields = {};
-  for (const key of allowedFields) {
-    if (Object.prototype.hasOwnProperty.call(body, key)) fields[key] = body[key];
-  }
-
-  if (Object.prototype.hasOwnProperty.call(fields, 'saleDiscountPercent')) {
-    const percent = Number(fields.saleDiscountPercent);
-    fields.saleDiscountPercent = Number.isFinite(percent) ? Math.max(0, Math.min(90, percent)) : 0;
-  }
-
-  try {
-    await writeClient
-      .transaction()
-      .createIfNotExists({ _id: DOC_ID, _type: 'siteSettings' })
-      .patch(DOC_ID, { set: fields })
-      .commit();
-    const doc = await readClient.fetch(`*[_type == "siteSettings" && _id == $id][0]`, { id: DOC_ID });
-    return NextResponse.json({ success: true, settings: publicSettings(doc) });
-  } catch (err) {
-    console.error('Failed to save settings to Sanity:', err);
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 });
-  }
+export async function POST() {
+  return NextResponse.json({ error: 'Use the authenticated admin settings endpoint.' }, { status: 405 });
 }

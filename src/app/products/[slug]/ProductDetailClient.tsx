@@ -178,7 +178,6 @@ export default function ProductDetailClient({
                     className="object-cover transition-transform duration-700 hover:scale-105"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
-                    unoptimized
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -222,7 +221,6 @@ export default function ProductDetailClient({
                         fill
                         className="object-cover"
                         sizes="80px"
-                        unoptimized
                       />
                     </button>
                   ))}

@@ -3,47 +3,49 @@ import { NextResponse } from 'next/server';
 
 const isProtectedRoute = createRouteMatcher(['/account(.*)']);
 
+function unauthorized(isApi: boolean, message = 'Authentication required') {
+  return new NextResponse(
+    isApi ? JSON.stringify({ error: message }) : message,
+    {
+      status: 401,
+      headers: isApi
+        ? { 'Content-Type': 'application/json' }
+        : { 'WWW-Authenticate': 'Basic realm="Secure Admin Area"' },
+    }
+  );
+}
+
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
   const isAdminPage = pathname.startsWith('/admin');
   const isAdminApi = pathname.startsWith('/api/admin');
-  const isPublicProductsGet =
-    req.method === 'GET' && pathname === '/api/admin/products';
+  const isStudio = pathname.startsWith('/studio');
 
-  if (isPublicProductsGet) {
-    return NextResponse.next();
-  }
-
-  if (isAdminPage || isAdminApi) {
+  if (isAdminPage || isAdminApi || isStudio) {
     const basicAuth = req.headers.get('authorization');
+    const adminUsername = process.env.ADMIN_USERNAME;
+    const adminPassword = process.env.ADMIN_PASSWORD;
 
-    if (isAdminApi && !basicAuth) {
-      return new NextResponse(JSON.stringify({ error: 'Authentication required' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    if (!adminUsername || !adminPassword) {
+      console.error('ADMIN_USERNAME and ADMIN_PASSWORD must be configured.');
+      return unauthorized(isAdminApi, 'Admin access is not configured');
     }
 
-    if (basicAuth) {
-      const authValue = basicAuth.split(' ')[1];
-      const decodedString = atob(authValue);
-      const [user, pwd] = decodedString.split(':');
-      if (user === 'admin' && pwd === 'Good@luck123') {
-        return NextResponse.next();
+    if (basicAuth?.startsWith('Basic ')) {
+      try {
+        const decodedString = atob(basicAuth.slice(6));
+        const separator = decodedString.indexOf(':');
+        const user = decodedString.slice(0, separator);
+        const pwd = decodedString.slice(separator + 1);
+        if (separator > 0 && user === adminUsername && pwd === adminPassword) {
+          return NextResponse.next();
+        }
+      } catch {
+        // Invalid Basic authentication payload.
       }
     }
 
-    if (isAdminApi) {
-      return new NextResponse(JSON.stringify({ error: 'Invalid credentials' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    return new NextResponse('Authentication required', {
-      status: 401,
-      headers: { 'WWW-Authenticate': 'Basic realm="Secure Admin Area"' },
-    });
+    return unauthorized(isAdminApi, basicAuth ? 'Invalid credentials' : 'Authentication required');
   }
 
   if (isProtectedRoute(req)) {

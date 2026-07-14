@@ -257,6 +257,7 @@ export default function ProductsClient({
   const toggleWishlist = useWishlistStore((s) => s.toggleItem);
   const wishlistItems = useWishlistStore((s) => s.items);
   const [gridView, setGridView] = useState<'compact' | 'comfortable'>('compact');
+  const [visibleCount, setVisibleCount] = useState(24);
 
   const handlePriceChange = useCallback((min: number, max: number) => {
     setPriceRange([min, max]);
@@ -264,7 +265,9 @@ export default function ProductsClient({
 
   useEffect(() => {
     const saved = localStorage.getItem('surya-grid-view');
-    if (saved === 'comfortable' || saved === 'compact') setGridView(saved);
+    if (saved !== 'comfortable' && saved !== 'compact') return;
+    const viewTimer = window.setTimeout(() => setGridView(saved), 0);
+    return () => window.clearTimeout(viewTimer);
   }, []);
 
   const handleViewChange = useCallback((view: 'compact' | 'comfortable') => {
@@ -354,6 +357,16 @@ export default function ProductsClient({
     });
     return result;
   }, [selectedCategory, selectedStone, sortBy, priceRange, allProducts]);
+
+  const visibleProducts = useMemo(
+    () => filteredProducts.slice(0, visibleCount),
+    [filteredProducts, visibleCount]
+  );
+
+  useEffect(() => {
+    const resetTimer = window.setTimeout(() => setVisibleCount(24), 0);
+    return () => window.clearTimeout(resetTimer);
+  }, [selectedCategory, selectedStone, sortBy, priceRange]);
 
   const clearAll = () => {
     setSelectedCategory('All');
@@ -697,7 +710,7 @@ export default function ProductsClient({
 
             {!loading && filteredProducts.length > 0 && (
               <div className={gridClass}>
-                {filteredProducts.map((product, index) => {
+                {visibleProducts.map((product, index) => {
                   const cartItem = cartItems.find((i) => i._id === product._id);
                   const atMax = cartItem ? cartItem.quantity >= (product.stockQuantity ?? 1) : false;
                   const aboveFold = index < 2;
@@ -886,6 +899,18 @@ export default function ProductsClient({
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {!loading && visibleProducts.length < filteredProducts.length && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((count) => count + 24)}
+                  className="border border-charcoal/30 px-8 py-3 text-xs font-semibold uppercase tracking-[0.15em] text-charcoal transition-colors hover:border-gold hover:text-[#7a6219]"
+                >
+                  Load more pieces
+                </button>
               </div>
             )}
           </div>

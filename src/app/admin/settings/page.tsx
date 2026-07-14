@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable react-hooks/set-state-in-effect -- settings hydrate from local storage and the CMS after mount */
+
 import { useState, useEffect } from 'react';
 import {
   Store, Truck, CreditCard, Share2, AlertTriangle, Percent,
@@ -134,14 +136,14 @@ const DEFAULT_STORE: StoreInfo = {
 };
 
 const DEFAULT_SHIPPING: ShippingSettings = {
-  freeShippingEnabled: true,
-  freeShippingEndDate: '2026-05-04',
+  freeShippingEnabled: false,
+  freeShippingEndDate: '',
   freeShippingMinOrder: 2000,
 };
 
 const DEFAULT_SOCIAL: SocialSettings = {
   whatsapp: '+91 99839 39306',
-  instagram: '',
+  instagram: 'suryajewellersjaipur',
 };
 
 const DEFAULT_SALE: SaleSettings = {
@@ -216,6 +218,10 @@ export default function SettingsPage() {
           saleEndDate: data.saleEndDate ?? DEFAULT_SALE.saleEndDate,
           showSaleBanner: data.showSaleBanner ?? DEFAULT_SALE.showSaleBanner,
         });
+        setSocial({
+          whatsapp: data.whatsappNumber ?? DEFAULT_SOCIAL.whatsapp,
+          instagram: data.instagramHandle ?? DEFAULT_SOCIAL.instagram,
+        });
       })
       .catch(() => {
         setShipping(load('sj_shipping', DEFAULT_SHIPPING));
@@ -246,7 +252,7 @@ export default function SettingsPage() {
 
   async function saveShipping() {
     localStorage.setItem('sj_shipping', JSON.stringify(shipping));
-    await fetch('/api/settings', {
+    const response = await fetch('/api/admin/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -255,6 +261,7 @@ export default function SettingsPage() {
         freeShippingMinOrder: shipping.freeShippingMinOrder,
       }),
     });
+    if (!response.ok) throw new Error('Shipping settings could not be saved.');
     setShippingSaved(true);
     setTimeout(() => setShippingSaved(false), 2500);
   }
@@ -266,11 +273,12 @@ export default function SettingsPage() {
     };
     setSale(cleanSale);
     localStorage.setItem('sj_sale', JSON.stringify(cleanSale));
-    await fetch('/api/settings', {
+    const response = await fetch('/api/admin/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(cleanSale),
     });
+    if (!response.ok) throw new Error('Sale settings could not be saved.');
     setSaleSaved(true);
     setTimeout(() => setSaleSaved(false), 2500);
   }
@@ -292,6 +300,31 @@ export default function SettingsPage() {
     });
     setCouponSaved(true);
     setTimeout(() => setCouponSaved(false), 2500);
+  }
+
+  async function saveSocial() {
+    const cleanSocial = {
+      whatsapp: social.whatsapp.trim(),
+      instagram: social.instagram.trim().replace(/^@/, ''),
+    };
+    const response = await fetch('/api/admin/settings', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        whatsappNumber: cleanSocial.whatsapp,
+        instagramHandle: cleanSocial.instagram,
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      alert(result.error || 'Social settings could not be saved.');
+      return;
+    }
+    setSocial(cleanSocial);
+    localStorage.setItem('sj_social', JSON.stringify(cleanSocial));
+    setSocialSaved(true);
+    setTimeout(() => setSocialSaved(false), 2500);
   }
 
   async function handleClearProducts() {
@@ -703,7 +736,7 @@ export default function SettingsPage() {
         </div>
         <div className="mt-5 flex justify-end">
           <SaveButton
-            onClick={() => save('sj_social', social, setSocialSaved)}
+            onClick={saveSocial}
             saved={socialSaved}
           />
         </div>

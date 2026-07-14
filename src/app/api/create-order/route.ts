@@ -15,14 +15,7 @@ export async function POST(request: Request) {
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!keyId || keyId === 'rzp_test_placeholder' || !keySecret || keySecret === 'placeholder_secret') {
-      return NextResponse.json({
-        id: null,
-        amount: paymentAmount.subunits,
-        currency: paymentAmount.currency,
-        pricing,
-        demo: true,
-        message: 'Razorpay not configured. Running in demo mode.',
-      });
+      return NextResponse.json({ error: 'Razorpay is temporarily unavailable.' }, { status: 503 });
     }
 
     const Razorpay = (await import('razorpay')).default;

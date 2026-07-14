@@ -15,7 +15,8 @@ export default function HeroSlideshow({ children }) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    const mountTimer = window.setTimeout(() => setMounted(true), 0)
+    return () => window.clearTimeout(mountTimer)
   }, [])
 
   useEffect(() => {

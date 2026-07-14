@@ -1,14 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { escapeHtml, isRateLimited, isValidEmail, textField } from '@/lib/server/request-security';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { companyName, contactPerson, country, phone, email, products, monthlyRequirement, message } = body;
-
-    if (!companyName || !contactPerson || !email) {
-      return NextResponse.json({ error: 'Required fields missing.' }, { status: 400 });
+    if (isRateLimited(req, 'wholesale')) {
+      return NextResponse.json({ error: 'Too many requests. Please try again shortly.' }, { status: 429 });
     }
+    const body = await req.json();
+    const companyName = textField(body.companyName, 120);
+    const contactPerson = textField(body.contactPerson, 100);
+    const country = textField(body.country, 80);
+    const phone = textField(body.phone, 30);
+    const email = textField(body.email, 254).toLowerCase();
+    const monthlyRequirement = textField(body.monthlyRequirement, 100);
+    const message = textField(body.message, 5000);
+    const products = Array.isArray(body.products) ? body.products.slice(0, 20).map((item: unknown) => textField(item, 80)) : [];
+
+    if (!companyName || !contactPerson || !isValidEmail(email)) {
+      return NextResponse.json({ error: 'Please enter valid company, contact, and email details.' }, { status: 400 });
+    }
+
+    const safe = Object.fromEntries(Object.entries({ companyName, contactPerson, country, phone, email, monthlyRequirement, message }).map(([key, value]) => [key, escapeHtml(value)]));
+    const safeProducts = products.map(escapeHtml);
 
     const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -16,7 +30,7 @@ export async function POST(req: NextRequest) {
       from: 'Surya Jewellers <hello@suryajewellers.com>',
       to: 'suryajewellersjaipur@gmail.com',
       replyTo: email,
-      subject: `New Wholesale Enquiry from ${companyName}`,
+      subject: `New Wholesale Enquiry from ${companyName.replace(/[\r\n]/g, ' ')}`,
       html: `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #fafaf8; border: 1px solid #e8e0d0;">
           <div style="text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #d4af37;">
@@ -29,40 +43,40 @@ export async function POST(req: NextRequest) {
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
               <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; width: 160px;">Company</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${companyName}</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${safe.companyName}</td>
             </tr>
             <tr>
               <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Contact Person</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${contactPerson}</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${safe.contactPerson}</td>
             </tr>
             <tr>
               <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Country</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${country || '—'}</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${safe.country || '—'}</td>
             </tr>
             <tr>
               <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Phone</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${phone || '—'}</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${safe.phone || '—'}</td>
             </tr>
             <tr>
               <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Email</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;"><a href="mailto:${email}" style="color: #d4af37;">${email}</a></td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;"><a href="mailto:${safe.email}" style="color: #d4af37;">${safe.email}</a></td>
             </tr>
             <tr>
               <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Products</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${products && products.length > 0 ? products.join(', ') : '—'}</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${safeProducts.length > 0 ? safeProducts.join(', ') : '—'}</td>
             </tr>
             <tr>
               <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Monthly Req.</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${monthlyRequirement || '—'}</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${safe.monthlyRequirement || '—'}</td>
             </tr>
             <tr>
               <td style="padding: 16px 0 0 0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; vertical-align: top;">Message</td>
-              <td style="padding: 16px 0 0 0; color: #1a1a1a; font-size: 14px; line-height: 1.7; white-space: pre-wrap;">${message || '—'}</td>
+              <td style="padding: 16px 0 0 0; color: #1a1a1a; font-size: 14px; line-height: 1.7; white-space: pre-wrap;">${safe.message || '—'}</td>
             </tr>
           </table>
 
           <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #e8e0d0; text-align: center;">
-            <p style="color: #aaa; font-size: 11px; margin: 0;">Reply to this email to respond directly to ${contactPerson} at ${companyName}.</p>
+            <p style="color: #aaa; font-size: 11px; margin: 0;">Reply to this email to respond directly to ${safe.contactPerson} at ${safe.companyName}.</p>
           </div>
         </div>
       `,

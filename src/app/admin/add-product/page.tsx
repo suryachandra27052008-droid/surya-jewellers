@@ -163,6 +163,14 @@ export default function AddProductPage() {
     );
   };
 
+  const addImages = useCallback((files: File[]) => {
+    const newImages = files.slice(0, 5 - images.length).map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setImages((prev) => [...prev, ...newImages].slice(0, 5));
+  }, [images.length]);
+
   // Image drag-and-drop handlers
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -182,21 +190,13 @@ export default function AddProductPage() {
       f.type.startsWith('image/')
     );
     addImages(files);
-  }, []);
+  }, [addImages]);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       addImages(files);
     }
-  };
-
-  const addImages = (files: File[]) => {
-    const newImages = files.slice(0, 5 - images.length).map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-    setImages((prev) => [...prev, ...newImages].slice(0, 5));
   };
 
   const removeImage = (index: number) => {

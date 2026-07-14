@@ -22,7 +22,7 @@ async function getProducts(): Promise<{ slug: string; updatedAt: Date }[]> {
       sku?: string;
       _updatedAt?: string;
     }[]>(
-      `*[_type == "product" && defined(slug.current)]{ _id, name, "slug": slug.current, mainStoneType, "category": category->name, sku, _updatedAt }`
+      `*[_type == "product" && defined(slug.current) && price >= 1000]{ _id, name, "slug": slug.current, mainStoneType, "category": category->name, sku, _updatedAt }`
     );
     return products.map((p) => ({
       slug: getProductCanonicalSlug(p),

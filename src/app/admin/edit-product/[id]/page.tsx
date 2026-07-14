@@ -113,7 +113,6 @@ export default function EditProductPage() {
   const {
     register,
     handleSubmit,
-    setValue,
     watch,
     reset,
     formState: { errors },
@@ -172,6 +171,15 @@ export default function EditProductPage() {
     );
   };
 
+  const addImages = useCallback((files: File[]) => {
+    const totalCurrent = existingImages.length + newImages.length;
+    const newImgs = files.slice(0, 5 - totalCurrent).map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setNewImages((prev) => [...prev, ...newImgs].slice(0, 5 - existingImages.length));
+  }, [existingImages.length, newImages.length]);
+
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -185,19 +193,10 @@ export default function EditProductPage() {
     setDragActive(false);
     const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
     addImages(files);
-  }, []);
+  }, [addImages]);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) addImages(Array.from(e.target.files));
-  };
-
-  const addImages = (files: File[]) => {
-    const totalCurrent = existingImages.length + newImages.length;
-    const newImgs = files.slice(0, 5 - totalCurrent).map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-    setNewImages((prev) => [...prev, ...newImgs].slice(0, 5 - existingImages.length));
   };
 
   const removeNewImage = (index: number) => {

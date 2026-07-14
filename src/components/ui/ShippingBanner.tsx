@@ -13,6 +13,12 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
+function isPromotionCurrent(dateStr: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+  const endOfDayInIndia = new Date(`${dateStr}T23:59:59.999+05:30`);
+  return Number.isFinite(endOfDayInIndia.getTime()) && Date.now() <= endOfDayInIndia.getTime();
+}
+
 export default function ShippingBanner() {
   const [settings, setSettings] = useState<BannerSettings | null>(null);
 
@@ -29,7 +35,7 @@ export default function ShippingBanner() {
   const message =
     sale && settings.showSaleBanner
       ? `${sale.name} - ${sale.percent}% off all jewellery`
-      : settings.showFreeShippingBanner
+      : settings.showFreeShippingBanner && isPromotionCurrent(settings.freeShippingEndDate)
         ? `Free Shipping - Limited Time Offer! Valid till ${formatDate(settings.freeShippingEndDate)}`
         : '';
 

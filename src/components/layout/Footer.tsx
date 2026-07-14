@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 const LINKS_COL1 = [
   { href: '/', label: 'Home' },
@@ -31,6 +34,17 @@ const MOBILE_LINKS = [
 ];
 
 export default function Footer() {
+  const [instagramHandle, setInstagramHandle] = useState('suryajewellersjaipur');
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((response) => response.json())
+      .then((settings) => {
+        if (settings.instagramHandle) setInstagramHandle(settings.instagramHandle.replace(/^@/, ''));
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <footer className="bg-charcoal text-white/80">
       {/* Gold accent line */}
@@ -61,7 +75,7 @@ export default function Footer() {
             {/* Social icons */}
             <div className="flex gap-4">
               <a
-                href="https://www.instagram.com/suryajewellersjpr"
+                href={`https://www.instagram.com/${instagramHandle}/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"

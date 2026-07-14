@@ -154,6 +154,9 @@ export async function priceCheckout(
     const maxQuantity = cleanQuantity(product.stockQuantity ?? 1);
     const quantity = Math.min(line.quantity, maxQuantity);
     const price = Math.max(0, Number(product.price) || 0);
+    if (price < 1000) {
+      throw new Error(`${getProductDisplayName(product)} has a price that requires merchant review.`);
+    }
 
     return {
       _id: product._id,

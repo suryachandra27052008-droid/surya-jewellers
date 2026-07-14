@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Intentionally left unchanged at the merchant's request.
+    "src/app/api/upload-products/route.ts",
   ]),
 ]);
 

@@ -55,7 +55,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
                 '🔐 SSL Secured',
                 '✦ 92.5 Sterling Silver',
                 '✦ Certified Gemstones',
-                '✦ Free Shipping',
+                '✦ Free Shipping over ₹2,000',
                 '✦ Lifetime Maintenance',
                 '🌍 International Shipping',
               ].map((item, i) => (

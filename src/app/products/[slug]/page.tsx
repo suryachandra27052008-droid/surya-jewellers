@@ -1,4 +1,6 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import { cache } from 'react';
 import { writeClient } from '@/lib/sanity/client';
 import ProductDetailClient, { type ProductData, type RelatedProduct } from './ProductDetailClient';
 import {
@@ -55,6 +57,49 @@ type ProductDoc = {
   stockQuantity?: number;
 };
 
+const getProducts = cache(async (): Promise<ProductDoc[]> => {
+  try {
+    return await writeClient.fetch<ProductDoc[]>(PRODUCT_QUERY, {}, { cache: 'no-store' });
+  } catch {
+    return [];
+  }
+});
+
+function findProduct(products: ProductDoc[], slug: string): ProductDoc | undefined {
+  const slugLower = slug.toLowerCase();
+  return products.find((product) => getProductCanonicalSlug(product) === slug)
+    ?? products.find((product) => product.slug === slug)
+    ?? products.find((product) => (product.sku || '').toLowerCase() === slugLower)
+    ?? products.find((product) =>
+      (product.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === slug
+    );
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const product = findProduct(await getProducts(), slug);
+  if (!product || Number(product.price) < 1000) {
+    return { title: 'Product Not Found', robots: { index: false, follow: false } };
+  }
+  const canonicalSlug = getProductCanonicalSlug(product);
+  const displayName = getProductDisplayName(product);
+  const title = `${displayName} | 92.5 Silver`;
+  const description = getProductMetaDescription(product);
+  const image = product.images?.[0];
+  return {
+    title,
+    description,
+    alternates: { canonical: `${SITE_URL}/products/${canonicalSlug}` },
+    openGraph: {
+      title,
+      description,
+      url: `${SITE_URL}/products/${canonicalSlug}`,
+      type: 'website',
+      images: image ? [{ url: image, alt: displayName }] : undefined,
+    },
+  };
+}
+
 // Always fetch fresh product data so image updates from bulk upload are instant.
 export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
@@ -62,7 +107,7 @@ export const dynamicParams = true;
 export async function generateStaticParams() {
   try {
     const products = await writeClient.fetch<{ _id: string; name?: string; slug?: string; mainStoneType?: string; category?: string; sku?: string }[]>(
-      `*[_type == "product"]{ _id, name, "slug": slug.current, mainStoneType, "category": category->name, sku }`,
+      `*[_type == "product" && price >= 1000]{ _id, name, "slug": slug.current, mainStoneType, "category": category->name, sku }`,
       {},
       { next: { revalidate: 3600 } }
     );
@@ -82,25 +127,10 @@ export async function generateStaticParams() {
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  let products: ProductDoc[] = [];
-  try {
-    // Use writeClient (no CDN) so products uploaded after the last build are
-    // immediately visible without waiting for CDN cache expiry.
-    products = await writeClient.fetch<ProductDoc[]>(PRODUCT_QUERY, {}, { cache: 'no-store' });
-  } catch {
-    // fall through to not-found
-  }
+  const products = await getProducts();
+  const raw = findProduct(products, slug);
 
-  const slugLower = slug.toLowerCase();
-  const raw = products.find((p) => getProductCanonicalSlug(p) === slug)
-    ?? products.find((p) => p.slug === slug)
-    // Direct SKU match — enables /products/RNG17288 style URLs
-    ?? products.find((p) => (p.sku || '').toLowerCase() === slugLower)
-    ?? products.find((p) =>
-        (p.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') === slug
-      );
-
-  if (!raw) {
+  if (!raw || Number(raw.price) < 1000) {
     return (
       <div className="pt-8 pb-16 text-center">
         <h1 className="font-serif text-3xl text-charcoal mb-4">Product Not Found</h1>
@@ -223,7 +253,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   };
 
   const relatedProducts: RelatedProduct[] = products
-    .filter((p) => p._id !== raw._id && (p.category || 'Rings') === (raw.category || 'Rings'))
+    .filter((p) => p._id !== raw._id && Number(p.price) >= 1000 && (p.category || 'Rings') === (raw.category || 'Rings'))
     .slice(0, 3)
     .map((p) => ({
       _id: p._id,

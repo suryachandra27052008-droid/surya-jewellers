@@ -58,7 +58,7 @@ function OrderSuccessContent() {
         }
 
         // Save order to Sanity + send confirmation email
-        await fetch('/api/save-paypal-order', {
+        const saveResponse = await fetch('/api/save-paypal-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -69,6 +69,10 @@ function OrderSuccessContent() {
             couponCode: pending?.couponCode,
           }),
         });
+        const saveResult = await saveResponse.json();
+        if (!saveResponse.ok || !saveResult.success) {
+          throw new Error(saveResult.error || 'The paid order could not be recorded.');
+        }
 
         localStorage.removeItem('paypal_pending_order');
         clearCart();

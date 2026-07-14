@@ -3,11 +3,9 @@
 import { useUser, SignOutButton } from '@clerk/nextjs';
 import { motion } from 'motion/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 export default function AccountPage() {
   const { user, isLoaded } = useUser();
-  const router = useRouter();
 
   if (!isLoaded) {
     return (

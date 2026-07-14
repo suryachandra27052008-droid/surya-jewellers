@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -72,7 +73,7 @@ export default function SignInPage() {
         redirectUrl: '/sso-callback',
         redirectUrlComplete: '/',
       });
-    } catch (err: any) {
+    } catch {
       setError('OAuth sign-in failed. Please try again.');
       setOauthLoading(null);
     }

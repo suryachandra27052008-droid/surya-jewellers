@@ -1,6 +1,9 @@
 export async function POST(request) {
   try {
     const { orderID } = await request.json();
+    if (!orderID || !/^[A-Z0-9]+$/i.test(orderID)) {
+      return Response.json({ error: 'Invalid PayPal order ID' }, { status: 400 });
+    }
 
     const auth = Buffer.from(
       `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_SECRET}`
@@ -33,7 +36,10 @@ export async function POST(request) {
       }
     );
     const capture = await captureRes.json();
-
+    if (!captureRes.ok) {
+      console.error('PayPal capture error:', capture);
+      return Response.json({ error: 'PayPal payment could not be captured.' }, { status: captureRes.status });
+    }
     return Response.json(capture);
   } catch (err) {
     console.error('PayPal capture-order exception:', err);

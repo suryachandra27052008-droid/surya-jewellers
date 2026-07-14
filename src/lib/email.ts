@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { escapeHtml } from '@/lib/server/request-security';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = 'Surya Jewellers <hello@suryajewellers.com>';
@@ -50,20 +51,24 @@ function emailWrapper(body: string): string {
 }
 
 function itemsTable(items: Array<{ name: string; price: number; quantity: number; image?: string }>): string {
-  const rows = items.map((item) => `
+  const rows = items.map((item) => {
+    const safeName = escapeHtml(item.name);
+    const safeImage = escapeHtml(item.image || '');
+    return `
     <tr>
       <td style="padding:12px 0;border-bottom:1px solid #2a2510;vertical-align:middle;">
         ${item.image
-          ? `<img src="${item.image}" alt="${item.name}" width="48" height="48" style="border-radius:4px;object-fit:cover;border:1px solid #3a3010;vertical-align:middle;margin-right:12px;">`
+          ? `<img src="${safeImage}" alt="${safeName}" width="48" height="48" style="border-radius:4px;object-fit:cover;border:1px solid #3a3010;vertical-align:middle;margin-right:12px;">`
           : `<span style="display:inline-block;width:48px;height:48px;background:#1e1c0a;border:1px solid #3a3010;border-radius:4px;margin-right:12px;vertical-align:middle;text-align:center;line-height:48px;font-size:20px;">✦</span>`
         }
-        <span style="font-family:Georgia,serif;font-size:14px;color:#e0d4b0;vertical-align:middle;">${item.name}</span>
+        <span style="font-family:Georgia,serif;font-size:14px;color:#e0d4b0;vertical-align:middle;">${safeName}</span>
         ${item.quantity > 1 ? `<span style="font-family:Arial,sans-serif;font-size:12px;color:#7a6a3a;margin-left:6px;">×${item.quantity}</span>` : ''}
       </td>
       <td style="padding:12px 0;border-bottom:1px solid #2a2510;text-align:right;vertical-align:middle;font-family:Georgia,serif;font-size:14px;color:#d4af37;white-space:nowrap;">
         ₹${(item.price * item.quantity).toLocaleString('en-IN')}
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
   return rows;
 }
 
@@ -82,6 +87,12 @@ interface OrderEmailData {
 
 export async function sendOrderConfirmation(data: OrderEmailData) {
   const { orderId, customer, items, subtotal, discount, shipping, total } = data;
+  const safeCustomer = {
+    name: escapeHtml(customer.name),
+    phone: escapeHtml(customer.phone),
+    address: escapeHtml(customer.address),
+  };
+  const safeOrderId = escapeHtml(orderId);
 
   const body = `
     <!-- Hero -->
@@ -89,7 +100,7 @@ export async function sendOrderConfirmation(data: OrderEmailData) {
       <p style="margin:0 0 8px;font-family:Arial,sans-serif;font-size:11px;letter-spacing:4px;color:#d4af37;text-transform:uppercase;">Order Confirmed</p>
       <h1 style="margin:0 0 16px;font-family:Georgia,serif;font-size:28px;color:#f0ead8;font-weight:normal;line-height:1.3;">Your order is confirmed ✦</h1>
       <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;color:#9a8c6a;line-height:1.7;">
-        Thank you, ${customer.name.split(' ')[0]}. Your piece is being crafted and prepared with care<br>
+        Thank you, ${safeCustomer.name.split(' ')[0]}. Your piece is being crafted and prepared with care<br>
         at our workshop in Jaipur.
       </p>
     </td></tr>
@@ -98,7 +109,7 @@ export async function sendOrderConfirmation(data: OrderEmailData) {
     <tr><td style="padding:0 40px 24px;">
       <div style="background:#1a1810;border:1px solid #2c2810;border-radius:6px;padding:16px 20px;text-align:center;">
         <p style="margin:0 0 4px;font-family:Arial,sans-serif;font-size:10px;letter-spacing:3px;color:#7a6a3a;text-transform:uppercase;">Order Reference</p>
-        <p style="margin:0;font-family:'Courier New',monospace;font-size:13px;color:#d4af37;letter-spacing:1px;">${orderId}</p>
+        <p style="margin:0;font-family:'Courier New',monospace;font-size:13px;color:#d4af37;letter-spacing:1px;">${safeOrderId}</p>
       </div>
     </td></tr>
 
@@ -113,7 +124,7 @@ export async function sendOrderConfirmation(data: OrderEmailData) {
         </tr>
         ${discount && discount.amount > 0 ? `
         <tr>
-          <td style="padding:4px 0;font-family:Arial,sans-serif;font-size:12px;color:#4caf50;">${discount.name} (${discount.percent}% off)</td>
+          <td style="padding:4px 0;font-family:Arial,sans-serif;font-size:12px;color:#4caf50;">${escapeHtml(discount.name)} (${discount.percent}% off)</td>
           <td style="padding:4px 0;text-align:right;font-family:Arial,sans-serif;font-size:12px;color:#4caf50;">-â‚¹${discount.amount.toLocaleString('en-IN')}</td>
         </tr>` : ''}
         <tr>
@@ -131,9 +142,9 @@ export async function sendOrderConfirmation(data: OrderEmailData) {
     <tr><td style="padding:0 40px 32px;">
       <p style="margin:0 0 8px;font-family:Arial,sans-serif;font-size:10px;letter-spacing:3px;color:#7a6a3a;text-transform:uppercase;">Delivery Address</p>
       <div style="background:#1a1810;border:1px solid #2c2810;border-radius:6px;padding:16px 20px;">
-        <p style="margin:0 0 4px;font-family:Georgia,serif;font-size:14px;color:#e0d4b0;">${customer.name}</p>
-        <p style="margin:0 0 4px;font-family:Arial,sans-serif;font-size:13px;color:#9a8c6a;line-height:1.6;">${customer.address}</p>
-        <p style="margin:6px 0 0;font-family:Arial,sans-serif;font-size:12px;color:#7a6a3a;">${customer.phone}</p>
+        <p style="margin:0 0 4px;font-family:Georgia,serif;font-size:14px;color:#e0d4b0;">${safeCustomer.name}</p>
+        <p style="margin:0 0 4px;font-family:Arial,sans-serif;font-size:13px;color:#9a8c6a;line-height:1.6;">${safeCustomer.address}</p>
+        <p style="margin:6px 0 0;font-family:Arial,sans-serif;font-size:12px;color:#7a6a3a;">${safeCustomer.phone}</p>
       </div>
     </td></tr>
 
@@ -179,7 +190,7 @@ interface StatusOrder {
 export async function sendOrderStatusEmail(order: StatusOrder, status: string) {
   if (!order.customer?.email) return;
 
-  const firstName = (order.customer.name || 'Valued Customer').split(' ')[0];
+  const firstName = escapeHtml((order.customer.name || 'Valued Customer').split(' ')[0]);
 
   type StatusConfig = { subject: string; headline: string; subline: string; badge: string; badgeColor: string; message: string };
 
@@ -223,7 +234,7 @@ export async function sendOrderStatusEmail(order: StatusOrder, status: string) {
 
   const itemList = (order.items || []).map((item) =>
     `<tr>
-      <td style="padding:8px 0;border-bottom:1px solid #2a2510;font-family:Georgia,serif;font-size:13px;color:#e0d4b0;">${item.name}${item.quantity > 1 ? ` ×${item.quantity}` : ''}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #2a2510;font-family:Georgia,serif;font-size:13px;color:#e0d4b0;">${escapeHtml(item.name)}${item.quantity > 1 ? ` ×${item.quantity}` : ''}</td>
       <td style="padding:8px 0;border-bottom:1px solid #2a2510;text-align:right;font-family:Arial,sans-serif;font-size:13px;color:#d4af37;">₹${(item.price * item.quantity).toLocaleString('en-IN')}</td>
     </tr>`
   ).join('');
@@ -242,7 +253,7 @@ export async function sendOrderStatusEmail(order: StatusOrder, status: string) {
     <tr><td style="padding:0 40px 20px;">
       <div style="background:#1a1810;border:1px solid #2c2810;border-radius:6px;padding:14px 20px;text-align:center;">
         <p style="margin:0 0 4px;font-family:Arial,sans-serif;font-size:10px;letter-spacing:3px;color:#7a6a3a;text-transform:uppercase;">Order Reference</p>
-        <p style="margin:0;font-family:'Courier New',monospace;font-size:13px;color:#d4af37;">${order.razorpayOrderId || order._id}</p>
+        <p style="margin:0;font-family:'Courier New',monospace;font-size:13px;color:#d4af37;">${escapeHtml(order.razorpayOrderId || order._id)}</p>
       </div>
     </td></tr>
 

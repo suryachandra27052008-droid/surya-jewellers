@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { writeClient } from '@/lib/sanity/client';
 import { sendOrderConfirmation } from '@/lib/email';
-import { priceCheckout } from '@/lib/server/checkout-pricing';
+import { priceCheckout, toPaymentAmount } from '@/lib/server/checkout-pricing';
 
 interface OrderItem {
   _id: string;
@@ -44,11 +44,7 @@ export async function POST(request: Request) {
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!keySecret || keySecret === 'placeholder_secret') {
-      return NextResponse.json({
-        success: true,
-        demo: true,
-        paymentId: razorpay_payment_id || 'demo_payment',
-      });
+      return NextResponse.json({ success: false, error: 'Payment verification is unavailable.' }, { status: 503 });
     }
 
     // Verify signature
@@ -70,6 +66,34 @@ export async function POST(request: Request) {
       requireInStock: false,
     });
 
+    const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    if (!keyId) {
+      return NextResponse.json({ success: false, error: 'Payment verification is unavailable.' }, { status: 503 });
+    }
+    const Razorpay = (await import('razorpay')).default;
+    const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
+    const [payment, paymentOrder] = await Promise.all([
+      razorpay.payments.fetch(razorpay_payment_id),
+      razorpay.orders.fetch(razorpay_order_id),
+    ]);
+    const expectedAmount = toPaymentAmount(pricing.total, paymentOrder.currency).subunits;
+    if (
+      payment.order_id !== razorpay_order_id ||
+      !['authorized', 'captured'].includes(payment.status) ||
+      Number(payment.amount) !== expectedAmount ||
+      Number(paymentOrder.amount) !== expectedAmount
+    ) {
+      return NextResponse.json({ success: false, error: 'Payment details do not match this order.' }, { status: 400 });
+    }
+
+    const existingOrder = await writeClient.fetch<string | null>(
+      `*[_type == "order" && razorpayPaymentId == $paymentId][0]._id`,
+      { paymentId: razorpay_payment_id }
+    );
+    if (existingOrder) {
+      return NextResponse.json({ success: true, paymentId: razorpay_payment_id, duplicate: true });
+    }
+
     // Save order to Sanity and mark products as sold out
     const addressParts = [
       customer?.address1,
@@ -80,6 +104,7 @@ export async function POST(request: Request) {
     ].filter(Boolean);
 
     const orderDoc = {
+      _id: `order-razorpay-${razorpay_payment_id.replace(/[^a-zA-Z0-9_-]/g, '')}`,
       _type: 'order',
       razorpayOrderId: razorpay_order_id,
       razorpayPaymentId: razorpay_payment_id,
@@ -104,7 +129,7 @@ export async function POST(request: Request) {
       paidAt: new Date().toISOString(),
     };
 
-    await writeClient.create(orderDoc);
+    await writeClient.createIfNotExists(orderDoc);
 
     // Mark each purchased product as sold out
     if (pricing.items.length > 0) {

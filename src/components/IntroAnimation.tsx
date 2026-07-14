@@ -30,21 +30,23 @@ export default function IntroAnimation() {
   useEffect(() => {
     const shown = sessionStorage.getItem('introShown')
     if (shown) {
-      setVisible(false)
-      return
+      const hideTimer = window.setTimeout(() => setVisible(false), 0)
+      return () => window.clearTimeout(hideTimer)
     }
 
     const isMobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches
     const mobileFadeMs = isMobile ? 700 : 1200
-    setMobileIntro(isMobile)
-    setFadeMs(mobileFadeMs)
+    const setupTimer = window.setTimeout(() => {
+      setMobileIntro(isMobile)
+      setFadeMs(mobileFadeMs)
+    }, 0)
     fadeMsRef.current = mobileFadeMs
 
-    setVisible(true)
     timerRef.current = setTimeout(startFade, isMobile ? 2600 : 4500)
     window.addEventListener('keydown', startFade)
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
+      clearTimeout(setupTimer)
       window.removeEventListener('keydown', startFade)
     }
   }, [startFade])

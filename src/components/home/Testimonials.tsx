@@ -92,10 +92,12 @@ export default function Testimonials() {
               onClick={() => setActiveIndex(index)}
               aria-label={`Show review ${index + 1}`}
               aria-pressed={activeIndex === index}
-              className={`h-1.5 rounded-full transition-all ${
-                activeIndex === index ? 'w-7 bg-gold' : 'w-1.5 bg-white/30 hover:bg-white/60'
-              }`}
-            />
+              className="flex h-11 w-11 items-center justify-center rounded-full"
+            >
+              <span className={`h-1.5 rounded-full transition-all ${
+                activeIndex === index ? 'w-7 bg-gold' : 'w-1.5 bg-white/40'
+              }`} />
+            </button>
           ))}
         </div>
       </div>
