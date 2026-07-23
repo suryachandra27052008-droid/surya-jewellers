@@ -1,6 +1,12 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-enquiry-verifications",
+      "schedule": "17 3 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/_next/static/(.*)",

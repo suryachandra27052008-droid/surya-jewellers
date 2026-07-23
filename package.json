@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.8",
@@ -18,7 +19,7 @@
     "jszip": "^3.10.1",
     "lucide-react": "^1.7.0",
     "motion": "^12.38.0",
-    "next": "^16.2.4",
+    "next": "^16.2.11",
     "next-sanity": "^12.2.1",
     "razorpay": "^2.9.6",
     "react": "19.2.4",
@@ -41,6 +42,7 @@
     "eslint": "^9",
     "eslint-config-next": "^16.2.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

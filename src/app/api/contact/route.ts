@@ -1,74 +1,113 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
-import { escapeHtml, isRateLimited, isValidEmail, textField } from '@/lib/server/request-security';
+import {
+  EnquiryError,
+  normalizeEmail,
+  requestVerificationCode,
+  resendVerificationCode,
+  verifyAndDeliver,
+} from '@/lib/server/enquiry-verification';
+import { escapeHtml, isValidEmail, textField } from '@/lib/server/request-security';
 
-export async function POST(req: NextRequest) {
-  try {
-    if (isRateLimited(req, 'contact')) {
-      return NextResponse.json({ error: 'Too many requests. Please try again shortly.' }, { status: 429 });
-    }
-    const body = await req.json();
-    const name = textField(body.name, 100);
-    const email = textField(body.email, 254).toLowerCase();
-    const phone = textField(body.phone, 30);
-    const message = textField(body.message, 5000);
+export const runtime = 'nodejs';
 
-    if (!name || !isValidEmail(email) || !message) {
-      return NextResponse.json({ error: 'Please enter a valid name, email, and message.' }, { status: 400 });
-    }
+type ContactPayload = {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+};
 
-    const safe = {
-      name: escapeHtml(name),
-      email: escapeHtml(email),
-      phone: escapeHtml(phone),
-      message: escapeHtml(message),
-    };
+function parseContact(body: Record<string, unknown>): ContactPayload {
+  const payload = {
+    name: textField(body.name, 100),
+    email: normalizeEmail(textField(body.email, 254)),
+    phone: textField(body.phone, 30),
+    message: textField(body.message, 5000),
+  };
+  if (!payload.name || !isValidEmail(payload.email) || !payload.message) {
+    throw new EnquiryError('Please enter a valid name, email, and message.');
+  }
+  return payload;
+}
+function verifiedContactEmail(payload: ContactPayload, verifiedAt: string) {
+  const safe = Object.fromEntries(
+    Object.entries(payload).map(([key, value]) => [key, escapeHtml(value)]),
+  ) as Record<keyof ContactPayload, string>;
+  const timestamp = new Intl.DateTimeFormat('en-IN', {
+    dateStyle: 'medium',
+    timeStyle: 'long',
+    timeZone: 'Asia/Kolkata',
+  }).format(new Date(verifiedAt));
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
-
-    await resend.emails.send({
-      from: 'Surya Jewellers <hello@suryajewellers.com>',
-      to: 'suryajewellersjaipur@gmail.com',
-      replyTo: email,
-      subject: `New enquiry from ${name.replace(/[\r\n]/g, ' ')}`,
-      html: `
-        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #fafaf8; border: 1px solid #e8e0d0;">
-          <div style="text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #d4af37;">
-            <h1 style="font-size: 22px; color: #1a1a1a; letter-spacing: 4px; margin: 0 0 4px 0;">SURYA</h1>
-            <p style="color: #d4af37; font-size: 11px; letter-spacing: 5px; margin: 0; text-transform: uppercase;">Jewellers</p>
-          </div>
-
-          <h2 style="font-size: 18px; color: #1a1a1a; margin: 0 0 24px 0;">New Contact Enquiry</h2>
-
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; width: 100px;">Name</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${safe.name}</td>
-            </tr>
-            <tr>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Email</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;"><a href="mailto:${safe.email}" style="color: #d4af37;">${safe.email}</a></td>
-            </tr>
-            <tr>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Phone</td>
-              <td style="padding: 10px 0; border-bottom: 1px solid #e8e0d0; color: #1a1a1a; font-size: 14px;">${safe.phone || '—'}</td>
-            </tr>
-            <tr>
-              <td style="padding: 16px 0 0 0; color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; vertical-align: top;">Message</td>
-              <td style="padding: 16px 0 0 0; color: #1a1a1a; font-size: 14px; line-height: 1.7; white-space: pre-wrap;">${safe.message}</td>
-            </tr>
-          </table>
-
-          <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #e8e0d0; text-align: center;">
-            <p style="color: #aaa; font-size: 11px; margin: 0;">Reply to this email to respond directly to ${safe.name}.</p>
-          </div>
+  return {
+    subject: `New contact enquiry from ${payload.name.replace(/[\r\n]/g, ' ')}`,
+    html: `
+      <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;padding:32px;background:#fafaf8;border:1px solid #e8e0d0;">
+        <div style="text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid #d4af37;">
+          <h1 style="font-size:22px;color:#1a1a1a;letter-spacing:4px;margin:0 0 4px;">SURYA</h1>
+          <p style="color:#b99728;font-size:11px;letter-spacing:5px;margin:0;text-transform:uppercase;">Jewellers</p>
         </div>
-      `,
-    });
+        <h2 style="font-size:18px;color:#1a1a1a;margin:0 0 8px;">New Contact Enquiry</h2>
+        <p style="font:12px Arial,sans-serif;color:#5f7a5f;margin:0 0 20px;">Email ownership verified ${escapeHtml(timestamp)}</p>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:10px 0;border-bottom:1px solid #e8e0d0;color:#888;font-size:12px;letter-spacing:2px;text-transform:uppercase;width:100px;">Name</td><td style="padding:10px 0;border-bottom:1px solid #e8e0d0;color:#1a1a1a;font-size:14px;">${safe.name}</td></tr>
+          <tr><td style="padding:10px 0;border-bottom:1px solid #e8e0d0;color:#888;font-size:12px;letter-spacing:2px;text-transform:uppercase;">Email</td><td style="padding:10px 0;border-bottom:1px solid #e8e0d0;color:#1a1a1a;font-size:14px;"><a href="mailto:${safe.email}" style="color:#b99728;">${safe.email}</a></td></tr>
+          <tr><td style="padding:10px 0;border-bottom:1px solid #e8e0d0;color:#888;font-size:12px;letter-spacing:2px;text-transform:uppercase;">Phone</td><td style="padding:10px 0;border-bottom:1px solid #e8e0d0;color:#1a1a1a;font-size:14px;">${safe.phone || '&mdash;'}</td></tr>
+          <tr><td style="padding:16px 0 0;color:#888;font-size:12px;letter-spacing:2px;text-transform:uppercase;vertical-align:top;">Message</td><td style="padding:16px 0 0;color:#1a1a1a;font-size:14px;line-height:1.7;white-space:pre-wrap;">${safe.message}</td></tr>
+        </table>
+        <div style="margin-top:32px;padding-top:20px;border-top:1px solid #e8e0d0;text-align:center;">
+          <p style="color:#888;font-size:11px;margin:0;">Reply to this email to respond directly to ${safe.name}.</p>
+        </div>
+      </div>
+    `,
+  };
+}
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error('[Contact] Error:', err);
-    return NextResponse.json({ error: 'Failed to send email.' }, { status: 500 });
+export async function POST(request: NextRequest) {
+  try {
+    const body = (await request.json()) as Record<string, unknown>;
+    const action = textField(body.action, 30);
+
+    if (action === 'request-code') {
+      const payload = parseContact(body);
+      const result = await requestVerificationCode({
+        request,
+        kind: 'contact',
+        email: payload.email,
+        turnstileToken: textField(body.turnstileToken, 4096),
+        honeypot: textField(body.website, 200),
+      });
+      return NextResponse.json(result);
+    }
+
+    if (action === 'resend-code') {
+      const result = await resendVerificationCode({
+        request,
+        kind: 'contact',
+        verificationId: textField(body.verificationId, 100),
+        turnstileToken: textField(body.turnstileToken, 4096),
+      });
+      return NextResponse.json(result);
+    }
+
+    if (action === 'verify') {
+      const payload = parseContact(body);
+      const result = await verifyAndDeliver({
+        kind: 'contact',
+        verificationId: textField(body.verificationId, 100),
+        email: payload.email,
+        code: textField(body.code, 6),
+        merchantEmail: (verifiedAt) => verifiedContactEmail(payload, verifiedAt),
+      });
+      return NextResponse.json(result);
+    }
+
+    throw new EnquiryError('Email verification is required before an enquiry can be sent.', 400);
+  } catch (error) {
+    if (error instanceof EnquiryError) {
+      return NextResponse.json({ error: error.message, ...error.details }, { status: error.status });
+    }
+    console.error('[Contact] Error:', error);
+    return NextResponse.json({ error: 'The enquiry could not be processed. Please try again.' }, { status: 500 });
   }
 }

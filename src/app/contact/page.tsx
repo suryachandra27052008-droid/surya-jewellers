@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import Link from 'next/link';
+import { EnquiryVerificationPanel } from '@/components/forms/EnquiryVerificationPanel';
+import { Turnstile, type TurnstileHandle } from '@/components/forms/Turnstile';
+import { useEnquiryVerification } from '@/hooks/useEnquiryVerification';
 
 const storeDetails = [
   {
@@ -63,34 +66,33 @@ const storeDetails = [
   },
 ];
 
-type FormState = 'idle' | 'loading' | 'success' | 'error';
+type FormState = 'idle' | 'success';
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
   const [status, setStatus] = useState<FormState>('idle');
+  const turnstileRef = useRef<TurnstileHandle>(null);
+  const verification = useEnquiryVerification({
+    endpoint: '/api/contact',
+    turnstileRef,
+    getPayload: () => form,
+    onVerified: () => {
+      setStatus('success');
+      setForm({ name: '', email: '', phone: '', message: '' });
+    },
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('loading');
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (res.ok) {
-        setStatus('success');
-        setForm({ name: '', email: '', phone: '', message: '' });
-      } else {
-        setStatus('error');
-      }
-    } catch {
-      setStatus('error');
+    if (verification.stage === 'awaiting-code') {
+      void verification.verify();
+      return;
     }
+    if (verification.stage === 'idle') void verification.requestCode();
   };
 
   const inputClass =
@@ -173,7 +175,10 @@ export default function ContactPage() {
                   Thank you for reaching out. We will get back to you within 24 hours.
                 </p>
                 <button
-                  onClick={() => setStatus('idle')}
+                  onClick={() => {
+                    setStatus('idle');
+                    verification.reset();
+                  }}
                   className="text-gold text-sm hover:text-gold-light transition-colors duration-300 underline underline-offset-4"
                 >
                   Send another message
@@ -206,11 +211,28 @@ export default function ContactPage() {
                       required
                       value={form.email}
                       onChange={handleChange}
+                      disabled={verification.emailLocked}
                       placeholder="your@email.com"
-                      className={inputClass}
+                      className={`${inputClass} disabled:opacity-60 disabled:cursor-not-allowed`}
                     />
                   </div>
                 </div>
+
+                <Turnstile ref={turnstileRef} action="contact_enquiry" />
+                <EnquiryVerificationPanel
+                  stage={verification.stage}
+                  maskedEmail={verification.maskedEmail}
+                  expiresAt={verification.expiresAt}
+                  resendAvailableAt={verification.resendAvailableAt}
+                  code={verification.code}
+                  error={verification.error}
+                  honeypot={verification.honeypot}
+                  onCodeChange={verification.setCode}
+                  onHoneypotChange={verification.setHoneypot}
+                  onVerify={() => void verification.verify()}
+                  onResend={() => void verification.resend()}
+                  onChangeEmail={verification.reset}
+                />
 
                 <div>
                   <label className="text-white/40 text-xs tracking-[0.15em] uppercase block mb-2">
@@ -241,19 +263,15 @@ export default function ContactPage() {
                   />
                 </div>
 
-                {status === 'error' && (
-                  <p className="text-red-400/80 text-sm">
-                    Something went wrong. Please try again or email us directly.
-                  </p>
+                {(verification.stage === 'idle' || verification.stage === 'requesting') && (
+                  <button
+                    type="submit"
+                    disabled={verification.busy}
+                    className="btn-gold w-full sm:w-auto text-xs disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {verification.stage === 'requesting' ? 'Sending Code...' : 'Continue to Email Verification'}
+                  </button>
                 )}
-
-                <button
-                  type="submit"
-                  disabled={status === 'loading'}
-                  className="btn-gold w-full sm:w-auto text-xs disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {status === 'loading' ? 'Sending...' : 'Send Message'}
-                </button>
               </form>
             )}
           </motion.div>

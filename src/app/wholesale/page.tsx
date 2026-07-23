@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import Link from 'next/link';
+import { EnquiryVerificationPanel } from '@/components/forms/EnquiryVerificationPanel';
+import { Turnstile, type TurnstileHandle } from '@/components/forms/Turnstile';
+import { useEnquiryVerification } from '@/hooks/useEnquiryVerification';
 
 const reasons = [
   {
@@ -63,7 +66,7 @@ const productOptions = [
   'Studs',
 ];
 
-type FormState = 'idle' | 'loading' | 'success' | 'error';
+type FormState = 'idle' | 'success';
 
 export default function WholesalePage() {
   const [form, setForm] = useState({
@@ -77,6 +80,25 @@ export default function WholesalePage() {
     message: '',
   });
   const [status, setStatus] = useState<FormState>('idle');
+  const turnstileRef = useRef<TurnstileHandle>(null);
+  const verification = useEnquiryVerification({
+    endpoint: '/api/wholesale',
+    turnstileRef,
+    getPayload: () => form,
+    onVerified: () => {
+      setStatus('success');
+      setForm({
+        companyName: '',
+        contactPerson: '',
+        country: '',
+        phone: '',
+        email: '',
+        products: [],
+        monthlyRequirement: '',
+        message: '',
+      });
+    },
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -91,33 +113,13 @@ export default function WholesalePage() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('loading');
-    try {
-      const res = await fetch('/api/wholesale', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (res.ok) {
-        setStatus('success');
-        setForm({
-          companyName: '',
-          contactPerson: '',
-          country: '',
-          phone: '',
-          email: '',
-          products: [],
-          monthlyRequirement: '',
-          message: '',
-        });
-      } else {
-        setStatus('error');
-      }
-    } catch {
-      setStatus('error');
+    if (verification.stage === 'awaiting-code') {
+      void verification.verify();
+      return;
     }
+    if (verification.stage === 'idle') void verification.requestCode();
   };
 
   const inputClass =
@@ -237,7 +239,10 @@ export default function WholesalePage() {
                 Thank you for your interest in partnering with Surya Jewellers. Our team will review your enquiry and get back to you within 48 hours.
               </p>
               <button
-                onClick={() => setStatus('idle')}
+                onClick={() => {
+                  setStatus('idle');
+                  verification.reset();
+                }}
                 className="text-gold text-sm hover:text-gold-light transition-colors duration-300 underline underline-offset-4"
               >
                 Submit another enquiry
@@ -318,10 +323,27 @@ export default function WholesalePage() {
                   required
                   value={form.email}
                   onChange={handleChange}
+                  disabled={verification.emailLocked}
                   placeholder="business@example.com"
-                  className={inputClass}
+                  className={`${inputClass} disabled:opacity-60 disabled:cursor-not-allowed`}
                 />
               </div>
+
+              <Turnstile ref={turnstileRef} action="wholesale_enquiry" />
+              <EnquiryVerificationPanel
+                stage={verification.stage}
+                maskedEmail={verification.maskedEmail}
+                expiresAt={verification.expiresAt}
+                resendAvailableAt={verification.resendAvailableAt}
+                code={verification.code}
+                error={verification.error}
+                honeypot={verification.honeypot}
+                onCodeChange={verification.setCode}
+                onHoneypotChange={verification.setHoneypot}
+                onVerify={() => void verification.verify()}
+                onResend={() => void verification.resend()}
+                onChangeEmail={verification.reset}
+              />
 
               {/* Product Types */}
               <div>
@@ -384,19 +406,15 @@ export default function WholesalePage() {
                 />
               </div>
 
-              {status === 'error' && (
-                <p className="text-red-400/80 text-sm">
-                  Something went wrong. Please try again or email us directly at suryajewellersjaipur@gmail.com
-                </p>
+              {(verification.stage === 'idle' || verification.stage === 'requesting') && (
+                <button
+                  type="submit"
+                  disabled={verification.busy}
+                  className="btn-gold text-xs disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {verification.stage === 'requesting' ? 'Sending Code...' : 'Continue to Email Verification'}
+                </button>
               )}
-
-              <button
-                type="submit"
-                disabled={status === 'loading'}
-                className="btn-gold text-xs disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {status === 'loading' ? 'Submitting...' : 'Submit Enquiry'}
-              </button>
             </form>
           )}
         </motion.section>
