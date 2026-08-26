@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
 import Link from 'next/link';
 import { Heart, ShoppingBag, Trash2 } from 'lucide-react';
 import { useCartStore } from '@/stores/cart-store';
@@ -54,6 +55,7 @@ export default function WishlistPage() {
                       {item.image ? (
                         <Image
                           src={item.image}
+                          loader={catalogImageLoader}
                           alt={item.name}
                           fill
                           sizes="(max-width: 640px) 50vw, 25vw"

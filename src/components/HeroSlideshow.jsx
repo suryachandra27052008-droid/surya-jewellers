@@ -53,7 +53,7 @@ export default function HeroSlideshow({ children }) {
               alt={alt}
               fill
               sizes="100vw"
-              quality={i === 0 ? 55 : 60}
+              quality={60}
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               {...(i === 0
                 ? { priority: true, fetchPriority: 'high' }

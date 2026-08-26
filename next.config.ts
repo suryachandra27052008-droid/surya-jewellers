@@ -30,9 +30,11 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    formats: ['image/avif', 'image/webp'],
-    qualities: [55, 60, 70, 75],
-    deviceSizes: [256, 320, 375, 640, 750, 828, 1080, 1200, 1920],
+    formats: ['image/webp'],
+    qualities: [60, 75],
+    deviceSizes: [320, 640, 828, 1080, 1920],
+    imageSizes: [80, 160, 256],
+    minimumCacheTTL: 2678400,
     remotePatterns: [
       {
         protocol: "https",

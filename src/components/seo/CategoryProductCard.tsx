@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
 import { Heart } from 'lucide-react';
 import { getSalePrice, useSeasonalSale } from '@/hooks/use-seasonal-sale';
 import { useCartStore } from '@/stores/cart-store';
@@ -36,6 +37,7 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
           {img ? (
             <Image
               src={img}
+              loader={catalogImageLoader}
               alt={altText}
               fill
               priority={priority}

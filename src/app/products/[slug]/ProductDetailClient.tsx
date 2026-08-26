@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { Heart } from 'lucide-react';
@@ -173,6 +174,7 @@ export default function ProductDetailClient({
                   <Image
                     key={product.images[selectedImageIndex]}
                     src={product.images[selectedImageIndex]}
+                    loader={catalogImageLoader}
                     alt={`${product.mainStoneType !== 'None' ? product.mainStoneType + ' ' : ''}${product.name} in 92.5 Sterling Silver — Surya Jewellers Jaipur`}
                     fill
                     className="object-cover transition-transform duration-700 hover:scale-105"
@@ -217,6 +219,7 @@ export default function ProductDetailClient({
                       <Image
                         key={img}
                         src={img}
+                        loader={catalogImageLoader}
                         alt={`${product.name} view ${i + 1} — ${product.category} in 92.5 Sterling Silver`}
                         fill
                         className="object-cover"
@@ -425,6 +428,7 @@ export default function ProductDetailClient({
                     {rp.images[0] ? (
                       <Image
                         src={rp.images[0]}
+                        loader={catalogImageLoader}
                         alt={`${rp.mainStoneType !== 'None' ? rp.mainStoneType + ' ' : ''}${rp.name} — 92.5 Sterling Silver`}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-105"

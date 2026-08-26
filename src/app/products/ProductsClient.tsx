@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
 import { Heart } from 'lucide-react';
 import { getSalePrice, useSeasonalSale } from '@/hooks/use-seasonal-sale';
 import { useCartStore } from '@/stores/cart-store';
@@ -727,6 +728,7 @@ export default function ProductsClient({
                           {product.images && product.images.length > 0 ? (
                             <Image
                               src={product.images[0]}
+                              loader={catalogImageLoader}
                               alt={product.imageAlt || product.displayName || product.name}
                               fill
                               priority={aboveFold}

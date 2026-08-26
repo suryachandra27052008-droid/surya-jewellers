@@ -7,6 +7,7 @@ import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
 import Link from 'next/link';
 import Image from 'next/image';
+import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal } =
@@ -121,6 +122,7 @@ export default function CartDrawer() {
                         {item.image ? (
                           <Image
                             src={item.image}
+                            loader={catalogImageLoader}
                             alt={item.name}
                             fill
                             className="object-cover"
