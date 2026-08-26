@@ -33,8 +33,7 @@ export default function FeaturedCollections() {
                   src={collection.image}
                   alt={collection.name}
                   fill
-                  sizes="(max-width: 640px) 46vw, (max-width: 1024px) 31vw, 24vw"
-                  quality={60}
+                  unoptimized
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                   priority={index < 2}
                   loading={index >= 2 ? 'lazy' : undefined}

@@ -662,8 +662,8 @@ export default function AddProductPage() {
                     src={img.preview}
                     alt={`Preview ${index + 1}`}
                     fill
+                    unoptimized
                     className="object-cover"
-                    sizes="120px"
                   />
                   <button
                     type="button"

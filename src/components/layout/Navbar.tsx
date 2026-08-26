@@ -83,6 +83,7 @@ export default function Navbar() {
                 alt="Surya Jewellers — 92.5 Sterling Silver Jewellery Jaipur"
                 height={44}
                 width={144}
+                unoptimized
                 style={{ height: '44px', width: 'auto' }}
                 priority
                 fetchPriority="high"

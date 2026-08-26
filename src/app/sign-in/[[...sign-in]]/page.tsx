@@ -88,7 +88,7 @@ export default function SignInPage() {
         {/* Brand */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex flex-col items-center gap-2">
-            <Image src="/logo_sj.webp" alt="Surya Jewellers" width={40} height={40} className="opacity-90" />
+            <Image src="/logo_sj.webp" alt="Surya Jewellers" width={40} height={40} unoptimized className="opacity-90" />
             <span
               className="text-[11px] tracking-[0.35em] font-semibold uppercase"
               style={{ color: GOLD }}

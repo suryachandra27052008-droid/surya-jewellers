@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
 
 const ALL_STONES = [
   "Alexandrite", "Amethyst", "Ametrine", "Apatite", "Aquamarine",
@@ -512,7 +513,7 @@ export default function EditProductPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {existingImages.map((url, index) => (
                   <div key={`exist-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50 group">
-                    <Image src={url} alt="Product" fill className="object-cover" sizes="120px" />
+                    <Image src={url} alt="Product" fill loader={catalogImageLoader} className="object-cover" sizes="120px" />
                     <button
                       type="button"
                       onClick={() => removeExistingImage(index)}
@@ -531,7 +532,7 @@ export default function EditProductPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {newImages.map((img, index) => (
                   <div key={`new-${index}`} className="relative aspect-square rounded-lg overflow-hidden border-2 border-dashed border-amber-300 bg-amber-50 group">
-                    <Image src={img.preview} alt="New" fill className="object-cover" sizes="120px" />
+                    <Image src={img.preview} alt="New" fill unoptimized className="object-cover" />
                     <button
                       type="button"
                       onClick={() => removeNewImage(index)}
