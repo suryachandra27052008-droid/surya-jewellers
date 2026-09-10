@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { client, writeClient } from '@/lib/sanity/client';
+import { writeClient } from '@/lib/sanity/client';
 import { sendOrderStatusEmail } from '@/lib/email';
 
 interface AdminOrder {
@@ -11,7 +11,7 @@ interface AdminOrder {
 
 export async function GET() {
   try {
-    const orders = await client.fetch(
+    const orders = await writeClient.fetch(
       `*[_type == "order"] | order(paidAt desc) {
         _id,
         razorpayOrderId,
@@ -33,7 +33,9 @@ export async function GET() {
     const totalRevenue = (orders as AdminOrder[]).reduce((sum: number, o) => sum + (o.total || 0), 0);
     const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
 
-    return NextResponse.json({ orders, totalRevenue, avgOrderValue, count: orders.length });
+    return NextResponse.json({ orders, totalRevenue, avgOrderValue, count: orders.length }, {
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
   } catch (error) {
     console.error('Failed to fetch orders:', error);
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
@@ -47,6 +49,11 @@ export async function PATCH(request: Request) {
     if (!id || !validStatuses.includes(status)) {
       return NextResponse.json({ error: 'Invalid id or status' }, { status: 400 });
     }
+
+    const exists = await writeClient.fetch<boolean>(
+      `count(*[_type == "order" && _id == $id]) == 1`, { id },
+    );
+    if (!exists) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
     await writeClient.patch(id).set({ status }).commit();
 

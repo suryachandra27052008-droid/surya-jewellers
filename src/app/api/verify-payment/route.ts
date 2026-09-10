@@ -104,7 +104,7 @@ export async function POST(request: Request) {
     ].filter(Boolean);
 
     const orderDoc = {
-      _id: `order-razorpay-${razorpay_payment_id.replace(/[^a-zA-Z0-9_-]/g, '')}`,
+      _id: `orders.razorpay-${razorpay_payment_id.replace(/[^a-zA-Z0-9_-]/g, '')}`,
       _type: 'order',
       razorpayOrderId: razorpay_order_id,
       razorpayPaymentId: razorpay_payment_id,

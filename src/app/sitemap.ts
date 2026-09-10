@@ -4,6 +4,7 @@ import { posts } from '@/app/blog/data';
 import { getProductCanonicalSlug, SITE_URL } from '@/lib/seo/product';
 
 const BASE_URL = SITE_URL;
+export const revalidate = 3600;
 
 function parseBlogDate(date: string): Date {
   if (date === 'Pinned' || !date) return new Date('2025-01-01');

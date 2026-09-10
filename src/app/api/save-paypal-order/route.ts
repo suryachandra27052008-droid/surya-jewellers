@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     ].filter(Boolean);
 
     const orderDoc = {
-      _id: `order-paypal-${paypalCaptureId.replace(/[^a-zA-Z0-9_-]/g, '')}`,
+      _id: `orders.paypal-${paypalCaptureId.replace(/[^a-zA-Z0-9_-]/g, '')}`,
       _type: 'order',
       razorpayOrderId: paypalOrderId,
       razorpayPaymentId: paypalCaptureId,

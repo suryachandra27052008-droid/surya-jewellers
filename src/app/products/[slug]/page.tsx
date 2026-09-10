@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { cache } from 'react';
+import { calculateSaleTotals } from '@/lib/sale';
 import { writeClient } from '@/lib/sanity/client';
 import ProductDetailClient, { type ProductData, type RelatedProduct } from './ProductDetailClient';
 import {
@@ -8,6 +9,7 @@ import {
   getProductCanonicalSlug,
   getProductDisplayName,
   getProductMetaDescription,
+  getProductSeoTitle,
   SITE_URL,
 } from '@/lib/seo/product';
 
@@ -83,11 +85,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
   const canonicalSlug = getProductCanonicalSlug(product);
   const displayName = getProductDisplayName(product);
-  const title = `${displayName} | 92.5 Silver`;
+  const title = getProductSeoTitle(product);
   const description = getProductMetaDescription(product);
   const image = product.images?.[0];
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical: `${SITE_URL}/products/${canonicalSlug}` },
     openGraph: {
@@ -168,6 +170,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     barcode: raw.barcode || '',
   };
 
+  const saleSettings = await writeClient.fetch('*[_type == "siteSettings" && _id == "siteSettings"][0]{saleEnabled,saleName,saleDiscountPercent,saleStartDate,saleEndDate}', {}, { cache: 'no-store' });
+  const offerPrice = calculateSaleTotals(product.price, saleSettings).discountedSubtotal;
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -185,41 +189,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       '@type': 'Offer',
       url: `${SITE_URL}/products/${product.slug}`,
       priceCurrency: 'INR',
-      price: product.price,
-      availability: product.inStock
+      price: offerPrice,
+      availability: product.inStock && product.stockQuantity > 0
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/NewCondition',
-      hasMerchantReturnPolicy: {
-        '@type': 'MerchantReturnPolicy',
-        applicableCountry: 'IN',
-        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-        merchantReturnDays: 7,
-        returnMethod: 'https://schema.org/ReturnByMail',
-        returnFees: 'https://schema.org/FreeReturn',
-      },
-      shippingDetails: {
-        '@type': 'OfferShippingDetails',
-        shippingDestination: {
-          '@type': 'DefinedRegion',
-          addressCountry: 'IN',
-        },
-        deliveryTime: {
-          '@type': 'ShippingDeliveryTime',
-          handlingTime: {
-            '@type': 'QuantitativeValue',
-            minValue: 1,
-            maxValue: 2,
-            unitCode: 'DAY',
-          },
-          transitTime: {
-            '@type': 'QuantitativeValue',
-            minValue: 5,
-            maxValue: 7,
-            unitCode: 'DAY',
-          },
-        },
-      },
       seller: {
         '@type': 'Organization',
         name: 'Surya Jewellers',
