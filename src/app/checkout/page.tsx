@@ -103,7 +103,7 @@ export default function CheckoutPage() {
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
   const shipping = getShipping(discountedSubtotal);
   const total = discountedSubtotal + shipping;
-  const paypalCurrency = (currency === 'USD' || currency === 'GBP') ? currency : 'USD';
+  const paypalCurrency = (currency === 'USD' || currency === 'GBP' || currency === 'EUR') ? currency : 'USD';
   const checkoutItems = items.map((item) => ({
     _id: item._id,
     quantity: item.quantity,

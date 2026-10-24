@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type CurrencyCode = 'INR' | 'USD' | 'GBP' | 'JPY' | 'CNY';
+export type CurrencyCode = 'INR' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY';
 
 export const CURRENCIES: Record<CurrencyCode, { symbol: string; name: string; flag: string; rate: number }> = {
   INR: { symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳', rate: 1 },
   USD: { symbol: '$', name: 'US Dollar', flag: '🇺🇸', rate: 0.012 },
+  EUR: { symbol: '€', name: 'Euro', flag: '🇪🇺', rate: 1 / 104 },
   GBP: { symbol: '£', name: 'British Pound', flag: '🇬🇧', rate: 0.0095 },
   JPY: { symbol: '¥', name: 'Japanese Yen', flag: '🇯🇵', rate: 1.78 },
   CNY: { symbol: '¥', name: 'Chinese Yuan', flag: '🇨🇳', rate: 0.087 },

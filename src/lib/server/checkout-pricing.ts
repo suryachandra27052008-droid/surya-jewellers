@@ -4,7 +4,7 @@ import { calculateSaleTotals } from '@/lib/sale';
 import { getShipping } from '@/lib/shipping';
 import { getProductCanonicalSlug, getProductDisplayName } from '@/lib/seo/product';
 
-export type CheckoutCurrency = 'INR' | 'USD' | 'GBP' | 'JPY' | 'CNY';
+export type CheckoutCurrency = 'INR' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY';
 
 export type CheckoutLineInput = {
   _id?: string;
@@ -55,6 +55,7 @@ const DOC_ID = 'siteSettings';
 const CURRENCY_RATE: Record<CheckoutCurrency, number> = {
   INR: 1,
   USD: 0.012,
+  EUR: 1 / 104,
   GBP: 0.0095,
   JPY: 1.78,
   CNY: 0.087,
@@ -63,6 +64,7 @@ const CURRENCY_RATE: Record<CheckoutCurrency, number> = {
 const SUBUNIT_MULTIPLIER: Record<CheckoutCurrency, number> = {
   INR: 100,
   USD: 100,
+  EUR: 100,
   GBP: 100,
   JPY: 1,
   CNY: 100,
