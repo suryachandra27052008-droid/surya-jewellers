@@ -125,7 +125,7 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
             });
           }}
           disabled={atMax}
-          aria-label={atMax ? `In bag — ${name}` : `Add to bag — ${name}`}
+          aria-label={atMax ? `In bag — ${name}` : isRingCategory(p.category) ? `Choose size for ${name}` : `Add to bag — ${name}`}
           className={`w-full text-center text-[0.65rem] sm:text-xs py-2.5 min-h-[44px] uppercase font-semibold tracking-wider rounded transition-all mt-auto ${
             atMax
               ? 'bg-charcoal/10 text-charcoal/40 cursor-not-allowed'

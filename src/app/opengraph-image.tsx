@@ -49,7 +49,7 @@ export default function OGImage() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '0 80px', textAlign: 'center' }}>
           {/* Tagline */}
           <div style={{ color: 'rgba(201,168,76,0.7)', fontSize: 14, letterSpacing: '0.4em', textTransform: 'uppercase' }}>
-            ✦  Jaipur, India  ✦
+            Jaipur, India
           </div>
 
           {/* Brand name */}

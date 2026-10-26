@@ -417,12 +417,12 @@ export default function ProductsClient({
     <div className="space-y-7">
       {/* Category */}
       <div>
-        <h3
+        <h2
           className="mb-1 uppercase tracking-[0.18em] text-[0.68rem]"
           style={{ fontFamily: 'var(--font-cinzel), serif', color: '#c9a84c' }}
         >
           Category
-        </h3>
+        </h2>
         <div className="mb-4" style={{ height: '1px', background: 'linear-gradient(90deg, #c9a84c55, transparent)' }} />
         <div className="space-y-0.5">
           {availableCategories.map(({ name, count }) => (
@@ -447,12 +447,12 @@ export default function ProductsClient({
 
       {/* Price Range */}
       <div>
-        <h3
+        <h2
           className="mb-1 uppercase tracking-[0.18em] text-[0.68rem]"
           style={{ fontFamily: 'var(--font-cinzel), serif', color: '#c9a84c' }}
         >
           Price Range
-        </h3>
+        </h2>
         <div className="mb-4" style={{ height: '1px', background: 'linear-gradient(90deg, #c9a84c55, transparent)' }} />
         <PriceRangeSlider
           minVal={priceRange[0]}
@@ -463,12 +463,12 @@ export default function ProductsClient({
 
       {/* Stone Type */}
       <div>
-        <h3
+        <h2
           className="mb-1 uppercase tracking-[0.18em] text-[0.68rem]"
           style={{ fontFamily: 'var(--font-cinzel), serif', color: '#c9a84c' }}
         >
           Stone Type
-        </h3>
+        </h2>
         <div className="mb-4" style={{ height: '1px', background: 'linear-gradient(90deg, #c9a84c55, transparent)' }} />
         <div className="space-y-0.5">
           {/* All stones option */}
@@ -525,12 +525,12 @@ export default function ProductsClient({
 
       {/* Sort By */}
       <div>
-        <h3
+        <h2
           className="mb-1 uppercase tracking-[0.18em] text-[0.68rem]"
           style={{ fontFamily: 'var(--font-cinzel), serif', color: '#c9a84c' }}
         >
           Sort By
-        </h3>
+        </h2>
         <div className="mb-4" style={{ height: '1px', background: 'linear-gradient(90deg, #c9a84c55, transparent)' }} />
         <select
           value={sortBy}
@@ -851,9 +851,9 @@ export default function ProductsClient({
 
                       <div className="p-2 sm:p-3 flex flex-col flex-1">
                         <Link href={productHref(product.slug.current)} onClick={saveCollectionPosition} className="block min-h-[1.8rem] sm:min-h-[2.45rem]">
-                          <h3 className="font-serif text-xs sm:text-base text-charcoal hover:text-gold transition-colors line-clamp-2 leading-snug">
+                          <h2 className="font-serif text-xs sm:text-base text-charcoal hover:text-gold transition-colors line-clamp-2 leading-snug">
                             {product.displayName || product.name}
-                          </h3>
+                          </h2>
                         </Link>
                         <div className="flex gap-1 mt-1 flex-wrap min-h-[1.05rem] sm:min-h-[1.35rem] content-start">
                           {product.mainStoneType && product.mainStoneType !== 'None' && (
@@ -929,7 +929,9 @@ export default function ProductsClient({
                             aria-label={
                               atMax
                                 ? `In bag — ${product.displayName || product.name}`
-                                : `Add to bag — ${product.displayName || product.name}`
+                                : isRingCategory(product.category.name)
+                                  ? `Choose size for ${product.displayName || product.name}`
+                                  : `Add to bag — ${product.displayName || product.name}`
                             }
                             className={`w-full text-center py-1.5 sm:py-2 min-h-[34px] sm:min-h-[38px] rounded transition-all text-[0.66rem] sm:text-[0.72rem] uppercase tracking-[0.14em] sm:tracking-[0.16em] font-semibold ${
                               atMax
