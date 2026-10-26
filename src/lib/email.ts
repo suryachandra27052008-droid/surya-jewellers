@@ -1,10 +1,27 @@
 import { Resend } from 'resend';
 import { escapeHtml } from '@/lib/server/request-security';
+import { renderOrderReceipt, type OrderReceipt } from '@/lib/server/order-receipt';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = 'Surya Jewellers <hello@suryajewellers.com>';
 const SUPPORT_EMAIL = 'suryajewellersjaipur@gmail.com';
 const SUPPORT_PHONE = '+91 99839 39306';
+
+export async function sendOrderReceiptEmail(data: OrderReceipt, idempotencyKey: string) {
+  const receipt = renderOrderReceipt(data);
+  const result = await resend.emails.send({
+    from: FROM, to: data.customer.email, replyTo: SUPPORT_EMAIL,
+    subject: receipt.subject, html: emailWrapper(receipt.html), text: receipt.text,
+  }, { idempotencyKey });
+  if (result.error || !result.data?.id) throw new Error(result.error?.message || 'Confirmation delivery was not accepted.');
+  return result.data.id;
+}
+
+export async function getOrderReceiptDelivery(emailId: string) {
+  const result = await resend.emails.get(emailId);
+  if (result.error || !result.data) throw new Error(result.error?.message || 'Unable to check delivery.');
+  return { emailId: result.data.id, event: result.data.last_event };
+}
 
 // ─── Shared HTML helpers ────────────────────────────────────────────────────
 

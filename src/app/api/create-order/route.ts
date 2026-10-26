@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server';
 import { priceCheckout, toPaymentAmount, type CheckoutCurrency } from '@/lib/server/checkout-pricing';
+import { normalizeShippingCountry } from '@/lib/shipping';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const country = normalizeShippingCountry(body.country);
+    if (!country) return NextResponse.json({ error: 'Please enter your delivery country.' }, { status: 400 });
     const currency: CheckoutCurrency = body.currency ?? 'INR';
     const pricing = await priceCheckout(body.items, {
       couponCode: body.couponCode,
       customerEmail: body.customerEmail,
+      country,
     });
     const paymentAmount = toPaymentAmount(pricing.total, currency);
 
@@ -32,6 +36,7 @@ export async function POST(request: Request) {
       notes: {
         website: 'https://www.suryajewellers.com',
         serverPricedTotalInr: String(pricing.total),
+        shippingCountry: country,
       },
     });
 

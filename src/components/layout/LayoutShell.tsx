@@ -1,14 +1,23 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import CartDrawer from './CartDrawer';
 import ShippingBanner from '@/components/ui/ShippingBanner';
 import CursorTrail from '@/components/ui/CursorTrail';
+import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
+import { INTERNATIONAL_SHIPPING_FEE } from '@/lib/shipping';
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const currency = useCurrencyStore(state => state.currency);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
   const isAdmin = pathname.startsWith('/admin');
   const isStudio = pathname.startsWith('/studio');
   const isAuth = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up') || pathname.startsWith('/sso-callback');
@@ -55,9 +64,9 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
                 '🔐 SSL Secured',
                 '✦ 92.5 Sterling Silver',
                 '✦ Certified Gemstones',
-                '✦ Free Shipping over ₹2,000',
+                '✦ Free Shipping in India over ₹2,000',
                 '✦ Lifetime Maintenance',
-                '🌍 International Shipping',
+                `🌍 International Shipping ${formatPrice(INTERNATIONAL_SHIPPING_FEE, mounted ? currency : 'USD')}`,
               ].map((item, i) => (
                 <span key={i} className="flex items-center">
                   <span className="px-5">{item}</span>

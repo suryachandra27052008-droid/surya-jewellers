@@ -8,7 +8,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: { absolute: 'Ruby Silver Earrings | 92.5 Sterling | Surya Jewellers' },
   description:
-    'Natural ruby earrings in hallmarked 92.5 sterling silver from Surya Jewellers Jaipur. Certified rubies, Certificate of Authenticity, free shipping.',
+    'Natural ruby earrings in hallmarked 92.5 sterling silver from Surya Jewellers Jaipur. Certified rubies, Certificate of Authenticity, shipping worldwide.',
   alternates: { canonical: 'https://www.suryajewellers.com/ruby-silver-earrings' },
   openGraph: {
     title: 'Ruby Silver Earrings | 92.5 Sterling | Surya Jewellers',

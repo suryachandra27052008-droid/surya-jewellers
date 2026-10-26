@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
+import { INTERNATIONAL_SHIPPING_FEE } from '@/lib/shipping';
 import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -233,7 +234,7 @@ export default function CartDrawer() {
                   </div>
                 )}
                 <p className="text-xs text-charcoal-muted">
-                  Shipping & taxes calculated at checkout
+                  International shipping: {formatPrice(INTERNATIONAL_SHIPPING_FEE, currency)} (US$30). Shipping and taxes calculated at checkout.
                 </p>
                 <Link
                   href="/checkout"

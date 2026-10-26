@@ -3,8 +3,9 @@ import { calculateCouponTotals, getActiveCoupon, normalizeCouponCode } from '@/l
 import { calculateSaleTotals } from '@/lib/sale';
 import { getShipping } from '@/lib/shipping';
 import { getProductCanonicalSlug, getProductDisplayName } from '@/lib/seo/product';
+import { CURRENCIES, type CurrencyCode } from '@/lib/currency';
 
-export type CheckoutCurrency = 'INR' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY';
+export type CheckoutCurrency = CurrencyCode;
 
 export type CheckoutLineInput = {
   _id?: string;
@@ -52,15 +53,6 @@ type SourceProduct = {
 
 const DOC_ID = 'siteSettings';
 
-const CURRENCY_RATE: Record<CheckoutCurrency, number> = {
-  INR: 1,
-  USD: 0.012,
-  EUR: 1 / 104,
-  GBP: 0.0095,
-  JPY: 1.78,
-  CNY: 0.087,
-};
-
 const SUBUNIT_MULTIPLIER: Record<CheckoutCurrency, number> = {
   INR: 100,
   USD: 100,
@@ -78,12 +70,12 @@ function cleanQuantity(value: unknown) {
 
 function cleanCurrency(value: unknown): CheckoutCurrency {
   const currency = String(value || 'INR').toUpperCase() as CheckoutCurrency;
-  return currency in CURRENCY_RATE ? currency : 'INR';
+  return Object.hasOwn(CURRENCIES, currency) ? currency : 'INR';
 }
 
 export function toPaymentAmount(totalInr: number, currencyInput: unknown) {
   const currency = cleanCurrency(currencyInput);
-  const amount = Number(totalInr || 0) * CURRENCY_RATE[currency];
+  const amount = Number(totalInr || 0) * CURRENCIES[currency].rate;
   return {
     currency,
     amount,
@@ -118,6 +110,7 @@ export async function priceCheckout(
     couponCode?: string;
     customerEmail?: string;
     requireInStock?: boolean;
+    country?: string;
   } = {}
 ): Promise<PricedCheckout> {
   const validLines = (lines || [])
@@ -208,7 +201,7 @@ export async function priceCheckout(
       : null;
 
   const discountedSubtotal = Math.max(0, subtotal - (discount?.amount || 0));
-  const shipping = getShipping(discountedSubtotal);
+  const shipping = getShipping(discountedSubtotal, options.country ?? 'IN');
 
   return {
     items: pricedItems,

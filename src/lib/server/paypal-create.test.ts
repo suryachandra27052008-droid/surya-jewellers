@@ -9,7 +9,7 @@ import { POST } from '@/app/api/paypal/create-order/route';
 import { recoverPayPalCustomer } from '@/lib/server/paypal-checkout';
 
 const customer = { fullName: 'Test Buyer', email: 'buyer@example.com', phone: '0000000000',
-  address1: 'Test address', city: 'Test city', state: 'Test state', pincode: '123456' };
+  address1: 'Test address', city: 'Test city', state: 'Test state', pincode: '123456', country: 'IN' };
 const fetchMock = vi.fn();
 function request(includeCustomer = true) {
   return new Request('http://localhost/api/paypal/create-order', { method: 'POST', body: JSON.stringify({
@@ -57,6 +57,6 @@ describe('PayPal checkout preservation', () => {
   it('flags missing legacy customer data without inventing contact or shipping details', () => {
     const result = recoverPayPalCustomer({}, { id: 'ORDER123', status: 'COMPLETED',
       payer: { name: { given_name: 'Test', surname: 'Buyer' }, email_address: 'buyer@example.com' } });
-    expect(result).toEqual({ customer: { name: 'Test Buyer', email: 'buyer@example.com', phone: '', address: '' }, needsMerchantReview: true });
+    expect(result).toEqual({ customer: { name: 'Test Buyer', email: 'buyer@example.com', phone: '', address: '', country: '' }, needsMerchantReview: true });
   });
 });

@@ -25,6 +25,10 @@ interface CustomerInfo {
 
 export async function POST(request: Request) {
   try {
+    // Only the authenticated admin recovery route can defer its automatic email.
+    const requestUrl = new URL(request.url);
+    const manualReceipt = requestUrl.pathname === '/api/admin/paypal-order' &&
+      requestUrl.searchParams.get('receipt') === 'manual';
     const body = await request.json();
     const {
       paypalOrderId,
@@ -61,6 +65,7 @@ export async function POST(request: Request) {
       items: saved.items.map(item => ({ _id: item.productId, name: item.name, price: item.price, quantity: item.quantity })),
       subtotal: saved.subtotal, discount: saved.discount, shipping: saved.shipping, total: saved.total,
     } : await priceCheckout(items, {
+      // Older checkouts predate country-based shipping; verify their original total.
       couponCode,
       customerEmail: customer?.email,
       requireInStock: false,
@@ -147,7 +152,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (orderCustomer.email) {
+    if (orderCustomer.email && !manualReceipt && !saved?.orderConfirmationSentAt) {
       try {
         const productIds = pricing.items.map((i) => i._id).filter(Boolean);
         const imageMap: Record<string, string> = {};

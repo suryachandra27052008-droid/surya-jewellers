@@ -36,7 +36,7 @@ export default function ShippingBanner() {
     sale && settings.showSaleBanner
       ? `${sale.name} - ${sale.percent}% off all jewellery`
       : settings.showFreeShippingBanner && isPromotionCurrent(settings.freeShippingEndDate)
-        ? `Free Shipping - Limited Time Offer! Valid till ${formatDate(settings.freeShippingEndDate)}`
+        ? `Free Shipping within India - Valid till ${formatDate(settings.freeShippingEndDate)}`
         : '';
 
   if (!message) return null;

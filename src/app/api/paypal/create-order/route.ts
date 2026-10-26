@@ -9,6 +9,7 @@ export async function POST(request: Request) {
     const pricing = await priceCheckout(body.items, {
       couponCode: body.couponCode,
       customerEmail: customer.email,
+      country: customer.country,
     });
     const paymentAmount = toPaymentAmount(pricing.total, currency);
 

@@ -20,6 +20,7 @@ interface CustomerInfo {
   city: string;
   state: string;
   pincode: string;
+  country?: string;
 }
 
 export async function POST(request: Request) {
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
       couponCode,
       customerEmail: customer?.email,
       requireInStock: false,
+      country: customer?.country,
     });
 
     const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
@@ -101,6 +103,7 @@ export async function POST(request: Request) {
       customer?.city,
       customer?.state,
       customer?.pincode,
+      customer?.country,
     ].filter(Boolean);
 
     const orderDoc = {

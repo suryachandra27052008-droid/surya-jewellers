@@ -13,6 +13,8 @@ export const order = defineType({
     defineField({ name: 'paymentStatus', title: 'Provider Payment Status', type: 'string' }),
     defineField({ name: 'paymentPendingReason', title: 'Pending Reason', type: 'string' }),
     defineField({ name: 'needsMerchantReview', title: 'Contact or Shipping Details Need Review', type: 'boolean' }),
+    defineField({ name: 'orderConfirmationSentAt', title: 'Order Confirmation Sent At', type: 'datetime' }),
+    defineField({ name: 'orderConfirmationEmailId', title: 'Confirmation Email ID', type: 'string' }),
     defineField({
       name: 'customer',
       title: 'Customer',
@@ -22,6 +24,7 @@ export const order = defineType({
         defineField({ name: 'email', type: 'string', title: 'Email' }),
         defineField({ name: 'phone', type: 'string', title: 'Phone' }),
         defineField({ name: 'address', type: 'text', title: 'Address' }),
+        defineField({ name: 'country', type: 'string', title: 'Country' }),
       ],
     }),
     defineField({

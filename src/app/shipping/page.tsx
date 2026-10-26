@@ -1,12 +1,15 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
+import { INTERNATIONAL_SHIPPING_FEE } from '@/lib/shipping';
 
 const shipping = [
   { icon: '✦', title: 'Free Shipping Across India', desc: 'Free standard shipping within India on orders of ₹2,000 or more. A ₹150 fee applies below that amount.' },
   { icon: '✦', title: 'Standard Delivery', desc: '5–7 business days from the date your order is confirmed.' },
-  { icon: '✦', title: 'International Shipping', desc: 'We ship to all countries worldwide. Duties and taxes may apply.' },
+  { icon: '✦', title: 'International Shipping', desc: '', international: true },
   { icon: '✦', title: 'Insured & Tracked', desc: 'Every order is fully insured and comes with end-to-end tracking.' },
   { icon: '✦', title: 'Premium Gift Packaging', desc: 'Each piece is packed in our signature gift box — ready to gift.' },
 ];
@@ -19,6 +22,12 @@ const returns = [
 ];
 
 export default function ShippingPage() {
+  const currency = useCurrencyStore(state => state.currency);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
@@ -94,7 +103,7 @@ export default function ShippingPage() {
                 <h3 className="font-serif text-base text-white mb-2 group-hover:text-gold-light transition-colors duration-300">
                   {item.title}
                 </h3>
-                <p className="text-white/50 text-sm font-light leading-relaxed">{item.desc}</p>
+                <p className="text-white/50 text-sm font-light leading-relaxed">{item.international ? `Flat international shipping: ${formatPrice(INTERNATIONAL_SHIPPING_FEE, mounted ? currency : 'USD')} (US$30) per order. Duties and taxes may apply.` : item.desc}</p>
               </motion.div>
             ))}
           </div>

@@ -8,7 +8,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: { absolute: 'Natural Emerald Silver Rings | Surya Jewellers Jaipur' },
   description:
-    'Natural emerald rings in hallmarked 92.5 sterling silver from Surya Jewellers Jaipur. Certified emeralds, Certificate of Authenticity, free shipping.',
+    'Natural emerald rings in hallmarked 92.5 sterling silver from Surya Jewellers Jaipur. Certified emeralds, Certificate of Authenticity, shipping worldwide.',
   alternates: { canonical: 'https://www.suryajewellers.com/emerald-silver-rings' },
   openGraph: {
     title: 'Natural Emerald Silver Rings | Surya Jewellers Jaipur',

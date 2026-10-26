@@ -2,6 +2,7 @@ import { writeClient } from '@/lib/sanity/client';
 import { isValidEmail, textField } from '@/lib/server/request-security';
 import type { PricedCheckout } from '@/lib/server/checkout-pricing';
 import type { PayPalOrder } from '@/lib/server/paypal';
+import { normalizeShippingCountry } from '@/lib/shipping';
 
 export type PayPalCheckoutRecord = {
   _id: string;
@@ -11,25 +12,31 @@ export type PayPalCheckoutRecord = {
   razorpayPaymentId?: string;
   paymentCurrency: string;
   paymentAmount: string;
-  customer: { name: string; email: string; phone: string; address: string };
+  customer: { name: string; email: string; phone: string; address: string; country?: string };
   items: Array<{ _key: string; productId: string; name: string; price: number; quantity: number }>;
   subtotal: number;
   discount?: PricedCheckout['discount'];
   shipping: number;
   total: number;
   needsMerchantReview?: boolean;
+  orderConfirmationSentAt?: string;
+  orderConfirmationEmailId?: string;
 };
 
 export function checkoutCustomer(input: Record<string, unknown> | undefined) {
-  const fields = ['fullName', 'email', 'phone', 'address1', 'city', 'state', 'pincode'] as const;
+  const fields = ['fullName', 'email', 'phone', 'address1', 'city', 'country'] as const;
   if (!input || fields.some(field => !textField(input[field], 500)) || !isValidEmail(input.email)) {
     throw new Error('Please complete your shipping details before paying.');
   }
+  const country = normalizeShippingCountry(input.country);
+  if (!country) throw new Error('Please enter your delivery country.');
+  if (country === 'IN' && !/^\d{6}$/.test(textField(input.pincode, 20))) throw new Error('Please enter a valid Indian PIN code.');
   return {
     name: textField(input.fullName, 150),
     email: textField(input.email, 254),
     phone: textField(input.phone, 50),
-    address: ['address1', 'address2', 'city', 'state', 'pincode']
+    country,
+    address: ['address1', 'address2', 'city', 'state', 'pincode', 'country']
       .map(field => textField(input[field], 500)).filter(Boolean).join(', '),
   };
 }
@@ -45,6 +52,7 @@ export function recoverPayPalCustomer(input: Record<string, unknown> | undefined
     email: isValidEmail(input?.email) ? textField(input?.email, 254) : provider.payer?.email_address || '',
     phone: textField(input?.phone, 50) || provider.payer?.phone?.phone_number?.national_number || '',
     address,
+    country: normalizeShippingCountry(input?.country || shipping?.address?.country_code),
   };
   const addressComplete = input?.address1
     ? Boolean(textField(input.city, 500) && textField(input.pincode, 50))

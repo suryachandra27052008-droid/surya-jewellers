@@ -8,7 +8,8 @@ import Script from 'next/script';
 import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
-import { getShipping, FREE_SHIPPING_THRESHOLD } from '@/lib/shipping';
+import { getShipping, FREE_SHIPPING_THRESHOLD, normalizeShippingCountry } from '@/lib/shipping';
+import { CURRENCIES, roundedCurrencyAmount } from '@/lib/currency';
 import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
 import type { ActiveCoupon } from '@/lib/coupon';
 import AnimatedSection from '@/components/ui/AnimatedSection';
@@ -41,6 +42,7 @@ export default function CheckoutPage() {
     city: '',
     state: '',
     pincode: '',
+    country: '',
   });
 
   useEffect(() => {
@@ -101,8 +103,11 @@ export default function CheckoutPage() {
       : null;
   const discountAmount = activeDiscount?.amount ?? 0;
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
-  const shipping = getShipping(discountedSubtotal);
+  const isIndia = normalizeShippingCountry(form.country) === 'IN';
+  const shipping = form.country.trim() ? getShipping(discountedSubtotal, form.country) : 0;
   const total = discountedSubtotal + shipping;
+  const rounding = Number((roundedCurrencyAmount(total, currency) -
+    (roundedCurrencyAmount(subtotal, currency) - roundedCurrencyAmount(discountAmount, currency) + roundedCurrencyAmount(shipping, currency))).toFixed(2));
   const paypalCurrency = (currency === 'USD' || currency === 'GBP' || currency === 'EUR') ? currency : 'USD';
   const checkoutItems = items.map((item) => ({
     _id: item._id,
@@ -130,8 +135,8 @@ export default function CheckoutPage() {
       form.phone.trim() &&
       form.address1.trim() &&
       form.city.trim() &&
-      form.state.trim() &&
-      form.pincode.trim()
+      form.country.trim() &&
+      (!isIndia || /^\d{6}$/.test(form.pincode.trim()))
     );
   };
 
@@ -201,6 +206,7 @@ export default function CheckoutPage() {
           couponCode: appliedCoupon?.code,
           customerEmail: form.email,
           currency,
+          country: form.country,
         }),
       });
 
@@ -298,6 +304,11 @@ export default function CheckoutPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="sm:col-span-2">
+                      <label htmlFor="shipping-country" className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">Country *</label>
+                      <input id="shipping-country" type="text" name="country" autoComplete="country-name"
+                        value={form.country} onChange={handleChange} className="input-field" placeholder="Country" required maxLength={80} />
+                    </div>
+                    <div className="sm:col-span-2">
                       <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">Full Name *</label>
                       <input
                         type="text" name="fullName" value={form.fullName} onChange={handleChange}
@@ -340,17 +351,17 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">State *</label>
+                      <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">State / Province</label>
                       <input
                         type="text" name="state" value={form.state} onChange={handleChange}
-                        className="input-field" placeholder="State" required
+                        className="input-field" placeholder="State / Province"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">PIN Code *</label>
+                      <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">{isIndia ? 'PIN Code *' : 'Postal Code'}</label>
                       <input
                         type="text" name="pincode" value={form.pincode} onChange={handleChange}
-                        className="input-field" placeholder="110001" required maxLength={6}
+                        className="input-field" placeholder={isIndia ? '110001' : 'Postal Code'} required={isIndia} maxLength={20}
                       />
                     </div>
                   </div>
@@ -432,18 +443,25 @@ export default function CheckoutPage() {
                     <div className="flex justify-between">
                       <span className="text-charcoal-muted">Shipping</span>
                       <span className="text-charcoal">
-                        {shipping === 0 ? (
+                        {!form.country.trim() ? 'Select country' : shipping === 0 ? (
                           <span className="text-green-600">Free</span>
                         ) : (
                           formatPrice(shipping, currency)
                         )}
                       </span>
                     </div>
-                    {shipping === 0 && (
+                    {isIndia && shipping === 0 && (
                       <p className="text-xs text-green-600">Free shipping on orders above {formatPrice(FREE_SHIPPING_THRESHOLD, currency)}!</p>
                     )}
-                    {shipping > 0 && (
+                    {isIndia && shipping > 0 && (
                       <p className="text-xs text-charcoal-muted">Free shipping on orders above {formatPrice(FREE_SHIPPING_THRESHOLD, currency)}.</p>
+                    )}
+                    {form.country.trim() && !isIndia && <p className="text-xs text-charcoal-muted">Flat international shipping (US$30).</p>}
+                    {rounding !== 0 && currency !== 'INR' && (
+                      <div className="flex justify-between text-xs text-charcoal-muted">
+                        <span>Currency rounding</span>
+                        <span>{rounding < 0 ? '-' : '+'}{CURRENCIES[currency].symbol}{Math.abs(rounding).toFixed(currency === 'JPY' ? 0 : 2)}</span>
+                      </div>
                     )}
                   </div>
 

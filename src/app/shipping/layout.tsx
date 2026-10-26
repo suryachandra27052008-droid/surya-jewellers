@@ -3,14 +3,14 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: { absolute: 'Shipping & Returns | Surya Jewellers Jaipur' },
   description:
-    'Free shipping across India on all orders. Standard delivery in 5–7 business days. 7-day return window for unused pieces. International shipping available with full insurance.',
+    'Shipping within India is free on orders from INR 2,000, otherwise INR 150. International shipping is a flat US$30 per order. View shipping and return terms.',
   alternates: {
     canonical: 'https://www.suryajewellers.com/shipping',
   },
   openGraph: {
     title: 'Shipping & Returns | Surya Jewellers',
     description:
-      'Free shipping across India. Standard delivery 5–7 business days. 7-day returns on unused pieces in original packaging.',
+      'Free shipping within India on orders from INR 2,000. Flat US$30 international shipping per order. View shipping and return terms.',
     type: 'website',
     url: 'https://www.suryajewellers.com/shipping',
     images: [{ url: '/logo_sj.png', width: 512, height: 512, alt: 'Surya Jewellers' }],
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary',
     title: 'Shipping & Returns | Surya Jewellers',
-    description: 'Free shipping across India. 7-day returns. International orders insured & tracked.',
+    description: 'Domestic shipping from INR 150, free from INR 2,000. International shipping: flat US$30 per order.',
     images: ['/logo_sj.png'],
   },
 };
