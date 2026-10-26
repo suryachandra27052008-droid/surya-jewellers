@@ -55,7 +55,7 @@ export async function GET(request: Request) {
   const orderId = new URL(request.url).searchParams.get('orderId') || '';
   if (!/^[A-Z0-9]{1,80}$/i.test(orderId)) return Response.json({ error: 'Invalid order reference.' }, { status: 400 });
   try {
-    const [provider, saved] = await Promise.all([getPayPalOrder(orderId), findPayPalCheckout(orderId)]);
+    const saved = await findPayPalCheckout(orderId);
     if (new URL(request.url).searchParams.get('delivery') === 'confirmation') {
       return Response.json(saved?.orderConfirmationEmailId
         ? await getOrderReceiptDelivery(saved.orderConfirmationEmailId)
@@ -64,6 +64,7 @@ export async function GET(request: Request) {
     if (new URL(request.url).searchParams.get('preview') === 'confirmation' && saved) {
       return Response.json(renderOrderReceipt(receiptFor(saved)), { headers: { 'Cache-Control': 'private, no-store' } });
     }
+    const provider = await getPayPalOrder(orderId);
     return Response.json({
       orderId: provider.id,
       status: provider.status,

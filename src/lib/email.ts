@@ -19,8 +19,11 @@ export async function sendOrderReceiptEmail(data: OrderReceipt, idempotencyKey: 
 
 export async function getOrderReceiptDelivery(emailId: string) {
   const result = await resend.emails.get(emailId);
+  if (result.error?.name === 'restricted_api_key') {
+    return { emailId, event: 'accepted', deliveryStatusAvailable: false };
+  }
   if (result.error || !result.data) throw new Error(result.error?.message || 'Unable to check delivery.');
-  return { emailId: result.data.id, event: result.data.last_event };
+  return { emailId: result.data.id, event: result.data.last_event, deliveryStatusAvailable: true };
 }
 
 // ─── Shared HTML helpers ────────────────────────────────────────────────────

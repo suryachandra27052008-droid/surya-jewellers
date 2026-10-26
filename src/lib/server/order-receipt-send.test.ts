@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-const mocks = vi.hoisted(() => ({ send: vi.fn() }));
-vi.mock('resend', () => ({ Resend: class { emails = { send: mocks.send }; } }));
-import { sendOrderReceiptEmail } from '@/lib/email';
+const mocks = vi.hoisted(() => ({ send: vi.fn(), get: vi.fn() }));
+vi.mock('resend', () => ({ Resend: class { emails = { send: mocks.send, get: mocks.get }; } }));
+import { getOrderReceiptDelivery, sendOrderReceiptEmail } from '@/lib/email';
 
 const receipt = { reference: 'SJ-TEST', customer: { name: 'Test Buyer', email: 'buyer@example.com' },
   items: [{ name: 'Test Ring', price: 10400, quantity: 1 }], shipping: 0, total: 10400, currency: 'EUR' as const, chargedAmount: '100.00' };
@@ -19,5 +19,13 @@ describe('order confirmation delivery', () => {
   it('reports provider rejection instead of claiming that the email was sent', async () => {
     mocks.send.mockResolvedValue({ data: null, error: { message: 'Delivery rejected' } });
     await expect(sendOrderReceiptEmail(receipt, 'receipt-test')).rejects.toThrow('Delivery rejected');
+  });
+  it('does not claim inbox delivery with a send-only API key', async () => {
+    mocks.get.mockResolvedValue({ data: null, error: { name: 'restricted_api_key', message: 'This API key is restricted to only send emails' } });
+    expect(await getOrderReceiptDelivery('email-test')).toEqual({ emailId: 'email-test', event: 'accepted', deliveryStatusAvailable: false });
+  });
+  it('returns provider delivery events when read permission exists', async () => {
+    mocks.get.mockResolvedValue({ data: { id: 'email-test', last_event: 'delivered' }, error: null });
+    expect(await getOrderReceiptDelivery('email-test')).toEqual({ emailId: 'email-test', event: 'delivered', deliveryStatusAvailable: true });
   });
 });
