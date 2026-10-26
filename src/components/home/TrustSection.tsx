@@ -30,7 +30,7 @@ export default function TrustSection() {
     <section className="py-24 px-4 bg-cream">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <span className="text-gold text-xs tracking-[0.4em] uppercase">
+          <span className="text-gold-ink text-xs tracking-[0.4em] uppercase">
             Our Promise
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl mt-4 text-charcoal gold-underline">
@@ -52,7 +52,7 @@ export default function TrustSection() {
               </h3>
               <p
                 className="text-xs tracking-[0.15em] uppercase mb-4"
-                style={{ color: '#D4AF37' }}
+                style={{ color: 'var(--gold-ink)' }}
               >
                 {pillar.subtitle}
               </p>

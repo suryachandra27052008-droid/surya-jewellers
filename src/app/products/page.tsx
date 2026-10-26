@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { connection } from 'next/server';
 import { client } from '@/lib/sanity/client';
 import ProductsClient, { type InitialProduct } from './ProductsClient';
 import { getProductCanonicalSlug, SITE_URL } from '@/lib/seo/product';
@@ -93,6 +94,8 @@ function ProductsGridSkeleton() {
 }
 
 export default async function ProductsPage() {
+  // Render URL-selected products on the server instead of a useSearchParams CSR shell.
+  await connection();
   const [initialProducts, itemListElements] = await Promise.all([
     getInitialProducts(),
     getProductListItems(),
@@ -119,7 +122,7 @@ export default async function ProductsPage() {
       <div className="pt-5 sm:pt-6 pb-0">
         <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
           <div className="text-center mb-6">
-            <span className="text-gold text-xs tracking-[0.4em] uppercase">Our Catalog</span>
+            <span className="text-gold-ink text-xs tracking-[0.4em] uppercase">Our Catalog</span>
             <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl mt-3 text-charcoal">
               Collections — 92.5 Sterling Silver Jewellery
             </h1>

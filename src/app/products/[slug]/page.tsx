@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { calculateSaleTotals } from '@/lib/sale';
 import { writeClient } from '@/lib/sanity/client';
@@ -60,11 +60,8 @@ type ProductDoc = {
 };
 
 const getProducts = cache(async (): Promise<ProductDoc[]> => {
-  try {
-    return await writeClient.fetch<ProductDoc[]>(PRODUCT_QUERY, {}, { cache: 'no-store' });
-  } catch {
-    return [];
-  }
+  // Provider failures must remain server errors, not cached missing-product responses.
+  return writeClient.fetch<ProductDoc[]>(PRODUCT_QUERY, {}, { cache: 'no-store' });
 });
 
 function findProduct(products: ProductDoc[], slug: string): ProductDoc | undefined {
@@ -81,7 +78,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const product = findProduct(await getProducts(), slug);
   if (!product || Number(product.price) < 1000) {
-    return { title: 'Product Not Found', robots: { index: false, follow: false } };
+    notFound();
   }
   const canonicalSlug = getProductCanonicalSlug(product);
   const displayName = getProductDisplayName(product);
@@ -133,15 +130,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const raw = findProduct(products, slug);
 
   if (!raw || Number(raw.price) < 1000) {
-    return (
-      <div className="pt-8 pb-16 text-center">
-        <h1 className="font-serif text-3xl text-charcoal mb-4">Product Not Found</h1>
-        <p className="text-charcoal-muted mb-8">The piece you are looking for does not exist.</p>
-        <Link href="/products" className="btn-gold">
-          Back to Collections
-        </Link>
-      </div>
-    );
+    notFound();
   }
 
   const product: ProductData = {

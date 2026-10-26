@@ -223,10 +223,10 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
-          <p className="text-xs text-white/40">
+          <p className="text-xs text-white/60">
             © {new Date().getFullYear()} Surya Jewellers. All rights reserved.
           </p>
-          <p className="hidden sm:block text-xs text-white/30">
+          <p className="hidden sm:block text-xs text-white/60">
             Crafted with ♦ for those who appreciate the extraordinary
           </p>
         </div>

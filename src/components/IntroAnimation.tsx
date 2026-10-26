@@ -10,25 +10,28 @@ const ShaderAnimation = dynamic(
 
 export default function IntroAnimation() {
   const [visible, setVisible] = useState(true)
+  const [renderShader, setRenderShader] = useState(false)
   const [fading, setFading] = useState(false)
   const [mobileIntro, setMobileIntro] = useState(false)
   const [fadeMs, setFadeMs] = useState(1200)
   const doneRef = useRef(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fadeMsRef = useRef(1200)
 
   const startFade = useCallback(() => {
     if (doneRef.current) return
     doneRef.current = true
     setFading(true)
-    setTimeout(() => {
+    fadeTimerRef.current = setTimeout(() => {
       setVisible(false)
-      sessionStorage.setItem('introShown', 'true')
+      try { sessionStorage.setItem('introShown', 'true') } catch { /* Storage may be disabled. */ }
     }, fadeMsRef.current)
   }, [])
 
   useEffect(() => {
-    const shown = sessionStorage.getItem('introShown')
+    let shown = false
+    try { shown = Boolean(sessionStorage.getItem('introShown')) } catch { /* Show the intro without storage. */ }
     if (shown) {
       const hideTimer = window.setTimeout(() => setVisible(false), 0)
       return () => window.clearTimeout(hideTimer)
@@ -39,6 +42,7 @@ export default function IntroAnimation() {
     const setupTimer = window.setTimeout(() => {
       setMobileIntro(isMobile)
       setFadeMs(mobileFadeMs)
+      setRenderShader(true)
     }, 0)
     fadeMsRef.current = mobileFadeMs
 
@@ -46,6 +50,7 @@ export default function IntroAnimation() {
     window.addEventListener('keydown', startFade)
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
+      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
       clearTimeout(setupTimer)
       window.removeEventListener('keydown', startFade)
     }
@@ -67,7 +72,7 @@ export default function IntroAnimation() {
       }}
     >
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-        <ShaderAnimation />
+        {renderShader && <ShaderAnimation />}
       </div>
 
       <div style={{
@@ -137,7 +142,8 @@ export default function IntroAnimation() {
         style={{
           position: 'absolute', bottom: '32px', right: '40px',
           background: 'transparent', border: 'none',
-          color: 'rgba(255,255,255,0.5)',
+          color: 'rgba(255,255,255,0.75)',
+          minWidth: '44px', minHeight: '44px',
           fontFamily: 'Cinzel, serif',
           fontSize: '11px', letterSpacing: '4px',
           cursor: 'pointer', zIndex: 20,
@@ -145,7 +151,7 @@ export default function IntroAnimation() {
           pointerEvents: 'auto'
         }}
         onMouseEnter={e => (e.currentTarget.style.color = '#c9a84c')}
-        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
+        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
       >
         SKIP
       </button>

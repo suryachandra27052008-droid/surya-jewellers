@@ -72,7 +72,8 @@ export function ShaderAnimation() {
     scene.add(new THREE.Mesh(geometry, material))
 
     const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    const mobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1 : 1.5))
     container.replaceChildren(renderer.domElement)
 
     const resize = () => {
@@ -82,19 +83,32 @@ export function ShaderAnimation() {
     }
 
     let animationId = 0
-    const animate = () => {
-      uniforms.time.value += 0.05
-      renderer.render(scene, camera)
+    let lastFrame = 0
+    const frameInterval = 1000 / (mobile ? 30 : 60)
+    const animate = (now: number) => {
+      if (document.hidden) return
+      if (now - lastFrame >= frameInterval) {
+        uniforms.time.value += Math.min(now - lastFrame, 100) * 0.003
+        lastFrame = now
+        renderer.render(scene, camera)
+      }
       animationId = window.requestAnimationFrame(animate)
+    }
+    const onVisibilityChange = () => {
+      window.cancelAnimationFrame(animationId)
+      lastFrame = performance.now()
+      if (!document.hidden) animationId = window.requestAnimationFrame(animate)
     }
 
     resize()
-    animate()
+    animationId = window.requestAnimationFrame(animate)
     window.addEventListener("resize", resize, { passive: true })
+    document.addEventListener('visibilitychange', onVisibilityChange)
 
     return () => {
       window.cancelAnimationFrame(animationId)
       window.removeEventListener("resize", resize)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
       geometry.dispose()
       material.dispose()
       renderer.dispose()

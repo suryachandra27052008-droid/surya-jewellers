@@ -144,7 +144,7 @@ export default function HomePage() {
       {/* About Surya Jewellers — keyword-rich server-rendered text block */}
       <section className="py-20 bg-cream">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="text-gold text-xs tracking-[0.4em] uppercase">Our Story</span>
+          <span className="text-gold-ink text-xs tracking-[0.4em] uppercase">Our Story</span>
           <h2 className="font-serif text-3xl sm:text-4xl mt-4 text-charcoal mb-6">
             About Surya Jewellers
           </h2>
@@ -187,7 +187,7 @@ export default function HomePage() {
 
       <section className="py-12 bg-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="text-gold text-xs tracking-[0.4em] uppercase">Help & Information</span>
+          <span className="text-gold-ink text-xs tracking-[0.4em] uppercase">Help & Information</span>
           <h2 className="font-serif text-2xl sm:text-3xl mt-3 text-charcoal">
             Have Questions Before You Order?
           </h2>

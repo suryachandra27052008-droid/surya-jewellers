@@ -75,7 +75,7 @@ export default function Testimonials() {
                   </div>
                   <div>
                     <p className="text-white text-sm font-semibold">{review.author}</p>
-                    <p className="text-white/40 text-xs">{review.location}</p>
+                    <p className="text-white/60 text-xs">{review.location}</p>
                   </div>
                 </div>
               </article>

@@ -156,10 +156,6 @@ function PriceRangeSlider({
   maxVal: number;
   onChange: (min: number, max: number) => void;
 }) {
-  const range = PRICE_MAX - PRICE_MIN;
-  const leftPct = ((minVal - PRICE_MIN) / range) * 100;
-  const rightPct = ((maxVal - PRICE_MIN) / range) * 100;
-
   const handleMin = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const v = Math.min(Number(e.target.value), maxVal - 1000);
@@ -178,21 +174,14 @@ function PriceRangeSlider({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-white/65">Minimum</span>
         <span style={{ color: '#c9a84c', fontFamily: 'var(--font-cinzel), serif', fontSize: '0.72rem', letterSpacing: '0.04em' }}>
           {formatINR(minVal)}
-        </span>
-        <span style={{ color: '#6b6b6b', fontSize: '0.65rem' }}>—</span>
-        <span style={{ color: '#c9a84c', fontFamily: 'var(--font-cinzel), serif', fontSize: '0.72rem', letterSpacing: '0.04em' }}>
-          {formatINR(maxVal)}
         </span>
       </div>
       <div className="price-range-slider">
         <div className="price-range-track" />
-        <div
-          className="price-range-fill"
-          style={{ left: `${leftPct}%`, width: `${rightPct - leftPct}%` }}
-        />
         <input
           type="range"
           min={PRICE_MIN}
@@ -203,8 +192,16 @@ function PriceRangeSlider({
           className="price-range-input"
           aria-label="Minimum price"
           aria-valuetext={formatINR(minVal)}
-          style={{ zIndex: minVal > PRICE_MAX - 10000 ? 5 : 3 }}
         />
+      </div>
+      <div className="flex items-center justify-between mt-2 mb-1">
+        <span className="text-xs text-white/65">Maximum</span>
+        <span style={{ color: '#c9a84c', fontFamily: 'var(--font-cinzel), serif', fontSize: '0.72rem', letterSpacing: '0.04em' }}>
+          {formatINR(maxVal)}
+        </span>
+      </div>
+      <div className="price-range-slider">
+        <div className="price-range-track" />
         <input
           type="range"
           min={PRICE_MIN}
@@ -215,7 +212,6 @@ function PriceRangeSlider({
           className="price-range-input"
           aria-label="Maximum price"
           aria-valuetext={formatINR(maxVal)}
-          style={{ zIndex: 4 }}
         />
       </div>
     </div>
@@ -861,7 +857,7 @@ export default function ProductsClient({
                               className="text-[0.55rem] sm:text-[0.6rem] px-1 sm:px-1.5 py-0.5 rounded"
                               style={{
                                 background: `${stoneColors[product.mainStoneType] || '#ccc'}22`,
-                                color: stoneColors[product.mainStoneType] || '#666',
+                                color: 'var(--charcoal)',
                                 border: `1px solid ${stoneColors[product.mainStoneType] || '#ccc'}55`,
                               }}
                             >
@@ -873,7 +869,7 @@ export default function ProductsClient({
                               className="text-[0.55rem] sm:text-[0.6rem] px-1 sm:px-1.5 py-0.5 rounded"
                               style={{
                                 background: `${stoneColors[product.secondaryStoneType] || '#aaa'}22`,
-                                color: stoneColors[product.secondaryStoneType] || '#666',
+                                color: 'var(--charcoal)',
                                 border: `1px solid ${stoneColors[product.secondaryStoneType] || '#aaa'}55`,
                               }}
                             >
@@ -885,7 +881,7 @@ export default function ProductsClient({
                           <div>
                             {salePrice ? (
                               <>
-                                <p className="text-gold font-semibold tracking-wide text-xs sm:text-base">
+                                <p className="text-gold-ink font-semibold tracking-wide text-xs sm:text-base">
                                   {formatPrice(salePrice, currency)}
                                 </p>
                                 <p className="text-[0.6rem] sm:text-[0.65rem] text-charcoal-muted line-through">
@@ -893,7 +889,7 @@ export default function ProductsClient({
                                 </p>
                               </>
                             ) : (
-                              <p className="text-gold font-semibold tracking-wide text-xs sm:text-base">
+                              <p className="text-gold-ink font-semibold tracking-wide text-xs sm:text-base">
                                 {product.price ? formatPrice(product.price, currency) : 'Contact'}
                               </p>
                             )}

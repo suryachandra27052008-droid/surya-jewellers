@@ -15,7 +15,8 @@ export default function CursorTrail() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animationId: number;
+    let animationId = 0;
+    let lastMove = 0;
     // Ring buffer of the last TRAIL_LENGTH cursor positions
     const trail: { x: number; y: number }[] = [];
     let mouse = { x: -9999, y: -9999 };
@@ -29,11 +30,18 @@ export default function CursorTrail() {
 
     const onMouseMove = (e: MouseEvent) => {
       mouse = { x: e.clientX, y: e.clientY };
+      lastMove = performance.now();
+      if (!animationId && !document.hidden) animationId = requestAnimationFrame(draw);
     };
     window.addEventListener('mousemove', onMouseMove);
 
     const draw = () => {
+      animationId = 0;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (document.hidden || performance.now() - lastMove > 450) {
+        trail.length = 0;
+        return;
+      }
 
       // Push current position to trail
       trail.push({ x: mouse.x, y: mouse.y });
@@ -72,12 +80,20 @@ export default function CursorTrail() {
       animationId = requestAnimationFrame(draw);
     };
 
-    draw();
+    const pause = () => {
+      if (!document.hidden) return;
+      cancelAnimationFrame(animationId);
+      animationId = 0;
+      trail.length = 0;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+    document.addEventListener('visibilitychange', pause);
 
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', pause);
     };
   }, []);
 

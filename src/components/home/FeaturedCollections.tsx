@@ -15,7 +15,7 @@ export default function FeaturedCollections() {
     <section className="py-24 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <span className="text-gold text-xs tracking-[0.4em] uppercase">Our Collections</span>
+          <span className="text-gold-ink text-xs tracking-[0.4em] uppercase">Our Collections</span>
           <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl mt-4 mb-4 text-charcoal gold-underline">
             Curated for You
           </h2>

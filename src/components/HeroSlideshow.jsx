@@ -10,22 +10,23 @@ const images = [
 
 export default function HeroSlideshow({ children }) {
   const [current, setCurrent] = useState(0)
-  // Defer non-first images: absolutely-positioned images overlap the viewport,
-  // so loading="lazy" is ignored by the browser — mount them after first paint.
-  const [mounted, setMounted] = useState(false)
+  const [firstLoaded, setFirstLoaded] = useState(false)
+  const [renderCount, setRenderCount] = useState(1)
 
   useEffect(() => {
-    const mountTimer = window.setTimeout(() => setMounted(true), 0)
+    if (!firstLoaded) return
+    // Give the first image and hydration priority, then prepare only the next slide.
+    const mountTimer = window.setTimeout(() => setRenderCount(count => Math.max(count, Math.min(current + 2, images.length))), 2000)
     return () => window.clearTimeout(mountTimer)
-  }, [])
+  }, [firstLoaded, current])
 
   useEffect(() => {
-    if (!mounted) return
+    if (!firstLoaded) return
     const timer = setInterval(() => {
       setCurrent(prev => (prev + 1) % images.length)
     }, 4000)
     return () => clearInterval(timer)
-  }, [mounted])
+  }, [firstLoaded])
 
   return (
     <div
@@ -35,7 +36,7 @@ export default function HeroSlideshow({ children }) {
     >
       {images.map(({ src, alt }, i) => {
         // Only render the first image before mount to avoid loading all 3 on first paint
-        if (i > 0 && !mounted) return null
+        if (i >= renderCount) return null
         return (
           <div
             key={src}
@@ -53,6 +54,7 @@ export default function HeroSlideshow({ children }) {
               alt={alt}
               fill
               unoptimized
+              onLoad={i === 0 ? () => setFirstLoaded(true) : undefined}
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               {...(i === 0
                 ? { priority: true, fetchPriority: 'high' }
@@ -96,7 +98,7 @@ export default function HeroSlideshow({ children }) {
             role="tab"
             aria-selected={i === current}
             aria-label={`Slide ${i + 1}: ${img.alt}`}
-            onClick={() => setCurrent(i)}
+            onClick={() => { setRenderCount(count => Math.max(count, i + 1)); setCurrent(i) }}
             style={{
               /* 24×24 touch target, visual dot is 10×10 via inner span */
               width: '24px',
