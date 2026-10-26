@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { writeClient } from '@/lib/sanity/client';
 import { sendOrderStatusEmail } from '@/lib/email';
+import { isPaidOrder } from '@/lib/order-status';
 
 interface AdminOrder {
   total?: number;
+  status?: string;
   customer?: {
     email?: string;
   };
@@ -12,10 +14,16 @@ interface AdminOrder {
 export async function GET() {
   try {
     const orders = await writeClient.fetch(
-      `*[_type == "order"] | order(paidAt desc) {
+      `*[_type == "order"] | order(coalesce(paidAt, _createdAt) desc) {
         _id,
         razorpayOrderId,
         razorpayPaymentId,
+        paymentMethod,
+        paymentStatus,
+        paymentPendingReason,
+        paymentCurrency,
+        paymentAmount,
+        needsMerchantReview,
         customer,
         items,
         subtotal,
@@ -30,10 +38,11 @@ export async function GET() {
       { cache: 'no-store' }
     );
 
-    const totalRevenue = (orders as AdminOrder[]).reduce((sum: number, o) => sum + (o.total || 0), 0);
-    const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+    const paidOrders = (orders as AdminOrder[]).filter(isPaidOrder);
+    const totalRevenue = paidOrders.reduce((sum: number, o) => sum + (o.total || 0), 0);
+    const avgOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
 
-    return NextResponse.json({ orders, totalRevenue, avgOrderValue, count: orders.length }, {
+    return NextResponse.json({ orders, totalRevenue, avgOrderValue, count: orders.length, paidCount: paidOrders.length }, {
       headers: { 'Cache-Control': 'private, no-store' },
     });
   } catch (error) {

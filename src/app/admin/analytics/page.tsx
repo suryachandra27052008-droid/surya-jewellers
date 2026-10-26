@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { TrendingUp, ShoppingBag, DollarSign, Package } from 'lucide-react';
+import { isPaidOrder } from '@/lib/order-status';
 
 interface OrderItem {
   productId: string;
@@ -113,7 +114,7 @@ export default function AnalyticsPage() {
   useEffect(() => {
     fetch('/api/admin/orders')
       .then((r) => r.json())
-      .then((data) => setOrders(data.orders || []))
+      .then((data) => setOrders((data.orders || []).filter(isPaidOrder)))
       .catch(console.error)
       .finally(() => setIsLoading(false));
   }, []);

@@ -494,8 +494,12 @@ export default function CheckoutPage() {
                       <motion.button
                         whileTap={{ scale: 0.97 }}
                         onClick={async () => {
+                          if (!isFormValid()) {
+                            alert('Please fill in all required shipping details.');
+                            return;
+                          }
                           try {
-                            localStorage.setItem(
+                            try { localStorage.setItem(
                               'paypal_pending_order',
                               JSON.stringify({
                                 items: items.map((item) => ({
@@ -505,7 +509,7 @@ export default function CheckoutPage() {
                                 customer: form,
                                 couponCode: appliedCoupon?.code,
                               })
-                            );
+                            ); } catch { /* The server records the checkout before returning the PayPal link. */ }
                             const res = await fetch('/api/paypal/create-order', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
@@ -513,6 +517,7 @@ export default function CheckoutPage() {
                                 items: checkoutItems,
                                 couponCode: appliedCoupon?.code,
                                 customerEmail: form.email,
+                                customer: form,
                                 currency: paypalCurrency,
                               })
                             });

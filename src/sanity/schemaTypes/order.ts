@@ -7,6 +7,12 @@ export const order = defineType({
   fields: [
     defineField({ name: 'razorpayOrderId', title: 'Razorpay Order ID', type: 'string' }),
     defineField({ name: 'razorpayPaymentId', title: 'Razorpay Payment ID', type: 'string' }),
+    defineField({ name: 'paymentMethod', title: 'Payment Provider', type: 'string' }),
+    defineField({ name: 'paymentCurrency', title: 'Payment Currency', type: 'string' }),
+    defineField({ name: 'paymentAmount', title: 'Payment Amount', type: 'string' }),
+    defineField({ name: 'paymentStatus', title: 'Provider Payment Status', type: 'string' }),
+    defineField({ name: 'paymentPendingReason', title: 'Pending Reason', type: 'string' }),
+    defineField({ name: 'needsMerchantReview', title: 'Contact or Shipping Details Need Review', type: 'boolean' }),
     defineField({
       name: 'customer',
       title: 'Customer',

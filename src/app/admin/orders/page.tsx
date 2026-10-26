@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShoppingBag, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 
 interface OrderItem {
   productId: string;
@@ -22,6 +22,13 @@ interface Order {
   total: number;
   status: string;
   paidAt: string;
+  _createdAt?: string;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  paymentPendingReason?: string;
+  paymentCurrency?: string;
+  paymentAmount?: string;
+  needsMerchantReview?: boolean;
 }
 
 const STATUS_OPTIONS = ['paid', 'confirmed', 'shipped', 'delivered', 'pending', 'failed', 'cancelled'];
@@ -41,6 +48,29 @@ export default function OrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [paymentMessage, setPaymentMessage] = useState('');
+
+  const refreshPayPal = async (order: Order) => {
+    setUpdatingId(order._id);
+    setPaymentMessage('');
+    try {
+      const response = await fetch('/api/admin/paypal-order', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.razorpayOrderId }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Unable to refresh payment status.');
+      const ordersResponse = await fetch('/api/admin/orders');
+      if (!ordersResponse.ok) throw new Error('Unable to refresh orders.');
+      const data = await ordersResponse.json();
+      setOrders(data.orders || []);
+      setPaymentMessage(result.pending ? 'PayPal still reports this payment as pending.' : 'PayPal payment status refreshed.');
+    } catch (error) {
+      setPaymentMessage((error as Error).message);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   useEffect(() => {
     fetch('/api/admin/orders')
@@ -86,11 +116,12 @@ export default function OrdersPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          All confirmed payments · {orders.length} total
+          Orders and pending payments · {orders.length} total
         </p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200">
+        {paymentMessage && <p role="status" className="px-5 py-3 text-sm text-gray-700">{paymentMessage}</p>}
         {isLoading ? (
           <div className="p-12 text-center text-sm text-gray-400">Loading orders…</div>
         ) : orders.length === 0 ? (
@@ -100,7 +131,7 @@ export default function OrdersPage() {
             </div>
             <p className="text-sm font-medium text-gray-900">No orders yet</p>
             <p className="text-xs text-gray-500 mt-1">
-              Orders will appear here after a successful Razorpay payment.
+              Orders and pending PayPal checkouts will appear here.
             </p>
           </div>
         ) : (
@@ -126,6 +157,7 @@ export default function OrdersPage() {
                         </p>
                         <p className="text-xs text-gray-500">{order.customer?.email}</p>
                         <p className="text-xs text-gray-400">{order.customer?.phone}</p>
+                        {order.needsMerchantReview && <p className="text-xs text-amber-800">Contact/shipping details need review</p>}
                       </td>
                       <td className="px-5 py-3.5">
                         <p className="text-sm text-gray-700 max-w-[180px] truncate">
@@ -147,7 +179,7 @@ export default function OrdersPage() {
                       </td>
                       <td className="px-5 py-3.5">
                         <span className="text-xs text-gray-500 whitespace-nowrap">
-                          {order.paidAt ? formatDate(order.paidAt) : '—'}
+                          {order.paidAt || order._createdAt ? formatDate(order.paidAt || order._createdAt!) : '—'}
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
@@ -234,8 +266,23 @@ export default function OrdersPage() {
                                 {order.customer?.address || '—'}
                               </p>
                               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-3 mb-1">
-                                Razorpay IDs
+                                {order.paymentMethod === 'paypal' ? 'PayPal Payment' : 'Razorpay IDs'}
                               </p>
+                              {order.paymentMethod === 'paypal' && (
+                                <p className="text-xs text-gray-600 mb-2">
+                                  {order.paymentCurrency} {order.paymentAmount} · {order.paymentStatus || order.status}
+                                  {order.paymentPendingReason ? ` · ${order.paymentPendingReason.replaceAll('_', ' ')}` : ''}
+                                </p>
+                              )}
+                              {order.paymentMethod === 'paypal' && order.status === 'pending' && (
+                                <button
+                                  type="button" onClick={() => refreshPayPal(order)}
+                                  disabled={updatingId === order._id}
+                                  className="inline-flex items-center gap-2 text-sm text-amber-800 disabled:opacity-50 mb-2"
+                                >
+                                  <RefreshCw className="w-4 h-4" /> Refresh PayPal Status
+                                </button>
+                              )}
                               <p className="text-xs font-mono text-gray-500 break-all">
                                 Order: {order.razorpayOrderId || '—'}
                               </p>

@@ -3,7 +3,8 @@
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'motion/react';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Check, Clock, TriangleAlert } from 'lucide-react';
 import { useCartStore } from '@/stores/cart-store';
 
 function OrderSuccessContent() {
@@ -11,12 +12,57 @@ function OrderSuccessContent() {
   const rawId = searchParams.get('id');
   const payment = searchParams.get('payment');
   const paypalToken = searchParams.get('token'); // PayPal order ID on redirect-back
+  const recoveryOnly = searchParams.get('recover') === '1';
 
   const clearCart = useCartStore((s) => s.clearCart);
-  const [orderId, setOrderId] = useState(rawId || 'N/A');
+  const [orderId, setOrderId] = useState(rawId || paypalToken || 'N/A');
   const [capturing, setCapturing] = useState(payment === 'paypal' && !!paypalToken);
   const [captureError, setCaptureError] = useState('');
+  const [paymentPending, setPaymentPending] = useState(false);
   const captured = useRef(false);
+
+  const recordPayment = useCallback(async () => {
+    let pending = null;
+    try {
+      const raw = localStorage.getItem('paypal_pending_order');
+      if (raw) pending = JSON.parse(raw);
+    } catch {
+      // New checkouts also have a private server-side copy of their items.
+    }
+    const response = await fetch('/api/save-paypal-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        paypalOrderId: paypalToken,
+        items: pending?.items ?? [],
+        customer: pending?.customer ?? {},
+        couponCode: pending?.couponCode,
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error('Your order could not be recorded. Do not pay again; contact support with this reference.');
+    }
+    setOrderId(result.paymentId || paypalToken || 'N/A');
+    setPaymentPending(Boolean(result.pending));
+    setCaptureError('');
+    if (!result.pending) {
+      try { localStorage.removeItem('paypal_pending_order'); } catch { /* Browser storage may be disabled. */ }
+      clearCart();
+    }
+  }, [paypalToken, clearCart]);
+
+  const checkPaymentStatus = async () => {
+    setCapturing(true);
+    try {
+      // Checking a recorded capture never initiates another payment.
+      await recordPayment();
+    } catch (error) {
+      setCaptureError((error as Error).message);
+    } finally {
+      setCapturing(false);
+    }
+  };
 
   useEffect(() => {
     if (payment !== 'paypal' || !paypalToken || captured.current) return;
@@ -24,62 +70,22 @@ function OrderSuccessContent() {
 
     async function captureAndSave() {
       try {
-        // Capture the PayPal payment
-        const captureRes = await fetch('/api/paypal/capture-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderID: paypalToken }),
-        });
-        const capture = await captureRes.json();
+        if (!recoveryOnly) {
+          const captureRes = await fetch('/api/paypal/capture-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderID: paypalToken }),
+          });
+          const capture = await captureRes.json();
 
-        if (capture.error || capture.status === 'VOIDED') {
-          setCaptureError('Payment could not be confirmed. Please contact support.');
-          setCapturing(false);
-          return;
+          if (!captureRes.ok || capture.error || capture.status === 'VOIDED') {
+            throw new Error('PayPal payment could not be confirmed. Do not pay again; contact support with this reference.');
+          }
         }
-
-        const captureId =
-          capture.purchase_units?.[0]?.payments?.captures?.[0]?.id ??
-          capture.id ??
-          paypalToken;
-
-        // Retrieve pending order data stored before the PayPal redirect
-        let pending: {
-          items: { _id: string; quantity: number }[];
-          customer: { fullName: string; email: string; phone: string; address1: string; address2?: string; city: string; state: string; pincode: string };
-          couponCode?: string;
-        } | null = null;
-
-        try {
-          const raw = localStorage.getItem('paypal_pending_order');
-          if (raw) pending = JSON.parse(raw);
-        } catch {
-          // localStorage unavailable — order save will use empty data
-        }
-
-        // Save order to Sanity + send confirmation email
-        const saveResponse = await fetch('/api/save-paypal-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            paypalOrderId: capture.id ?? paypalToken,
-            paypalCaptureId: captureId,
-            items: pending?.items ?? [],
-            customer: pending?.customer ?? {},
-            couponCode: pending?.couponCode,
-          }),
-        });
-        const saveResult = await saveResponse.json();
-        if (!saveResponse.ok || !saveResult.success) {
-          throw new Error(saveResult.error || 'The paid order could not be recorded.');
-        }
-
-        localStorage.removeItem('paypal_pending_order');
-        clearCart();
-        setOrderId(captureId);
+        await recordPayment();
       } catch (err) {
         console.error('PayPal capture error:', err);
-        setCaptureError('Payment confirmed but order could not be saved. Ref: ' + paypalToken);
+        setCaptureError((err as Error).message || 'Order could not be confirmed. Please contact support.');
         setOrderId(paypalToken ?? 'N/A');
       } finally {
         setCapturing(false);
@@ -87,7 +93,9 @@ function OrderSuccessContent() {
     }
 
     captureAndSave();
-  }, [payment, paypalToken, clearCart]);
+  }, [payment, paypalToken, recordPayment, recoveryOnly]);
+
+  const needsAttention = Boolean(captureError) || orderId === 'N/A';
 
   if (capturing) {
     return (
@@ -108,28 +116,9 @@ function OrderSuccessContent() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-          className="w-24 h-24 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-8"
+          className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 ${needsAttention ? 'bg-red-50 text-red-600' : paymentPending ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-500'}`}
         >
-          <motion.svg
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-12 h-12 text-green-500"
-          >
-            <motion.path
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4.5 12.75l6 6 9-13.5"
-            />
-          </motion.svg>
+          {needsAttention ? <TriangleAlert className="w-12 h-12" /> : paymentPending ? <Clock className="w-12 h-12" /> : <Check className="w-12 h-12" />}
         </motion.div>
 
         {/* Text */}
@@ -139,18 +128,21 @@ function OrderSuccessContent() {
           transition={{ delay: 0.7 }}
         >
           <span className="text-gold text-xs tracking-[0.4em] uppercase">
-            Thank You
+            {needsAttention || paymentPending ? 'Order Status' : 'Thank You'}
           </span>
           <h1 className="font-serif text-3xl sm:text-4xl text-charcoal mt-4 mb-4">
-            Order Placed Successfully
+            {needsAttention ? 'Order Needs Attention' : paymentPending ? 'Payment Pending' : 'Order Placed Successfully'}
           </h1>
           <p className="text-charcoal-muted text-sm leading-relaxed mb-8">
-            Your order has been confirmed and we are preparing your exquisite
-            jewelry for dispatch. You will receive a confirmation email shortly.
+            {needsAttention
+              ? 'We could not confirm and record your order. Please keep your bag and payment reference, and contact us before trying another payment.'
+              : paymentPending
+                ? 'Your items have been recorded, but PayPal has not completed the payment yet. Your order is pending payment confirmation.'
+                : 'Your order has been confirmed. You will receive a confirmation email shortly.'}
           </p>
 
           {captureError && (
-            <p className="text-red-500 text-sm mb-4">{captureError}</p>
+            <p role="alert" className="text-red-600 text-sm mb-4">{captureError}</p>
           )}
 
           {/* Order ID */}
@@ -164,6 +156,11 @@ function OrderSuccessContent() {
           </div>
 
           {/* Actions */}
+          {payment === 'paypal' && paypalToken && (needsAttention || paymentPending) && (
+            <button onClick={checkPaymentStatus} className="btn-gold w-full mb-4">
+              Check Payment Status
+            </button>
+          )}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/products" className="btn-gold">
               Continue Shopping

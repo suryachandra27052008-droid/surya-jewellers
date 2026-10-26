@@ -1,12 +1,14 @@
 import { priceCheckout, toPaymentAmount, type CheckoutCurrency } from '@/lib/server/checkout-pricing';
+import { checkoutCustomer, recordPayPalCheckout } from '@/lib/server/paypal-checkout';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const customer = checkoutCustomer(body.customer);
     const currency: CheckoutCurrency = body.currency ?? 'USD';
     const pricing = await priceCheckout(body.items, {
       couponCode: body.couponCode,
-      customerEmail: body.customerEmail,
+      customerEmail: customer.email,
     });
     const paymentAmount = toPaymentAmount(pricing.total, currency);
 
@@ -63,9 +65,11 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Failed to create PayPal order' }, { status: 500 });
     }
 
+    // Do not send the buyer to PayPal unless their items are safely recorded.
+    await recordPayPalCheckout(order.id, pricing, customer, paymentAmount);
     return Response.json({ id: order.id, links: order.links, pricing });
   } catch (err) {
     console.error('PayPal create-order exception:', err);
-    return Response.json({ error: String(err) }, { status: 400 });
+    return Response.json({ error: err instanceof Error ? err.message : 'Unable to prepare your PayPal checkout.' }, { status: 400 });
   }
 }

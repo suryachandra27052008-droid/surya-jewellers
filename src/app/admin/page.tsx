@@ -41,7 +41,7 @@ export default function AdminDashboard() {
         if (ordersRes.ok) {
           const data = await ordersRes.json();
           setTotalRevenue(data.totalRevenue || 0);
-          setOrderCount(data.count || 0);
+          setOrderCount(data.paidCount ?? data.count ?? 0);
           setAvgOrderValue(data.avgOrderValue || 0);
         }
       } catch (err) {
