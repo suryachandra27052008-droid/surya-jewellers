@@ -70,7 +70,7 @@ function emailWrapper(body: string): string {
 </html>`;
 }
 
-function itemsTable(items: Array<{ name: string; price: number; quantity: number; image?: string }>): string {
+function itemsTable(items: Array<{ name: string; price: number; quantity: number; image?: string; ringSize?: number }>): string {
   const rows = items.map((item) => {
     const safeName = escapeHtml(item.name);
     const safeImage = escapeHtml(item.image || '');
@@ -82,6 +82,7 @@ function itemsTable(items: Array<{ name: string; price: number; quantity: number
           : `<span style="display:inline-block;width:48px;height:48px;background:#1e1c0a;border:1px solid #3a3010;border-radius:4px;margin-right:12px;vertical-align:middle;text-align:center;line-height:48px;font-size:20px;">✦</span>`
         }
         <span style="font-family:Georgia,serif;font-size:14px;color:#e0d4b0;vertical-align:middle;">${safeName}</span>
+        ${item.ringSize !== undefined ? `<br><span style="font-family:Arial,sans-serif;font-size:12px;color:#e0d4b0;">Ring size (India): ${escapeHtml(String(item.ringSize))}</span>` : ''}
         ${item.quantity > 1 ? `<span style="font-family:Arial,sans-serif;font-size:12px;color:#7a6a3a;margin-left:6px;">×${item.quantity}</span>` : ''}
       </td>
       <td style="padding:12px 0;border-bottom:1px solid #2a2510;text-align:right;vertical-align:middle;font-family:Georgia,serif;font-size:14px;color:#d4af37;white-space:nowrap;">
@@ -98,7 +99,7 @@ interface OrderEmailData {
   orderId: string;
   paymentId: string;
   customer: { name: string; email: string; phone: string; address: string };
-  items: Array<{ name: string; price: number; quantity: number; image?: string }>;
+  items: Array<{ name: string; price: number; quantity: number; image?: string; ringSize?: number }>;
   subtotal: number;
   discount?: { name: string; percent: number; amount: number; subtotalBeforeDiscount: number } | null;
   shipping: number;
@@ -203,8 +204,11 @@ interface StatusOrder {
   _id: string;
   razorpayOrderId: string;
   customer: { name: string; email: string; phone: string; address: string };
-  items: Array<{ name: string; price: number; quantity: number }>;
+  items: Array<{ name: string; price: number; quantity: number; ringSize?: number }>;
   total: number;
+  courier?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
 }
 
 export async function sendOrderStatusEmail(order: StatusOrder, status: string) {
@@ -221,7 +225,7 @@ export async function sendOrderStatusEmail(order: StatusOrder, status: string) {
       subline: 'Your jewellery has been carefully packed and dispatched from our Jaipur workshop.',
       badge: 'Shipped',
       badgeColor: '#7c3aed',
-      message: `Your package is on its way to you, ${firstName}. Estimated delivery is within 5–7 business days. Once your tracking information is available, we will share it with you.`,
+      message: `Your package is on its way to you, ${firstName}. Please use the tracking details below when available, or reply to this email for assistance.`,
     },
     delivered: {
       subject: 'Your order has been delivered! ✦ — Surya Jewellers',
@@ -237,7 +241,7 @@ export async function sendOrderStatusEmail(order: StatusOrder, status: string) {
       subline: 'We are sorry to see you go.',
       badge: 'Cancelled',
       badgeColor: '#dc2626',
-      message: `Your order has been cancelled, ${firstName}. If a payment was made, a refund will be processed within 5–7 business days to your original payment method. If you have any questions, please contact us.`,
+      message: `Your order has been cancelled, ${firstName}. Please contact us with any questions about your order or payment.`,
     },
     failed: {
       subject: 'Order Update — Surya Jewellers',
@@ -254,7 +258,7 @@ export async function sendOrderStatusEmail(order: StatusOrder, status: string) {
 
   const itemList = (order.items || []).map((item) =>
     `<tr>
-      <td style="padding:8px 0;border-bottom:1px solid #2a2510;font-family:Georgia,serif;font-size:13px;color:#e0d4b0;">${escapeHtml(item.name)}${item.quantity > 1 ? ` ×${item.quantity}` : ''}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #2a2510;font-family:Georgia,serif;font-size:13px;color:#e0d4b0;">${escapeHtml(item.name)}${item.quantity > 1 ? ` ×${item.quantity}` : ''}${item.ringSize !== undefined ? `<br>Ring size (India): ${escapeHtml(String(item.ringSize))}` : ''}</td>
       <td style="padding:8px 0;border-bottom:1px solid #2a2510;text-align:right;font-family:Arial,sans-serif;font-size:13px;color:#d4af37;">₹${(item.price * item.quantity).toLocaleString('en-IN')}</td>
     </tr>`
   ).join('');
@@ -285,6 +289,7 @@ export async function sendOrderStatusEmail(order: StatusOrder, status: string) {
     </td></tr>
 
     <!-- Items summary -->
+    ${order.trackingNumber ? `<tr><td style="padding:0 40px 24px;color:#e0d4b0;font-family:Arial,sans-serif;font-size:13px;">${escapeHtml(order.courier || 'Tracking')}: ${escapeHtml(order.trackingNumber)}${order.trackingUrl?.startsWith('https://') ? `<br><a href="${escapeHtml(order.trackingUrl)}" style="color:#d4af37;">Track your parcel</a>` : ''}</td></tr>` : ''}
     <tr><td style="padding:0 40px 28px;">
       <p style="margin:0 0 12px;font-family:Arial,sans-serif;font-size:10px;letter-spacing:3px;color:#7a6a3a;text-transform:uppercase;">Order Summary</p>
       <table width="100%" cellpadding="0" cellspacing="0">
@@ -306,10 +311,12 @@ export async function sendOrderStatusEmail(order: StatusOrder, status: string) {
     </td></tr>
   `;
 
-  await resend.emails.send({
+  const result = await resend.emails.send({
     from: FROM,
     to: order.customer.email,
+    replyTo: SUPPORT_EMAIL,
     subject: cfg.subject,
     html: emailWrapper(body),
   });
+  if (result.error || !result.data?.id) throw new Error(result.error?.message || 'Order status email was not accepted.');
 }

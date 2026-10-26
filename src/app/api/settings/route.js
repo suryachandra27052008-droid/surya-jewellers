@@ -43,6 +43,8 @@ function publicSettings(doc = {}, defaults = fileDefaults()) {
     showSaleBanner: doc.showSaleBanner ?? defaults.showSaleBanner,
     whatsappNumber: doc.whatsappNumber ?? defaults.whatsappNumber,
     instagramHandle: doc.instagramHandle ?? defaults.instagramHandle,
+    domesticDeliveryEstimate: doc.domesticDeliveryEstimate || '',
+    internationalDeliveryEstimate: doc.internationalDeliveryEstimate || '',
   };
 }
 

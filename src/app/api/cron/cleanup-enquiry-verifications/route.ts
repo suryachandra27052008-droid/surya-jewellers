@@ -1,6 +1,8 @@
 import { timingSafeEqual } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { cleanupExpiredVerifications } from '@/lib/server/enquiry-verification';
+import { retryCommerceOrders } from '@/lib/server/commerce-orders';
+import { cleanupShoppingAnalytics } from '@/lib/server/shopping-analytics';
 
 export const runtime = 'nodejs';
 
@@ -19,7 +21,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const deleted = await cleanupExpiredVerifications();
-    return NextResponse.json({ success: true, deleted });
+    const orders = await retryCommerceOrders();
+    await cleanupShoppingAnalytics();
+    return NextResponse.json({ success: true, deleted, orders });
   } catch (error) {
     console.error('[Enquiry cleanup] Error:', error);
     return NextResponse.json({ error: 'Cleanup failed.' }, { status: 500 });

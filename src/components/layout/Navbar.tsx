@@ -112,6 +112,9 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setCurrencyOpen(!currencyOpen)}
+                  aria-label={`Currency: ${currency}`}
+                  aria-expanded={currencyOpen}
+                  title="Choose currency"
                   className="flex items-center gap-1 text-xs text-charcoal hover:text-gold transition-colors px-2 py-1.5 border border-charcoal/15 hover:border-gold/40 rounded"
                 >
                   <span>{CURRENCIES[currency].flag}</span>

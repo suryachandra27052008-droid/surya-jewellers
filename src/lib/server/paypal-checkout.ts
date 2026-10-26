@@ -3,6 +3,7 @@ import { isValidEmail, textField } from '@/lib/server/request-security';
 import type { PricedCheckout } from '@/lib/server/checkout-pricing';
 import type { PayPalOrder } from '@/lib/server/paypal';
 import { normalizeShippingCountry } from '@/lib/shipping';
+import { countryCode, countryName, postalCodeError } from '@/lib/countries';
 
 export type PayPalCheckoutRecord = {
   _id: string;
@@ -13,7 +14,7 @@ export type PayPalCheckoutRecord = {
   paymentCurrency: string;
   paymentAmount: string;
   customer: { name: string; email: string; phone: string; address: string; country?: string };
-  items: Array<{ _key: string; productId: string; name: string; price: number; quantity: number }>;
+  items: Array<{ _key: string; productId: string; name: string; price: number; quantity: number; category?: string; ringSize?: number }>;
   subtotal: number;
   discount?: PricedCheckout['discount'];
   shipping: number;
@@ -28,16 +29,17 @@ export function checkoutCustomer(input: Record<string, unknown> | undefined) {
   if (!input || fields.some(field => !textField(input[field], 500)) || !isValidEmail(input.email)) {
     throw new Error('Please complete your shipping details before paying.');
   }
-  const country = normalizeShippingCountry(input.country);
+  const country = countryCode(input.country);
   if (!country) throw new Error('Please enter your delivery country.');
-  if (country === 'IN' && !/^\d{6}$/.test(textField(input.pincode, 20))) throw new Error('Please enter a valid Indian PIN code.');
+  const postalError = postalCodeError(country, input.pincode);
+  if (postalError) throw new Error(postalError);
   return {
     name: textField(input.fullName, 150),
     email: textField(input.email, 254),
     phone: textField(input.phone, 50),
     country,
-    address: ['address1', 'address2', 'city', 'state', 'pincode', 'country']
-      .map(field => textField(input[field], 500)).filter(Boolean).join(', '),
+    address: [...['address1', 'address2', 'city', 'state', 'pincode']
+      .map(field => textField(input[field], 500)), countryName(country)].filter(Boolean).join(', '),
   };
 }
 
@@ -88,6 +90,8 @@ export async function recordPayPalCheckout(
     items: pricing.items.map((item, i) => ({
       _key: `item-${i}`, productId: item._id, name: item.name,
       price: item.price, quantity: item.quantity,
+      ...(item.category ? { category: item.category } : {}),
+      ...(item.ringSize !== undefined ? { ringSize: item.ringSize } : {}),
     })),
     subtotal: pricing.subtotal,
     discount: pricing.discount || undefined,

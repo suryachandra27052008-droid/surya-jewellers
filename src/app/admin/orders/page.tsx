@@ -1,9 +1,14 @@
 'use client';
+import { orderRingSizeLabel } from '@/lib/ring-size';
 
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { ShoppingBag, ChevronDown, ChevronUp, RefreshCw, Search } from 'lucide-react';
+import OrderFulfillment from '@/components/admin/OrderFulfillment';
+import { orderNeedsAttention } from '@/lib/order-tools';
 
 interface OrderItem {
+  ringSize?: number;
+  category?: string;
   productId: string;
   name: string;
   price: number;
@@ -29,9 +34,17 @@ interface Order {
   paymentCurrency?: string;
   paymentAmount?: string;
   needsMerchantReview?: boolean;
+  fulfillmentBlocked?: boolean;
+  processingError?: string;
+  notificationError?: string;
+  orderConfirmationSentAt?: string;
+  courier?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
+  internalNotes?: string;
 }
 
-const STATUS_OPTIONS = ['paid', 'confirmed', 'shipped', 'delivered', 'pending', 'failed', 'cancelled'];
+const STATUS_OPTIONS = ['paid', 'confirmed', 'shipped', 'delivered', 'pending', 'failed', 'cancelled', 'expired'];
 
 const STATUS_STYLES: Record<string, string> = {
   paid: 'bg-emerald-50 text-emerald-700',
@@ -49,6 +62,29 @@ export default function OrdersPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [paymentMessage, setPaymentMessage] = useState('');
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [reconciling, setReconciling] = useState(false);
+  const [integrations, setIntegrations] = useState<{ paypalWebhook: boolean; razorpayWebhook: boolean } | null>(null);
+  const reloadOrders = async () => {
+    const response = await fetch('/api/admin/orders', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Could not load orders.');
+    const result = await response.json(); setOrders(result.orders || []); setIntegrations(result.integrations || null);
+  };
+  const retryOrders = async () => {
+    setReconciling(true); setPaymentMessage('');
+    try {
+      const response = await fetch('/api/admin/reconcile-orders', { method: 'POST' });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Could not retry order updates.');
+      await reloadOrders(); setPaymentMessage(`${result.checked} orders checked; ${result.failed} need further attention.`);
+    } catch (error) { setPaymentMessage((error as Error).message); } finally { setReconciling(false); }
+  };
+  const visibleOrders = orders.filter(order => {
+    const matches = [order.customer?.name, order.customer?.email, order.razorpayOrderId, order.razorpayPaymentId,
+      ...order.items?.map(item => item.name) || []].join(' ').toLowerCase().includes(search.trim().toLowerCase());
+    return matches && (filter === 'all' || (filter === 'attention' ? orderNeedsAttention(order) : order.status === filter));
+  });
 
   const refreshPayPal = async (order: Order) => {
     setUpdatingId(order._id);
@@ -75,7 +111,7 @@ export default function OrdersPage() {
   useEffect(() => {
     fetch('/api/admin/orders')
       .then((r) => r.json())
-      .then((data) => setOrders(data.orders || []))
+      .then((data) => { setOrders(data.orders || []); setIntegrations(data.integrations || null); })
       .catch(console.error)
       .finally(() => setIsLoading(false));
   }, []);
@@ -100,10 +136,12 @@ export default function OrdersPage() {
         body: JSON.stringify({ id: orderId, status: newStatus }),
       });
       if (res.ok) {
+        const result = await res.json();
+        if (result.emailWarning) setPaymentMessage(result.emailWarning);
         setOrders((prev) =>
           prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o))
         );
-      }
+      } else { setPaymentMessage((await res.json()).error || 'Order could not be updated.'); }
     } catch (e) {
       console.error(e);
     } finally {
@@ -119,6 +157,13 @@ export default function OrdersPage() {
           Orders and pending payments · {orders.length} total
         </p>
       </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative min-w-0 flex-1"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input aria-label="Search orders" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search orders or customers" className="w-full min-w-[180px] rounded border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm" /></div>
+        <select aria-label="Filter orders" value={filter} onChange={event => setFilter(event.target.value)} className="rounded border border-gray-300 bg-white px-3 py-2 text-sm"><option value="all">All orders</option><option value="attention">Needs attention</option>{STATUS_OPTIONS.map(status => <option key={status} value={status}>{status}</option>)}</select>
+        <button onClick={retryOrders} disabled={reconciling} className="inline-flex items-center gap-2 rounded border border-gray-300 bg-white px-3 py-2 text-sm disabled:opacity-50"><RefreshCw size={15} />{reconciling ? 'Checking...' : 'Retry order updates'}</button>
+      </div>
+      {integrations && (!integrations.paypalWebhook || !integrations.razorpayWebhook) && <p role="status" className="text-xs text-amber-800">Payment webhook activation is incomplete. {!integrations.paypalWebhook && 'PayPal is not configured. '}{!integrations.razorpayWebhook && 'Razorpay is not configured.'}</p>}
 
       <div className="bg-white rounded-xl border border-gray-200">
         {paymentMessage && <p role="status" className="px-5 py-3 text-sm text-gray-700">{paymentMessage}</p>}
@@ -148,7 +193,7 @@ export default function OrdersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {orders.map((order) => (
+                {visibleOrders.map((order) => (
                   <React.Fragment key={order._id}>
                     <tr className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-5 py-3.5">
@@ -158,6 +203,9 @@ export default function OrdersPage() {
                         <p className="text-xs text-gray-500">{order.customer?.email}</p>
                         <p className="text-xs text-gray-400">{order.customer?.phone}</p>
                         {order.needsMerchantReview && <p className="text-xs text-amber-800">Contact/shipping details need review</p>}
+                        {order.fulfillmentBlocked && <p className="text-xs font-semibold text-red-700">Do not dispatch - stock review required</p>}
+                        {order.processingError && <p className="text-xs text-red-700">{order.processingError}</p>}
+                        {order.notificationError && <p className="text-xs text-amber-800">Confirmation email needs attention</p>}
                       </td>
                       <td className="px-5 py-3.5">
                         <p className="text-sm text-gray-700 max-w-[180px] truncate">
@@ -232,6 +280,7 @@ export default function OrdersPage() {
                                       {item.quantity > 1 && (
                                         <span className="text-gray-400 ml-1">×{item.quantity}</span>
                                       )}
+                                      {orderRingSizeLabel(item) && <span className={`mt-0.5 block text-xs ${item.ringSize === undefined ? 'text-amber-800' : 'text-gray-600'}`}>{orderRingSizeLabel(item)}</span>}
                                     </span>
                                     <span className="font-medium">{fmt(item.price * item.quantity)}</span>
                                   </div>
@@ -291,6 +340,7 @@ export default function OrdersPage() {
                               </p>
                             </div>
                           </div>
+                          <OrderFulfillment key={order._id} order={order} onSaved={() => { void reloadOrders().catch(() => setPaymentMessage('Could not reload orders.')); }} />
                         </td>
                       </tr>
                     )}

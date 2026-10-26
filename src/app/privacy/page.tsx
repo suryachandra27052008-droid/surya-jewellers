@@ -38,6 +38,13 @@ const sections = [
     ],
   },
   {
+    title: 'Optional Shopping Analytics',
+    body: [
+      'With your permission, we count sessions that view products, add an item to the bag, start checkout, and complete a purchase. We store the stage, date, broad device category and country, not names, email addresses, delivery addresses, form entries or full IP addresses.',
+      'A random browser session identifier is hashed on our server and used to avoid duplicate counts. We do not collect these optional events before consent, and honour Do Not Track and Global Privacy Control. You can change your choice through Analytics preferences in the website footer. Analytics records are retained for up to 90 days.',
+    ],
+  },
+  {
     title: 'Your Choices',
     body: [
       'You may ask us to correct or delete personal information that we control, subject to legal, accounting, fraud-prevention, and transaction-record obligations. You may also contact us with questions about how your information is handled.',
@@ -52,7 +59,7 @@ export default function PrivacyPage() {
         <p className="mb-4 text-xs uppercase tracking-[0.35em] text-gold">Surya Jewellers</p>
         <h1 className="font-serif text-4xl sm:text-5xl">Privacy Policy</h1>
         <p className="mt-5 max-w-2xl text-sm leading-7 text-white/55">
-          Last updated: 23 July 2026. This policy explains how information is handled when you use
+          Last updated: 26 October 2026. This policy explains how information is handled when you use
           suryajewellers.com.
         </p>
 

@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { safeCollectionReturn } from '@/lib/collection-state';
+import { isRingCategory, RING_SIZES } from '@/lib/ring-size';
 import Image from 'next/image';
 import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
 import Link from 'next/link';
@@ -81,6 +84,8 @@ export default function ProductDetailClient({
   relatedProducts?: RelatedProduct[];
 }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const searchParams = useSearchParams();
+  const returnTo = safeCollectionReturn(searchParams.get('returnTo'));
   const [addedToCart, setAddedToCart] = useState(false);
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [sizeError, setSizeError] = useState(false);
@@ -94,12 +99,13 @@ export default function ProductDetailClient({
   const wished = wishlistItems.some((item) => item._id === product._id);
   const salePrice = getSalePrice(product.price, sale);
 
-  const cartItem = items.find((i) => i._id === product._id);
-  const atMaxQty = cartItem ? cartItem.quantity >= (product.stockQuantity ?? 1) : false;
+  const cartQuantity = items.filter(i => i._id === product._id).reduce((sum, item) => sum + item.quantity, 0);
+  const hasUnsizedRing = isRingCategory(product.category) && items.some(i => i._id === product._id && i.ringSize === undefined);
+  const atMaxQty = !hasUnsizedRing && cartQuantity >= (product.stockQuantity ?? 1);
 
   const handleAddToCart = () => {
     if (atMaxQty) return;
-    if (/^rings?$/i.test(product.category) && !selectedSize) {
+    if (isRingCategory(product.category) && !selectedSize) {
       setSizeError(true);
       return;
     }
@@ -113,6 +119,8 @@ export default function ProductDetailClient({
       silverWeight: product.silverWeight,
       mainStoneType: product.mainStoneType,
       stockQuantity: product.stockQuantity ?? 1,
+      category: product.category,
+      ...(isRingCategory(product.category) && selectedSize ? { ringSize: selectedSize } : {}),
     });
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
@@ -160,7 +168,7 @@ export default function ProductDetailClient({
         <nav className="flex items-center gap-2 text-xs text-charcoal-muted mb-8" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-gold transition-colors">Home</Link>
           <span>/</span>
-          <Link href="/products" className="hover:text-gold transition-colors">Collections</Link>
+          <Link href={returnTo} className="hover:text-gold transition-colors">Collections</Link>
           <span>/</span>
           <span className="text-charcoal">{product.name || product.category}</span>
         </nav>
@@ -297,7 +305,7 @@ export default function ProductDetailClient({
               <div className="h-[1px] bg-gradient-to-r from-gold/40 via-gold/20 to-transparent" />
 
               {/* Ring Size Selector — shown for all Ring/Rings category products */}
-              {/^rings?$/i.test(product.category) && (
+              {isRingCategory(product.category) && (
                 <div>
                   <p
                     className="mb-3"
@@ -309,13 +317,15 @@ export default function ProductDetailClient({
                       textTransform: 'uppercase',
                     }}
                   >
-                    Ring Size
+                    Ring Size (India)
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {[5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].map((size) => (
+                    {RING_SIZES.map((size) => (
                       <button
                         key={size}
                         type="button"
+                        aria-label={`Ring size ${size}`}
+                        aria-pressed={selectedSize === size}
                         onClick={() => { setSelectedSize(size); setSizeError(false); }}
                         style={{
                           width: '40px',
@@ -423,7 +433,7 @@ export default function ProductDetailClient({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {relatedProducts.map((rp) => (
-                <Link key={rp._id} href={`/products/${rp.slug}`} className="group block">
+                <Link key={rp._id} href={`/products/${rp.slug}?${new URLSearchParams({ returnTo })}`} className="group block">
                   <div className="aspect-square bg-gradient-to-br from-cream-dark to-cream rounded overflow-hidden relative border border-cream-dark mb-3">
                     {rp.images[0] ? (
                       <Image

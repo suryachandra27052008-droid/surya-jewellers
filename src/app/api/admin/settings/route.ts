@@ -37,6 +37,9 @@ export async function POST(request: Request) {
     if ('showSaleBanner' in body) fields.showSaleBanner = Boolean(body.showSaleBanner);
     if ('whatsappNumber' in body) fields.whatsappNumber = String(body.whatsappNumber ?? '').trim().slice(0, 30);
     if ('instagramHandle' in body) fields.instagramHandle = cleanInstagramHandle(body.instagramHandle);
+    for (const field of ['domesticDeliveryEstimate', 'internationalDeliveryEstimate']) {
+      if (field in body) fields[field] = String(body[field] ?? '').trim().slice(0, 160);
+    }
 
     if (Object.keys(fields).length === 0) {
       return NextResponse.json({ error: 'No supported settings were supplied.' }, { status: 400 });

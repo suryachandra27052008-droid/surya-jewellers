@@ -4,6 +4,7 @@ import { sendOrderConfirmation } from '@/lib/email';
 import { priceCheckout, toPaymentAmount } from '@/lib/server/checkout-pricing';
 import { getPayPalOrder } from '@/lib/server/paypal';
 import { findPayPalCheckout, recoverPayPalCustomer } from '@/lib/server/paypal-checkout';
+import { findCommerceOrder, reconcileCommerceOrder } from '@/lib/server/commerce-orders';
 
 interface OrderItem {
   _id: string;
@@ -48,6 +49,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Missing PayPal payment reference.' }, { status: 400 });
     }
 
+    const commerceOrder = await findCommerceOrder('paypal', paypalOrderId);
+    if (commerceOrder?.checkoutVersion === 2) {
+      return NextResponse.json(await reconcileCommerceOrder(commerceOrder));
+    }
+
     const paypalOrder = await getPayPalOrder(paypalOrderId);
     const purchaseUnit = paypalOrder.purchase_units?.[0];
     const captures = purchaseUnit?.payments?.captures || [];
@@ -62,7 +68,8 @@ export async function POST(request: Request) {
     const saved = await findPayPalCheckout(paypalOrderId);
 
     const pricing = saved ? {
-      items: saved.items.map(item => ({ _id: item.productId, name: item.name, price: item.price, quantity: item.quantity })),
+      items: saved.items.map(item => ({ _id: item.productId, name: item.name, price: item.price, quantity: item.quantity,
+        category: item.category, ringSize: item.ringSize })),
       subtotal: saved.subtotal, discount: saved.discount, shipping: saved.shipping, total: saved.total,
     } : await priceCheckout(items, {
       // Older checkouts predate country-based shipping; verify their original total.
@@ -120,6 +127,8 @@ export async function POST(request: Request) {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
+        ...(item.category ? { category: item.category } : {}),
+        ...(item.ringSize !== undefined ? { ringSize: item.ringSize } : {}),
       })),
       subtotal: pricing.subtotal,
       discount: pricing.discount || undefined,
@@ -179,6 +188,7 @@ export async function POST(request: Request) {
             name: item.name,
             price: item.price,
             quantity: item.quantity,
+            ringSize: item.ringSize,
             image: imageMap[item._id] || '',
           })),
           subtotal: pricing.subtotal,

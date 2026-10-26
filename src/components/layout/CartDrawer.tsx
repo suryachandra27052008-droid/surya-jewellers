@@ -9,6 +9,7 @@ import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
 import Link from 'next/link';
 import Image from 'next/image';
 import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
+import { cartLineKey, isRingCategory } from '@/lib/ring-size';
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal } =
@@ -111,7 +112,7 @@ export default function CartDrawer() {
                 <div className="space-y-4">
                   {items.map((item) => (
                     <motion.div
-                      key={item._id}
+                      key={cartLineKey(item)}
                       layout
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -143,6 +144,8 @@ export default function CartDrawer() {
                         <h3 className="text-sm font-medium truncate">
                           {item.name}
                         </h3>
+                        {item.ringSize !== undefined ? <p className="mt-1 text-xs text-charcoal-muted">Ring size (India): {item.ringSize}</p>
+                          : (isRingCategory(item.category) || /\brings?\b/i.test(item.name)) && <Link href={`/products/${item.slug}`} onClick={closeCart} className="mt-1 block text-xs text-gold underline">Choose a ring size</Link>}
                         <p className="text-sm text-gold font-semibold mt-1">
                           {formatPrice(item.price, currency)}
                         </p>
@@ -151,7 +154,7 @@ export default function CartDrawer() {
                         <div className="flex items-center gap-3 mt-2">
                           <button
                             onClick={() =>
-                              updateQuantity(item._id, item.quantity - 1)
+                              updateQuantity(cartLineKey(item), item.quantity - 1)
                             }
                             className="w-7 h-7 border border-cream-dark flex items-center justify-center text-sm hover:border-gold transition-colors"
                           >
@@ -162,14 +165,14 @@ export default function CartDrawer() {
                           </span>
                           <button
                             onClick={() =>
-                              updateQuantity(item._id, item.quantity + 1)
+                              updateQuantity(cartLineKey(item), item.quantity + 1)
                             }
-                            disabled={item.quantity >= (item.stockQuantity ?? 1)}
+                            disabled={items.filter(i => i._id === item._id).reduce((sum, i) => sum + i.quantity, 0) >= (item.stockQuantity ?? 1)}
                             className="w-7 h-7 border border-cream-dark flex items-center justify-center text-sm hover:border-gold transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-cream-dark"
                           >
                             +
                           </button>
-                          {item.quantity >= (item.stockQuantity ?? 1) && (
+                          {items.filter(i => i._id === item._id).reduce((sum, i) => sum + i.quantity, 0) >= (item.stockQuantity ?? 1) && (
                             <span className="text-[10px] text-charcoal-muted/60 uppercase tracking-wide">Max</span>
                           )}
                         </div>
@@ -177,7 +180,7 @@ export default function CartDrawer() {
 
                       {/* Remove */}
                       <button
-                        onClick={() => removeItem(item._id)}
+                        onClick={() => removeItem(cartLineKey(item))}
                         className="self-start p-1 text-charcoal-muted/40 hover:text-red-500 transition-colors"
                         aria-label={`Remove ${item.name}`}
                       >

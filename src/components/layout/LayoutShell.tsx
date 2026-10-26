@@ -9,6 +9,7 @@ import ShippingBanner from '@/components/ui/ShippingBanner';
 import CursorTrail from '@/components/ui/CursorTrail';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { INTERNATIONAL_SHIPPING_FEE } from '@/lib/shipping';
+import ShoppingAnalytics from '@/components/analytics/ShoppingAnalytics';
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -46,6 +47,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
 
       <main className="flex-1">{children}</main>
       <Footer />
+      <ShoppingAnalytics />
       {/* Payment & Trust Marquee Banner */}
       <div className="relative z-10 overflow-hidden md:fixed md:bottom-0 md:left-0 md:right-0 md:z-40" style={{ backgroundColor: '#1a1a1a', borderTop: '1px solid #2d2a1e' }}>
         <div className="flex whitespace-nowrap animate-marquee py-2">

@@ -3,6 +3,7 @@
 import { useUser, SignOutButton } from '@clerk/nextjs';
 import { motion } from 'motion/react';
 import Link from 'next/link';
+import OrderHistory from '@/components/account/OrderHistory';
 
 export default function AccountPage() {
   const { user, isLoaded } = useUser();
@@ -130,16 +131,7 @@ export default function AccountPage() {
             </div>
           </div>
 
-          <div className="border border-white/8 bg-white/3 p-10 rounded-sm text-center">
-            <p className="text-gold/50 text-2xl mb-4">✦</p>
-            <h3 className="font-serif text-lg text-white mb-3">No Orders Yet</h3>
-            <p className="text-white/40 text-sm font-light max-w-sm mx-auto leading-relaxed mb-6">
-              Your order history will appear here. Each confirmed order is also sent to your email with tracking details.
-            </p>
-            <Link href="/products" className="btn-gold inline-block text-xs">
-              Start Shopping
-            </Link>
-          </div>
+          <OrderHistory key={user?.id || 'guest'} />
         </motion.section>
 
         {/* Account Details */}

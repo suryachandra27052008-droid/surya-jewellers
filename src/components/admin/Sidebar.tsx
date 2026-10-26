@@ -140,7 +140,7 @@ export default function Sidebar() {
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-64 flex-shrink-0 bg-white border-r border-gray-200 flex-col">
+      <aside className="hidden lg:flex h-full w-64 flex-shrink-0 bg-white border-r border-gray-200 flex-col">
         <SidebarContent pathname={pathname} onNavigate={() => setMobileOpen(false)} />
       </aside>
     </>

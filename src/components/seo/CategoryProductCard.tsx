@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { isRingCategory } from '@/lib/ring-size';
 import Image from 'next/image';
 import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
 import { Heart } from 'lucide-react';
@@ -15,6 +17,7 @@ import {
 import type { LandingProduct } from './CategoryLanding';
 
 export default function CategoryProductCard({ p, priority = false }: { p: LandingProduct; priority?: boolean }) {
+  const router = useRouter();
   const { addItem, items: cartItems } = useCartStore();
   const { sale } = useSeasonalSale();
   const toggleWishlist = useWishlistStore((s) => s.toggleItem);
@@ -110,6 +113,7 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
             e.preventDefault();
             e.stopPropagation();
             if (atMax) return;
+            if (isRingCategory(p.category)) { router.push(`/products/${slug}`); return; }
             addItem({
               _id: p._id,
               name: p.name,
@@ -128,7 +132,7 @@ export default function CategoryProductCard({ p, priority = false }: { p: Landin
               : 'btn-gold'
           }`}
         >
-          {atMax ? '✓ In Bag' : 'Add to Bag'}
+          {atMax ? '✓ In Bag' : isRingCategory(p.category) ? 'Choose Size' : 'Add to Bag'}
         </button>
       </div>
     </div>

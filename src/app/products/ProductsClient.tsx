@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { collectionHref, readCollectionState, COLLECTION_PRICE_MIN, COLLECTION_PRICE_MAX, type CollectionState } from '@/lib/collection-state';
+import { isRingCategory } from '@/lib/ring-size';
 import Link from 'next/link';
 import Image from 'next/image';
 import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
-import { Heart } from 'lucide-react';
+import { Heart, Search, X } from 'lucide-react';
+import { matchesProductSearch } from '@/lib/product-search';
 import { getSalePrice, useSeasonalSale } from '@/hooks/use-seasonal-sale';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
@@ -18,8 +21,8 @@ import {
   type ProductSeoInput,
 } from '@/lib/seo/product';
 
-const PRICE_MIN = 0;
-const PRICE_MAX = 800000;
+const PRICE_MIN = COLLECTION_PRICE_MIN;
+const PRICE_MAX = COLLECTION_PRICE_MAX;
 const STONE_PREVIEW_COUNT = 8;
 
 const INVALID_STONES = new Set(['', 'None', 'N/A', 'none', 'n/a', 'null', 'undefined']);
@@ -239,11 +242,20 @@ export default function ProductsClient({
   initialProducts?: InitialProduct[];
 }) {
   const searchParams = useSearchParams();
-  const initialCategory = searchParams.get('category');
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory || 'All');
-  const [selectedStone, setSelectedStone] = useState('All');
-  const [sortBy, setSortBy] = useState('featured');
-  const [priceRange, setPriceRange] = useState<[number, number]>([PRICE_MIN, PRICE_MAX]);
+  const router = useRouter();
+  const collection = readCollectionState(searchParams);
+  const { q: query, category: selectedCategory, stone: selectedStone, sort: sortBy, count: visibleCount } = collection;
+  const priceRange = useMemo<[number, number]>(() => [collection.min, collection.max], [collection.min, collection.max]);
+  const updateCollection = useCallback((patch: Partial<CollectionState>) => {
+    const current = readCollectionState(new URLSearchParams(window.location.search));
+    const next = { ...current, count: 24, ...patch };
+    window.history.replaceState(null, '', collectionHref(next));
+  }, []);
+  const setQuery = (q: string) => updateCollection({ q });
+  const setSelectedCategory = (category: string) => updateCollection({ category });
+  const setSelectedStone = (stone: string) => updateCollection({ stone });
+  const setSortBy = (sort: string) => updateCollection({ sort });
+  const setPriceRange = ([min, max]: [number, number]) => updateCollection({ min, max });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [stonesExpanded, setStonesExpanded] = useState(false);
 
@@ -257,24 +269,39 @@ export default function ProductsClient({
   const { sale } = useSeasonalSale();
   const toggleWishlist = useWishlistStore((s) => s.toggleItem);
   const wishlistItems = useWishlistStore((s) => s.items);
-  const [gridView, setGridView] = useState<'compact' | 'comfortable'>('compact');
-  const [visibleCount, setVisibleCount] = useState(24);
+  const [preferredView, setPreferredView] = useState<'compact' | 'comfortable'>('compact');
+  const gridView = collection.view || preferredView;
+  const returnTo = collectionHref({ ...collection, view: gridView });
+  const productHref = (slug: string) => `/products/${slug}?${new URLSearchParams({ returnTo })}`;
+  const saveCollectionPosition = () => {
+    try { sessionStorage.setItem(`surya-collection-scroll:${returnTo}`, String(window.scrollY)); } catch { /* Storage can be disabled. */ }
+  };
+
+  useEffect(() => {
+    let position: string | null = null;
+    try { position = sessionStorage.getItem(`surya-collection-scroll:${returnTo}`); } catch { /* Storage can be disabled. */ }
+    if (position === null || !Number.isFinite(Number(position))) return;
+    const frame = requestAnimationFrame(() => window.scrollTo({ top: Number(position), behavior: 'instant' }));
+    return () => cancelAnimationFrame(frame);
+  }, [returnTo]);
 
   const handlePriceChange = useCallback((min: number, max: number) => {
-    setPriceRange([min, max]);
-  }, []);
+    updateCollection({ min, max });
+  }, [updateCollection]);
 
   useEffect(() => {
     const saved = localStorage.getItem('surya-grid-view');
     if (saved !== 'comfortable' && saved !== 'compact') return;
-    const viewTimer = window.setTimeout(() => setGridView(saved), 0);
+    const viewTimer = window.setTimeout(() => setPreferredView(saved), 0);
     return () => window.clearTimeout(viewTimer);
   }, []);
 
   const handleViewChange = useCallback((view: 'compact' | 'comfortable') => {
-    setGridView(view);
+    const current = readCollectionState(new URLSearchParams(window.location.search));
+    updateCollection({ view, count: current.count });
+    setPreferredView(view);
     localStorage.setItem('surya-grid-view', view);
-  }, []);
+  }, [updateCollection]);
 
   // Lock body scroll when mobile filter drawer is open
   useEffect(() => {
@@ -347,6 +374,7 @@ export default function ProductsClient({
 
   const filteredProducts = useMemo(() => {
     let result = allProducts.filter((p) => p.inStock !== false);
+    if (query.trim()) result = result.filter(product => matchesProductSearch(product, query));
     if (selectedCategory !== 'All') result = result.filter((p) => p.category.name === selectedCategory);
     if (selectedStone !== 'All') result = result.filter((p) => p.mainStoneType === selectedStone || p.secondaryStoneType === selectedStone);
     result = result.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1]);
@@ -357,26 +385,22 @@ export default function ProductsClient({
       return a._idx - b._idx;
     });
     return result;
-  }, [selectedCategory, selectedStone, sortBy, priceRange, allProducts]);
+  }, [selectedCategory, selectedStone, sortBy, priceRange, allProducts, query]);
 
   const visibleProducts = useMemo(
     () => filteredProducts.slice(0, visibleCount),
     [filteredProducts, visibleCount]
   );
 
-  useEffect(() => {
-    const resetTimer = window.setTimeout(() => setVisibleCount(24), 0);
-    return () => window.clearTimeout(resetTimer);
-  }, [selectedCategory, selectedStone, sortBy, priceRange]);
-
-  const clearAll = () => {
-    setSelectedCategory('All');
-    setSelectedStone('All');
-    setSortBy('featured');
-    setPriceRange([PRICE_MIN, PRICE_MAX]);
+  const clearQuery = () => {
+    setQuery('');
   };
 
-  const hasActiveFilters = selectedCategory !== 'All' || selectedStone !== 'All' || isPriceFiltered;
+  const clearAll = () => {
+    updateCollection({ category: 'All', stone: 'All', sort: 'featured', min: PRICE_MIN, max: PRICE_MAX, q: '' });
+  };
+
+  const hasActiveFilters = selectedCategory !== 'All' || selectedStone !== 'All' || isPriceFiltered || Boolean(query.trim());
 
   const gridClass =
     gridView === 'comfortable'
@@ -576,6 +600,19 @@ export default function ProductsClient({
     <div className="pb-20">
       <div className="max-w-[1680px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
 
+        <form role="search" onSubmit={event => {
+          event.preventDefault();
+          updateCollection({ q: query.trim() });
+        }} className="relative mb-5 max-w-xl">
+          <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-muted" />
+          <input id="product-search" type="search" aria-label="Search jewellery" value={query}
+            onChange={event => setQuery(event.target.value.slice(0, 100))} maxLength={100}
+            placeholder="Search jewellery, gemstone or SKU" style={{ paddingLeft: 40, paddingRight: 48 }}
+            className="input-field min-h-[44px] [&::-webkit-search-cancel-button]:appearance-none" />
+          {query && <button type="button" aria-label="Clear search" title="Clear search" onClick={clearQuery}
+            className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-charcoal-muted"><X size={17} /></button>}
+        </form>
+
         {/* Mobile top bar: filter toggle + view switcher */}
         <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
           <button
@@ -691,7 +728,7 @@ export default function ProductsClient({
           {/* Product Grid */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-charcoal-muted">
+              <p role="status" aria-live="polite" className="text-sm text-charcoal-muted">
                 {loading ? 'Loading…' : `${filteredProducts.length} piece${filteredProducts.length !== 1 ? 's' : ''}`}
               </p>
             </div>
@@ -705,15 +742,16 @@ export default function ProductsClient({
             {!loading && filteredProducts.length === 0 && (
               <div className="text-center py-20">
                 <p className="text-charcoal-muted font-serif text-xl mb-2">No pieces found</p>
-                <p className="text-sm text-charcoal-muted/60">Try adjusting your filters</p>
+                <p className="text-sm text-charcoal-muted/60">Try another search or adjust your filters.</p>
+                <button onClick={clearAll} className="mt-4 text-sm text-gold underline">Clear search and filters</button>
               </div>
             )}
 
             {!loading && filteredProducts.length > 0 && (
               <div className={gridClass}>
                 {visibleProducts.map((product, index) => {
-                  const cartItem = cartItems.find((i) => i._id === product._id);
-                  const atMax = cartItem ? cartItem.quantity >= (product.stockQuantity ?? 1) : false;
+                  const cartQuantity = cartItems.filter(i => i._id === product._id).reduce((sum, item) => sum + item.quantity, 0);
+                  const atMax = cartQuantity >= (product.stockQuantity ?? 1);
                   const aboveFold = index < 2;
                   const salePrice = getSalePrice(product.price, sale);
                   const wished = wishlistItems.some((item) => item._id === product._id);
@@ -723,7 +761,7 @@ export default function ProductsClient({
                       className="product-card group relative h-full bg-white rounded overflow-hidden border border-cream-dark hover:border-gold/20 flex flex-col"
                     >
                       {/* Image — full area tappable link */}
-                      <Link href={`/products/${product.slug.current}`}>
+                      <Link href={productHref(product.slug.current)} onClick={saveCollectionPosition}>
                         <div className={`${gridView === 'comfortable' ? 'aspect-[4/3] sm:aspect-[1/1.06]' : 'aspect-[1/1.06]'} bg-gradient-to-br from-cream-dark to-cream relative overflow-hidden`}>
                           {product.images && product.images.length > 0 ? (
                             <Image
@@ -812,7 +850,7 @@ export default function ProductsClient({
                       </button>
 
                       <div className="p-2 sm:p-3 flex flex-col flex-1">
-                        <Link href={`/products/${product.slug.current}`} className="block min-h-[1.8rem] sm:min-h-[2.45rem]">
+                        <Link href={productHref(product.slug.current)} onClick={saveCollectionPosition} className="block min-h-[1.8rem] sm:min-h-[2.45rem]">
                           <h3 className="font-serif text-xs sm:text-base text-charcoal hover:text-gold transition-colors line-clamp-2 leading-snug">
                             {product.displayName || product.name}
                           </h3>
@@ -871,6 +909,11 @@ export default function ProductsClient({
                               e.preventDefault();
                               e.stopPropagation();
                               if (atMax) return;
+                              if (isRingCategory(product.category.name)) {
+                                saveCollectionPosition();
+                                router.push(productHref(product.slug.current));
+                                return;
+                              }
                               addItem({
                                 _id: product._id,
                                 name: product.displayName || product.name,
@@ -894,7 +937,7 @@ export default function ProductsClient({
                                 : 'btn-gold'
                             }`}
                           >
-                            {atMax ? '✓ In Bag' : 'Add to Bag'}
+                            {atMax ? '✓ In Bag' : isRingCategory(product.category.name) ? 'Choose Size' : 'Add to Bag'}
                           </button>
                         </div>
                       </div>
@@ -908,7 +951,7 @@ export default function ProductsClient({
               <div className="mt-8 flex justify-center">
                 <button
                   type="button"
-                  onClick={() => setVisibleCount((count) => count + 24)}
+                  onClick={() => updateCollection({ count: visibleCount + 24 })}
                   className="border border-charcoal/30 px-8 py-3 text-xs font-semibold uppercase tracking-[0.15em] text-charcoal transition-colors hover:border-gold hover:text-[#7a6219]"
                 >
                   Load more pieces

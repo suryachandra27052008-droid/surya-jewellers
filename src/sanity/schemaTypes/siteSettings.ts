@@ -5,6 +5,8 @@ export const siteSettings = defineType({
   title: 'Site Settings',
   type: 'document',
   fields: [
+    defineField({ name: 'domesticDeliveryEstimate', title: 'Approved Domestic Delivery Estimate', type: 'string' }),
+    defineField({ name: 'internationalDeliveryEstimate', title: 'Approved International Delivery Estimate', type: 'string' }),
     defineField({
       name: 'showFreeShippingBanner',
       title: 'Show Free Shipping Banner',

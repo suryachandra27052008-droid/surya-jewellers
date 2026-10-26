@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({ price: vi.fn(), create: vi.fn() }));
+vi.mock('@/lib/server/inventory-reservations', () => ({ reserveStock: vi.fn().mockResolvedValue({ id: 'test-reservation', expiresAt: '2026-10-26T16:00:00Z' }), releaseStock: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('@/lib/server/customer-orders', () => ({ checkoutOwner: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('@/lib/email', () => ({ sendOrderReceiptEmail: vi.fn() }));
 vi.mock('@/lib/sanity/client', () => ({ writeClient: { createIfNotExists: mocks.create } }));
 vi.mock('@/lib/server/checkout-pricing', async importOriginal => ({
   ...await importOriginal<typeof import('@/lib/server/checkout-pricing')>(), priceCheckout: mocks.price,

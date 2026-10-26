@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { writeClient } from '@/lib/sanity/client';
 import { sendOrderConfirmation } from '@/lib/email';
 import { priceCheckout, toPaymentAmount } from '@/lib/server/checkout-pricing';
+import { findCommerceOrder, reconcileCommerceOrder } from '@/lib/server/commerce-orders';
 
 interface OrderItem {
   _id: string;
@@ -54,11 +55,17 @@ export async function POST(request: Request) {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
-    if (expectedSignature !== razorpay_signature) {
+    if (typeof razorpay_signature !== 'string' || !/^[a-f0-9]{64}$/i.test(razorpay_signature) ||
+      !crypto.timingSafeEqual(Buffer.from(expectedSignature, 'hex'), Buffer.from(razorpay_signature, 'hex'))) {
       return NextResponse.json(
         { success: false, error: 'Invalid signature' },
         { status: 400 }
       );
+    }
+
+    const snapshot = await findCommerceOrder('razorpay', razorpay_order_id);
+    if (snapshot?.checkoutVersion === 2) {
+      return NextResponse.json(await reconcileCommerceOrder(snapshot, { paymentId: razorpay_payment_id }));
     }
 
     const pricing = await priceCheckout(items, {
@@ -86,6 +93,9 @@ export async function POST(request: Request) {
       Number(paymentOrder.amount) !== expectedAmount
     ) {
       return NextResponse.json({ success: false, error: 'Payment details do not match this order.' }, { status: 400 });
+    }
+    if (payment.status === 'authorized') {
+      return NextResponse.json({ success: true, pending: true, paymentId: razorpay_payment_id });
     }
 
     const existingOrder = await writeClient.fetch<string | null>(
@@ -123,6 +133,8 @@ export async function POST(request: Request) {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
+        ...(item.category ? { category: item.category } : {}),
+        ...(item.ringSize !== undefined ? { ringSize: item.ringSize } : {}),
       })),
       subtotal: pricing.subtotal,
       discount: pricing.discount || undefined,
@@ -175,6 +187,7 @@ export async function POST(request: Request) {
             name: item.name,
             price: item.price,
             quantity: item.quantity,
+            ringSize: item.ringSize,
             image: imageMap[item._id] || '',
           })),
           subtotal: pricing.subtotal,

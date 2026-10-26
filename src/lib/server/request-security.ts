@@ -20,7 +20,7 @@ export function textField(value: unknown, maxLength: number): string {
   return String(value ?? '').trim().slice(0, maxLength);
 }
 
-export function isRateLimited(req: NextRequest, namespace: string, limit = 5, windowMs = 60_000): boolean {
+export function isRateLimited(req: Pick<NextRequest, 'headers'>, namespace: string, limit = 5, windowMs = 60_000): boolean {
   const forwarded = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
   const ip = forwarded || req.headers.get('x-real-ip') || 'unknown';
   const key = `${namespace}:${ip}`;

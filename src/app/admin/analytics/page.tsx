@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { TrendingUp, ShoppingBag, DollarSign, Package } from 'lucide-react';
 import { isPaidOrder } from '@/lib/order-status';
+import ShoppingFunnel from '@/components/admin/ShoppingFunnel';
 
 interface OrderItem {
   productId: string;
@@ -251,6 +252,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
+      <ShoppingFunnel />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>

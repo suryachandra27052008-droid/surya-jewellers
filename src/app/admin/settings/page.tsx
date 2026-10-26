@@ -22,6 +22,8 @@ interface ShippingSettings {
   freeShippingEnabled: boolean;
   freeShippingEndDate: string;
   freeShippingMinOrder: number;
+  domesticDeliveryEstimate: string;
+  internationalDeliveryEstimate: string;
 }
 
 interface SocialSettings {
@@ -139,6 +141,8 @@ const DEFAULT_SHIPPING: ShippingSettings = {
   freeShippingEnabled: false,
   freeShippingEndDate: '',
   freeShippingMinOrder: 2000,
+  domesticDeliveryEstimate: '',
+  internationalDeliveryEstimate: '',
 };
 
 const DEFAULT_SOCIAL: SocialSettings = {
@@ -209,6 +213,8 @@ export default function SettingsPage() {
           freeShippingEnabled: data.showFreeShippingBanner ?? DEFAULT_SHIPPING.freeShippingEnabled,
           freeShippingEndDate: data.freeShippingEndDate ?? DEFAULT_SHIPPING.freeShippingEndDate,
           freeShippingMinOrder: data.freeShippingMinOrder ?? DEFAULT_SHIPPING.freeShippingMinOrder,
+          domesticDeliveryEstimate: data.domesticDeliveryEstimate || '',
+          internationalDeliveryEstimate: data.internationalDeliveryEstimate || '',
         });
         setSale({
           saleEnabled: data.saleEnabled ?? DEFAULT_SALE.saleEnabled,
@@ -259,6 +265,8 @@ export default function SettingsPage() {
         showFreeShippingBanner: shipping.freeShippingEnabled,
         freeShippingEndDate: shipping.freeShippingEndDate,
         freeShippingMinOrder: shipping.freeShippingMinOrder,
+        domesticDeliveryEstimate: shipping.domesticDeliveryEstimate,
+        internationalDeliveryEstimate: shipping.internationalDeliveryEstimate,
       }),
     });
     if (!response.ok) throw new Error('Shipping settings could not be saved.');
@@ -497,6 +505,10 @@ export default function SettingsPage() {
               />
             </Field>
           </div>
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <Field label="Approved domestic delivery estimate"><Input value={shipping.domesticDeliveryEstimate} onChange={event => setShipping({ ...shipping, domesticDeliveryEstimate: event.target.value })} /></Field>
+          <Field label="Approved international delivery estimate"><Input value={shipping.internationalDeliveryEstimate} onChange={event => setShipping({ ...shipping, internationalDeliveryEstimate: event.target.value })} /></Field>
         </div>
         <div className="mt-5 flex justify-end">
           <SaveButton onClick={saveShipping} saved={shippingSaved} />

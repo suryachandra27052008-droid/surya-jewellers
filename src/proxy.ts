@@ -17,6 +17,10 @@ function unauthorized(isApi: boolean, message = 'Authentication required') {
 
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
+  if (process.env.COMMERCE_REVIEW_MODE === '1' &&
+    (pathname.startsWith('/api/cron/') || !['GET', 'HEAD', 'OPTIONS'].includes(req.method))) {
+    return NextResponse.json({ error: 'Local review mode: payments and changes are disabled.' }, { status: 403 });
+  }
   const isAdminPage = pathname.startsWith('/admin');
   const isAdminApi = pathname.startsWith('/api/admin');
   const isStudio = pathname.startsWith('/studio');

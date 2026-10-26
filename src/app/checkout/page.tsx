@@ -13,6 +13,9 @@ import { CURRENCIES, roundedCurrencyAmount } from '@/lib/currency';
 import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
 import type { ActiveCoupon } from '@/lib/coupon';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import { COUNTRIES, countryCode, postalCodeError, postalCodeRequired } from '@/lib/countries';
+import { analyticsSession } from '@/lib/shopping-analytics';
+import { cartLineKey } from '@/lib/ring-size';
 
 declare global {
   interface Window {
@@ -28,11 +31,12 @@ export default function CheckoutPage() {
   const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [saleSettings, setSaleSettings] = useState<SeasonalSaleSettings | null>(null);
+  const [saleSettings, setSaleSettings] = useState<(SeasonalSaleSettings & { domesticDeliveryEstimate?: string; internationalDeliveryEstimate?: string }) | null>(null);
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<ActiveCoupon | null>(null);
   const [couponMessage, setCouponMessage] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
+  const [formError, setFormError] = useState('');
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -65,6 +69,18 @@ export default function CheckoutPage() {
     }, 0);
     return () => window.clearTimeout(userTimer);
   }, [user]);
+
+  useEffect(() => {
+    if (new URL(window.location.href).searchParams.get('payment') !== 'cancelled') return;
+    let cancellation;
+    try { cancellation = JSON.parse(sessionStorage.getItem('surya-checkout-cancellation') || 'null'); } catch { return; }
+    if (!cancellation) return;
+    fetch('/api/checkout/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cancellation) })
+      .then(async response => {
+        if (!response.ok) throw new Error('Check your existing payment status before starting another checkout.');
+        sessionStorage.removeItem('surya-checkout-cancellation');
+      }).catch(error => setFormError(error.message));
+  }, []);
 
   if (!mounted) {
     return (
@@ -112,6 +128,7 @@ export default function CheckoutPage() {
   const checkoutItems = items.map((item) => ({
     _id: item._id,
     quantity: item.quantity,
+    ringSize: item.ringSize,
   }));
 
   if (items.length === 0) {
@@ -125,6 +142,7 @@ export default function CheckoutPage() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormError('');
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
@@ -135,8 +153,8 @@ export default function CheckoutPage() {
       form.phone.trim() &&
       form.address1.trim() &&
       form.city.trim() &&
-      form.country.trim() &&
-      (!isIndia || /^\d{6}$/.test(form.pincode.trim()))
+      countryCode(form.country) &&
+      !postalCodeError(form.country, form.pincode)
     );
   };
 
@@ -183,9 +201,10 @@ export default function CheckoutPage() {
 
   const handlePayment = async () => {
     if (!isFormValid()) {
-      alert('Please fill in all required fields.');
+      setFormError(postalCodeError(form.country, form.pincode) || 'Please complete all required shipping details.');
       return;
     }
+    setFormError('');
 
     setLoading(true);
 
@@ -207,12 +226,14 @@ export default function CheckoutPage() {
           customerEmail: form.email,
           currency,
           country: form.country,
+          customer: form,
+          analyticsSessionId: analyticsSession(),
         }),
       });
 
       const order = await res.json();
       if (!res.ok) {
-        alert(order.error || 'Could not create payment order. Please refresh your bag and try again.');
+        setFormError(order.error || 'Could not create payment order. Please refresh your bag and try again.');
         setLoading(false);
         return;
       }
@@ -232,6 +253,11 @@ export default function CheckoutPage() {
         notes: {
           website: 'https://www.suryajewellers.com',
         },
+        modal: { ondismiss: () => {
+          void fetch('/api/checkout/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider: 'razorpay', orderId: order.id, token: order.cancellationToken }),
+          }).then(async response => { if (!response.ok) setFormError('Check the existing payment before trying another checkout.'); }).catch(() => setFormError('The payment status could not be checked. Please contact us before paying again.'));
+        } },
         method: {
           wallet: true,
           card: true,
@@ -239,26 +265,29 @@ export default function CheckoutPage() {
           netbanking: true,
         },
         handler: async function (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) {
+          try {
           const verifyRes = await fetch('/api/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               ...response,
-              items: items.map((item) => ({
-                _id: item._id,
-                quantity: item.quantity,
-              })),
+              items: checkoutItems,
               customer: form,
               couponCode: appliedCoupon?.code,
             }),
           });
 
           const result = await verifyRes.json();
-          if (result.success) {
+          if (result.success && !result.pending) {
             clearCart();
             router.push(`/order-success?id=${response.razorpay_payment_id}`);
+          } else if (result.success && result.pending) {
+            setFormError('Your payment is still being confirmed. Do not pay again; check My Orders or contact us with your reference.');
           } else {
-            alert('Payment verification failed. Please contact support.');
+            setFormError('Payment verification needs attention. Do not pay again; contact us with your payment reference.');
+          }
+          } catch {
+            setFormError(`Payment status could not be checked. Do not pay again; contact us with reference ${response.razorpay_payment_id}.`);
           }
         },
         prefill: {
@@ -274,7 +303,7 @@ export default function CheckoutPage() {
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch {
-      alert('Payment could not be started. Please try again.');
+      setFormError('Payment could not be started. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -306,62 +335,63 @@ export default function CheckoutPage() {
                     <div className="sm:col-span-2">
                       <label htmlFor="shipping-country" className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">Country *</label>
                       <input id="shipping-country" type="text" name="country" autoComplete="country-name"
-                        value={form.country} onChange={handleChange} className="input-field" placeholder="Country" required maxLength={80} />
+                        list="shipping-countries" value={form.country} onChange={handleChange} className="input-field" placeholder="Choose country" required maxLength={80} />
+                      <datalist id="shipping-countries">{COUNTRIES.map(country => <option key={country.code} value={country.name} />)}</datalist>
                     </div>
                     <div className="sm:col-span-2">
                       <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">Full Name *</label>
                       <input
-                        type="text" name="fullName" value={form.fullName} onChange={handleChange}
+                        type="text" name="fullName" autoComplete="shipping name" value={form.fullName} onChange={handleChange}
                         className="input-field" placeholder="Enter your full name" required
                       />
                     </div>
                     <div>
                       <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">Email *</label>
                       <input
-                        type="email" name="email" value={form.email} onChange={handleChange}
+                        type="email" name="email" autoComplete="email" value={form.email} onChange={handleChange}
                         className="input-field" placeholder="email@example.com" required
                       />
                     </div>
                     <div>
                       <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">Phone *</label>
                       <input
-                        type="tel" name="phone" value={form.phone} onChange={handleChange}
+                        type="tel" name="phone" autoComplete="shipping tel" value={form.phone} onChange={handleChange}
                         className="input-field" placeholder="+91 98765 43210" required
                       />
                     </div>
                     <div className="sm:col-span-2">
                       <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">Address Line 1 *</label>
                       <input
-                        type="text" name="address1" value={form.address1} onChange={handleChange}
+                        type="text" name="address1" autoComplete="shipping address-line1" value={form.address1} onChange={handleChange}
                         className="input-field" placeholder="House/Flat No., Street" required
                       />
                     </div>
                     <div className="sm:col-span-2">
                       <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">Address Line 2</label>
                       <input
-                        type="text" name="address2" value={form.address2} onChange={handleChange}
+                        type="text" name="address2" autoComplete="shipping address-line2" value={form.address2} onChange={handleChange}
                         className="input-field" placeholder="Landmark, Area (optional)"
                       />
                     </div>
                     <div>
                       <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">City *</label>
                       <input
-                        type="text" name="city" value={form.city} onChange={handleChange}
+                        type="text" name="city" autoComplete="shipping address-level2" value={form.city} onChange={handleChange}
                         className="input-field" placeholder="City" required
                       />
                     </div>
                     <div>
                       <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">State / Province</label>
                       <input
-                        type="text" name="state" value={form.state} onChange={handleChange}
+                        type="text" name="state" autoComplete="shipping address-level1" value={form.state} onChange={handleChange}
                         className="input-field" placeholder="State / Province"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">{isIndia ? 'PIN Code *' : 'Postal Code'}</label>
+                      <label className="block text-xs tracking-[0.1em] uppercase text-charcoal-muted mb-2">{isIndia ? 'PIN Code' : 'Postal Code'}{postalCodeRequired(form.country) ? ' *' : ''}</label>
                       <input
-                        type="text" name="pincode" value={form.pincode} onChange={handleChange}
-                        className="input-field" placeholder={isIndia ? '110001' : 'Postal Code'} required={isIndia} maxLength={20}
+                        type="text" name="pincode" autoComplete="shipping postal-code" inputMode={isIndia ? 'numeric' : 'text'} value={form.pincode} onChange={handleChange}
+                        className="input-field" placeholder={isIndia ? '110001' : 'Postal Code'} required={postalCodeRequired(form.country)} maxLength={20}
                       />
                     </div>
                   </div>
@@ -378,10 +408,11 @@ export default function CheckoutPage() {
                   {/* Items */}
                   <div className="space-y-4 mb-6">
                     {items.map((item) => (
-                      <div key={item._id} className="flex items-center justify-between text-sm">
+                      <div key={cartLineKey(item)} className="flex items-center justify-between gap-3 text-sm">
                         <div className="flex-1 min-w-0">
                           <p className="truncate text-charcoal">{item.name}</p>
                           <p className="text-charcoal-muted text-xs">Qty: {item.quantity}</p>
+                          {item.ringSize !== undefined && <p className="text-charcoal-muted text-xs">Ring size (India): {item.ringSize}</p>}
                         </div>
                         <span className="text-charcoal font-medium ml-4">
                           {formatPrice(item.price * item.quantity, currency)}
@@ -474,6 +505,9 @@ export default function CheckoutPage() {
                     </span>
                   </div>
 
+                  {form.country && !isIndia && <p className="mb-4 text-xs leading-5 text-charcoal-muted">Import duties and taxes may apply at the destination. <Link href="/shipping" className="text-gold underline">Shipping terms</Link></p>}
+                  {countryCode(form.country) && (isIndia ? saleSettings?.domesticDeliveryEstimate : saleSettings?.internationalDeliveryEstimate) && <p className="mb-4 text-xs text-charcoal-muted">Estimated delivery: {isIndia ? saleSettings?.domesticDeliveryEstimate : saleSettings?.internationalDeliveryEstimate}</p>}
+                  {formError && <p role="alert" className="mb-4 text-sm text-red-700">{formError}</p>}
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={handlePayment}
@@ -513,18 +547,16 @@ export default function CheckoutPage() {
                         whileTap={{ scale: 0.97 }}
                         onClick={async () => {
                           if (!isFormValid()) {
-                            alert('Please fill in all required shipping details.');
+                            setFormError(postalCodeError(form.country, form.pincode) || 'Please complete all required shipping details.');
                             return;
                           }
+                          setFormError('');
+                          setLoading(true);
                           try {
                             try { localStorage.setItem(
                               'paypal_pending_order',
                               JSON.stringify({
-                                items: items.map((item) => ({
-                                  _id: item._id,
-                                  quantity: item.quantity,
-                                })),
-                                customer: form,
+                                items: checkoutItems,
                                 couponCode: appliedCoupon?.code,
                               })
                             ); } catch { /* The server records the checkout before returning the PayPal link. */ }
@@ -537,20 +569,24 @@ export default function CheckoutPage() {
                                 customerEmail: form.email,
                                 customer: form,
                                 currency: paypalCurrency,
+                                analyticsSessionId: analyticsSession(),
                               })
                             });
                             const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || 'PayPal checkout could not be prepared.');
                             console.log('PayPal order:', data);
                             const approvalUrl = data.links?.find((l: { rel: string }) => l.rel === 'approve')?.href;
                             if (approvalUrl) {
+                              try { sessionStorage.setItem('surya-checkout-cancellation', JSON.stringify({ provider: 'paypal', orderId: data.id, token: data.cancellationToken })); } catch { /* The reservation also has an expiry. */ }
                               window.location.href = approvalUrl;
                             } else {
-                              alert('PayPal error: ' + JSON.stringify(data));
+                              setFormError('PayPal checkout could not be prepared. Please try again.');
                             }
                           } catch(err) {
-                            alert('Error: ' + (err as Error).message);
-                          }
+                            setFormError((err as Error).message);
+                          } finally { setLoading(false); }
                         }}
+                        disabled={loading}
                         className="btn-gold w-full flex items-center justify-center gap-2.5"
                       >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden="true">

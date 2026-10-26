@@ -4,7 +4,7 @@ import { escapeHtml } from '@/lib/server/request-security';
 export type OrderReceipt = {
   reference: string;
   customer: { name: string; email: string };
-  items: Array<{ name: string; price: number; quantity: number }>;
+  items: Array<{ name: string; price: number; quantity: number; ringSize?: number }>;
   discount?: { amount: number } | null;
   shipping: number;
   total: number;
@@ -30,7 +30,7 @@ export function renderOrderReceipt(data: OrderReceipt) {
   const reference = escapeHtml(data.reference);
   const greeting = escapeHtml(data.customer.name || 'Customer');
   const tableRows = rows.map(item => `<tr>
-    <td style="padding:12px 0;border-bottom:1px solid #2a2510;color:#e0d4b0;">${escapeHtml(item.name)}</td>
+    <td style="padding:12px 0;border-bottom:1px solid #2a2510;color:#e0d4b0;">${escapeHtml(item.name)}${item.ringSize !== undefined ? `<br><span style="font-size:12px;">Ring size (India): ${escapeHtml(String(item.ringSize))}</span>` : ''}</td>
     <td style="padding:12px 8px;border-bottom:1px solid #2a2510;text-align:center;color:#e0d4b0;">${item.quantity}</td>
     <td style="padding:12px 0;border-bottom:1px solid #2a2510;text-align:right;color:#d4af37;">${escapeHtml(money(item.line))}</td>
   </tr>`).join('');
@@ -54,7 +54,7 @@ export function renderOrderReceipt(data: OrderReceipt) {
   const text = [
     `Dear ${data.customer.name || 'Customer'},`, '', 'Thank you for your order with Surya Jewellers.',
     `Order reference: ${data.reference}`, '',
-    ...rows.map(item => `${item.name} - Qty ${item.quantity} - ${money(item.line)}`), '',
+    ...rows.map(item => `${item.name}${item.ringSize !== undefined ? ` - Ring size (India): ${item.ringSize}` : ''} - Qty ${item.quantity} - ${money(item.line)}`), '',
     ...summary.map(([label, value]) => `${label}: ${value}`), '',
     'Please keep this email for your records. Reply to this email with any questions about your order.',
   ].join('\n');

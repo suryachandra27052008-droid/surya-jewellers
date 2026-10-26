@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { writeClient } from '@/lib/sanity/client';
 import { sendOrderStatusEmail } from '@/lib/email';
 import { isPaidOrder } from '@/lib/order-status';
+import { safeTrackingUrl, orderNeedsAttention } from '@/lib/order-tools';
+import { textField } from '@/lib/server/request-security';
 
 interface AdminOrder {
   total?: number;
@@ -24,6 +26,15 @@ export async function GET() {
         paymentCurrency,
         paymentAmount,
         needsMerchantReview,
+        fulfillmentBlocked,
+        processingError,
+        notificationError,
+        orderConfirmationSentAt,
+        courier,
+        trackingNumber,
+        trackingUrl,
+        internalNotes,
+        _rev,
         customer,
         items,
         subtotal,
@@ -42,7 +53,10 @@ export async function GET() {
     const totalRevenue = paidOrders.reduce((sum: number, o) => sum + (o.total || 0), 0);
     const avgOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
 
-    return NextResponse.json({ orders, totalRevenue, avgOrderValue, count: orders.length, paidCount: paidOrders.length }, {
+    return NextResponse.json({ orders, totalRevenue, avgOrderValue, count: orders.length, paidCount: paidOrders.length,
+      attentionCount: orders.filter(orderNeedsAttention).length,
+      integrations: { paypalWebhook: Boolean(process.env.PAYPAL_WEBHOOK_ID), razorpayWebhook: Boolean(process.env.RAZORPAY_WEBHOOK_SECRET) },
+    }, {
       headers: { 'Cache-Control': 'private, no-store' },
     });
   } catch (error) {
@@ -53,22 +67,39 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const { id, status } = await request.json();
-    const validStatuses = ['paid', 'confirmed', 'shipped', 'delivered', 'pending', 'failed', 'cancelled'];
-    if (!id || !validStatuses.includes(status)) {
+    const body = await request.json();
+    const { id, status } = body;
+    const validStatuses = ['paid', 'confirmed', 'shipped', 'delivered', 'pending', 'failed', 'cancelled', 'expired'];
+    if (typeof id !== 'string' || (status !== undefined && !validStatuses.includes(status))) {
       return NextResponse.json({ error: 'Invalid id or status' }, { status: 400 });
     }
 
-    const exists = await writeClient.fetch<boolean>(
-      `count(*[_type == "order" && _id == $id]) == 1`, { id },
+    const existing = await writeClient.fetch<AdminOrder & { _rev: string; courier?: string; trackingNumber?: string; fulfillmentBlocked?: boolean; checkoutVersion?: number } | null>(
+      `*[_type == "order" && _id == $id][0]`, { id },
     );
-    if (!exists) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    if (!existing) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
-    await writeClient.patch(id).set({ status }).commit();
+    if (status && ['paid', 'confirmed', 'shipped', 'delivered'].includes(status) &&
+      (!isPaidOrder(existing) || existing.fulfillmentBlocked)) {
+      return NextResponse.json({ error: 'Verify the payment and resolve stock alerts before confirming or dispatching.' }, { status: 409 });
+    }
+    const fields: Record<string, string> = {};
+    if (status) fields.status = status;
+    if (body.courier !== undefined) fields.courier = textField(body.courier, 80);
+    if (body.trackingNumber !== undefined) fields.trackingNumber = textField(body.trackingNumber, 100);
+    if (body.trackingUrl !== undefined) fields.trackingUrl = safeTrackingUrl(body.trackingUrl);
+    if (body.internalNotes !== undefined) fields.internalNotes = textField(body.internalNotes, 3000);
+    if (!Object.keys(fields).length) return NextResponse.json({ error: 'No changes supplied.' }, { status: 400 });
+    if (status === 'shipped' && !(fields.courier || existing.courier) && !(fields.trackingNumber || existing.trackingNumber)) {
+      return NextResponse.json({ error: 'Add the courier or tracking details before marking the parcel shipped.' }, { status: 400 });
+    }
 
+    await writeClient.patch(id).ifRevisionId(existing._rev).set(fields).commit();
+
+    let emailWarning = '';
     // Send customer email for actionable status changes
     const emailStatuses = ['shipped', 'delivered', 'cancelled', 'failed'];
-    if (emailStatuses.includes(status)) {
+    if (emailStatuses.includes(status) && existing.status !== status) {
       try {
         const order = await writeClient.fetch(
           `*[_type == "order" && _id == $id][0]{
@@ -80,6 +111,7 @@ export async function PATCH(request: Request) {
             discount,
             shipping,
             total
+            ,courier, trackingNumber, trackingUrl
           }`,
           { id }
         );
@@ -91,12 +123,13 @@ export async function PATCH(request: Request) {
       } catch (emailErr: unknown) {
         // Log but never fail the status update because of email errors
         console.error('[orders] status email error:', (emailErr as Error)?.message);
+        emailWarning = 'The order was updated, but the customer status email could not be sent. Please contact support.';
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, ...(emailWarning ? { emailWarning } : {}) });
   } catch (error) {
     console.error('Failed to update order status:', error);
-    return NextResponse.json({ error: 'Failed to update status' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to update order.' }, { status: 400 });
   }
 }

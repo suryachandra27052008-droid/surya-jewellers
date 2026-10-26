@@ -27,4 +27,9 @@ describe('customer order confirmation', () => {
   it('escapes customer-provided markup', () => {
     expect(renderOrderReceipt({ ...receipt, customer: { ...receipt.customer, name: '<script>bad</script>' } }).html).toContain('&lt;script&gt;');
   });
+  it('shows the saved ring size in both receipt formats', () => {
+    const result = renderOrderReceipt({ ...receipt, items: receipt.items.map((item, index) => index === 0 ? { ...item, ringSize: 12 } : item) });
+    expect(result.text).toContain('Emerald Ring - Ring size (India): 12');
+    expect(result.html).toContain('Ring size (India): 12');
+  });
 });

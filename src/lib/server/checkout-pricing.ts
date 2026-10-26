@@ -4,12 +4,15 @@ import { calculateSaleTotals } from '@/lib/sale';
 import { getShipping } from '@/lib/shipping';
 import { getProductCanonicalSlug, getProductDisplayName } from '@/lib/seo/product';
 import { CURRENCIES, type CurrencyCode } from '@/lib/currency';
+import { combineStockLines } from './inventory-reservations';
+import { cartLineKey, isRingCategory, readRingSize } from '@/lib/ring-size';
 
 export type CheckoutCurrency = CurrencyCode;
 
 export type CheckoutLineInput = {
   _id?: string;
   quantity?: number;
+  ringSize?: number;
 };
 
 export type PricedCheckoutItem = {
@@ -19,6 +22,8 @@ export type PricedCheckoutItem = {
   quantity: number;
   image: string;
   slug: string;
+  category?: string;
+  ringSize?: number;
 };
 
 export type DiscountSnapshot = {
@@ -113,9 +118,17 @@ export async function priceCheckout(
     country?: string;
   } = {}
 ): Promise<PricedCheckout> {
-  const validLines = (lines || [])
-    .map((line) => ({ _id: String(line._id || '').trim(), quantity: cleanQuantity(line.quantity) }))
-    .filter((line) => line._id);
+  const inputLines = (lines || []).map(line => ({ _id: String(line._id || '').trim(),
+    quantity: cleanQuantity(line.quantity), ringSize: readRingSize(line.ringSize) }));
+  const stockLines = combineStockLines(inputLines);
+  const quantities = new Map(stockLines.map(line => [line._id, line.quantity]));
+  const variants = new Map<string, typeof inputLines[number]>();
+  for (const line of inputLines) {
+    const key = cartLineKey(line);
+    const previous = variants.get(key);
+    variants.set(key, { ...line, quantity: line.quantity + (previous?.quantity || 0) });
+  }
+  const validLines = Array.from(variants.values());
 
   if (validLines.length === 0) {
     throw new Error('Cart is empty.');
@@ -147,7 +160,16 @@ export async function priceCheckout(
     }
 
     const maxQuantity = cleanQuantity(product.stockQuantity ?? 1);
-    const quantity = Math.min(line.quantity, maxQuantity);
+    if (options.requireInStock !== false && (Number(product.stockQuantity) === 0 || (quantities.get(line._id) || 0) > maxQuantity)) {
+      throw new Error(`${getProductDisplayName(product)} does not have the requested quantity available.`);
+    }
+    const quantity = options.requireInStock === false ? line.quantity : Math.min(line.quantity, maxQuantity);
+    if (isRingCategory(product.category) && line.ringSize === undefined && options.requireInStock !== false) {
+      throw new Error(`Please choose a ring size for ${getProductDisplayName(product)} before checking out.`);
+    }
+    if (!isRingCategory(product.category) && line.ringSize !== undefined) {
+      throw new Error('Ring sizes can only be selected for rings.');
+    }
     const price = Math.max(0, Number(product.price) || 0);
     if (price < 1000) {
       throw new Error(`${getProductDisplayName(product)} has a price that requires merchant review.`);
@@ -160,6 +182,8 @@ export async function priceCheckout(
       quantity,
       image: product.image || '',
       slug: getProductCanonicalSlug(product),
+      category: product.category,
+      ...(line.ringSize !== undefined ? { ringSize: line.ringSize } : {}),
     };
   });
 

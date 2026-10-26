@@ -1,4 +1,5 @@
 import { CURRENCIES } from '@/lib/currency';
+import { countryCode } from '@/lib/countries';
 
 export const STANDARD_SHIPPING_FEE = 150;
 export const FREE_SHIPPING_THRESHOLD = 2000;
@@ -7,7 +8,7 @@ export const INTERNATIONAL_SHIPPING_FEE = INTERNATIONAL_SHIPPING_USD / CURRENCIE
 
 export function normalizeShippingCountry(value: unknown): string {
   const country = typeof value === 'string' ? value.trim().slice(0, 80) : '';
-  return /^(in|india|bharat)$/i.test(country) ? 'IN' : country;
+  return countryCode(country) || country;
 }
 
 export function isPromoActive(): boolean {
