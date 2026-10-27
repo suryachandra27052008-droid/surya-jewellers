@@ -222,10 +222,14 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
+        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/10 flex flex-col sm:flex-row sm:flex-wrap items-center justify-between gap-2 sm:gap-4">
           <p className="text-xs text-white/60">
             © {new Date().getFullYear()} Surya Jewellers. All rights reserved.
           </p>
+          <nav aria-label="Legal policies" className="flex gap-4 text-xs text-white/70">
+            <Link href="/terms" className="py-2 underline underline-offset-4 hover:text-gold">Terms</Link>
+            <Link href="/privacy" className="py-2 underline underline-offset-4 hover:text-gold">Privacy</Link>
+          </nav>
           <p className="hidden sm:block text-xs text-white/60">
             Crafted with ♦ for those who appreciate the extraordinary
           </p>

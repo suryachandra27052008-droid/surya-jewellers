@@ -17,7 +17,7 @@ const shipping = [
 const returns = [
   { icon: '✦', title: '7-Day Return Window', desc: 'Returns accepted within 7 days of delivery, no questions asked.' },
   { icon: '✦', title: 'Condition Requirement', desc: 'Item must be unused, unworn, and in its original packaging with all tags intact.' },
-  { icon: '✦', title: 'Custom & One-Piece Designs', desc: 'Bespoke and one-of-a-kind pieces are non-returnable and non-exchangeable.' },
+  { icon: '✦', title: 'Custom & One-Piece Designs', desc: 'Bespoke and one-of-a-kind pieces are excluded from our voluntary change-of-mind policy. This does not limit mandatory cancellation rights or remedies for faulty, damaged or misdescribed goods.' },
   { icon: '✦', title: 'Refund Timeline', desc: 'Refunds are processed within 5–7 business days after we receive and inspect the item.' },
 ];
 
@@ -131,6 +131,11 @@ export default function ShippingPage() {
             </div>
           </div>
 
+          <p className="mb-6 text-sm leading-relaxed text-white/75">
+            The policy below is voluntary and does not replace your statutory consumer rights.
+            Where EU distance-selling rules apply, the applicable 14-day withdrawal right takes priority.
+            See our <Link href="/terms" className="text-gold underline underline-offset-4">Terms of Service</Link> for details.
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             {returns.map((item, i) => (
               <motion.div
