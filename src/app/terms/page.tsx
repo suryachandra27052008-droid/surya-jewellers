@@ -93,10 +93,18 @@ export default function TermsPage() {
           <section>
             <h2 className="font-serif text-2xl">Business and Customer Care</h2>
             <address className="mt-4 space-y-2 text-sm not-italic leading-7 text-white/75">
-              <p>Surya Jewellers<br />B-169 Anandpuri, Moti Doongri Road<br />Jaipur, Rajasthan 302004, India</p>
+              <p>Registered business name: Surya Jewellers</p>
+              <p>B-169 Anandpuri, Moti Doongri Road<br />Jaipur, Rajasthan 302004, India</p>
               <p><a className="break-words text-gold underline underline-offset-4" href="mailto:suryajewellersjaipur@gmail.com">suryajewellersjaipur@gmail.com</a></p>
               <p><a className="text-gold underline underline-offset-4" href="tel:+919983939306">+91 99839 39306</a></p>
             </address>
+            <h3 className="mt-6 font-serif text-xl">Grievance Officer: Pooja Chandra</h3>
+            <p className="mt-3 text-sm leading-7 text-white/75">
+              Consumer complaints may be addressed to Pooja Chandra at the business address,
+              email or telephone listed above. Consumer grievances are to be acknowledged
+              within 48 hours and redressed within one month of receipt under applicable
+              Indian e-commerce rules.
+            </p>
             <p className="mt-4 text-sm leading-7 text-white/75">For an order query or complaint, include your order reference, the issue and the outcome you are requesting. Do not email payment-card numbers or account passwords.</p>
           </section>
         </div>
