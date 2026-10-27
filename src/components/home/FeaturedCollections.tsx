@@ -26,7 +26,7 @@ export default function FeaturedCollections() {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {collections.map((collection, index) => (
+          {collections.map((collection) => (
             <Link key={collection.name} href={collection.href} className="group cursor-pointer">
               <div className="aspect-[4/5] relative overflow-hidden rounded-sm">
                 <Image
@@ -35,8 +35,7 @@ export default function FeaturedCollections() {
                   fill
                   unoptimized
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  priority={index < 2}
-                  loading={index >= 2 ? 'lazy' : undefined}
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-black/25 transition-colors duration-300 group-hover:bg-black/10" />
                 <div className="absolute inset-0 flex items-end justify-center pb-5">
