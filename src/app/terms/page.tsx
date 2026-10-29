@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { INTERNATIONAL_CUSTOMS_NOTICE } from '@/lib/shipping';
 
 export const metadata: Metadata = {
   title: { absolute: 'Terms of Service | Surya Jewellers' },
@@ -35,7 +36,7 @@ const sections = [
     title: 'Shipping and International Orders',
     paragraphs: [
       'Delivery options and charges are shown at checkout and in our Shipping & Returns policy. Delivery estimates are not a guarantee of arrival on a particular date unless we expressly agree otherwise. Contact us promptly about a late, missing or damaged delivery; your statutory delivery rights remain unaffected.',
-      'International shipping is not free unless expressly offered for your order. Destination-country import duties, taxes or clearance charges may apply separately; they are not included unless expressly stated. Please contact us before ordering if you need clarification about delivery to your country.',
+      `International shipping is not free unless expressly offered for your order. ${INTERNATIONAL_CUSTOMS_NOTICE} Please contact us before ordering if you need clarification about delivery to your country.`,
     ],
   },
   {
@@ -75,7 +76,7 @@ export default function TermsPage() {
       <div className="mx-auto max-w-3xl">
         <p className="mb-4 text-xs uppercase tracking-[0.25em] text-gold">Surya Jewellers</p>
         <h1 className="font-serif text-4xl sm:text-5xl">Terms of Service</h1>
-        <p className="mt-5 text-sm leading-7 text-white/70">Effective for new orders from 27 October 2026.</p>
+        <p className="mt-5 text-sm leading-7 text-white/70">Effective for new orders from 28 October 2026.</p>
         <nav aria-label="Related policies" className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gold">
           <Link href="/shipping" className="py-2 underline underline-offset-4">Shipping &amp; Returns</Link>
           <Link href="/privacy" className="py-2 underline underline-offset-4">Privacy Policy</Link>

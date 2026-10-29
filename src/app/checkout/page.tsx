@@ -8,7 +8,7 @@ import Script from 'next/script';
 import { motion } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
-import { getShipping, FREE_SHIPPING_THRESHOLD, normalizeShippingCountry } from '@/lib/shipping';
+import { getShipping, FREE_SHIPPING_THRESHOLD, normalizeShippingCountry, INTERNATIONAL_CUSTOMS_NOTICE } from '@/lib/shipping';
 import { CURRENCIES, roundedCurrencyAmount } from '@/lib/currency';
 import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
 import type { ActiveCoupon } from '@/lib/coupon';
@@ -505,7 +505,7 @@ export default function CheckoutPage() {
                     </span>
                   </div>
 
-                  {form.country && !isIndia && <p className="mb-4 text-xs leading-5 text-charcoal-muted">Import duties and taxes may apply at the destination. <Link href="/shipping" className="text-gold underline">Shipping terms</Link></p>}
+                  {countryCode(form.country) && !isIndia && <p className="mb-4 text-xs leading-5 text-charcoal-muted">{INTERNATIONAL_CUSTOMS_NOTICE} <Link href="/shipping" className="text-gold underline">Shipping terms</Link></p>}
                   {countryCode(form.country) && (isIndia ? saleSettings?.domesticDeliveryEstimate : saleSettings?.internationalDeliveryEstimate) && <p className="mb-4 text-xs text-charcoal-muted">Estimated delivery: {isIndia ? saleSettings?.domesticDeliveryEstimate : saleSettings?.internationalDeliveryEstimate}</p>}
                   {formError && <p role="alert" className="mb-4 text-sm text-red-700">{formError}</p>}
                   <motion.button

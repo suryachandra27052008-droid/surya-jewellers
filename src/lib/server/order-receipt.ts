@@ -1,9 +1,11 @@
 import { CURRENCIES, roundedCurrencyAmount, type CurrencyCode } from '@/lib/currency';
 import { escapeHtml } from '@/lib/server/request-security';
+import { countryCode } from '@/lib/countries';
+import { INTERNATIONAL_CUSTOMS_NOTICE } from '@/lib/shipping';
 
 export type OrderReceipt = {
   reference: string;
-  customer: { name: string; email: string };
+  customer: { name: string; email: string; country?: string };
   items: Array<{ name: string; price: number; quantity: number; ringSize?: number }>;
   discount?: { amount: number } | null;
   shipping: number;
@@ -29,6 +31,8 @@ export function renderOrderReceipt(data: OrderReceipt) {
   if (!Number.isFinite(total) || Math.abs(rounding) > tolerance) throw new Error('The order currency amounts require review before confirmation.');
   const reference = escapeHtml(data.reference);
   const greeting = escapeHtml(data.customer.name || 'Customer');
+  const destination = countryCode(data.customer.country);
+  const customsNotice = destination && destination !== 'IN' ? INTERNATIONAL_CUSTOMS_NOTICE : '';
   const tableRows = rows.map(item => `<tr>
     <td style="padding:12px 0;border-bottom:1px solid #2a2510;color:#e0d4b0;">${escapeHtml(item.name)}${item.ringSize !== undefined ? `<br><span style="font-size:12px;">Ring size (India): ${escapeHtml(String(item.ringSize))}</span>` : ''}</td>
     <td style="padding:12px 8px;border-bottom:1px solid #2a2510;text-align:center;color:#e0d4b0;">${item.quantity}</td>
@@ -49,6 +53,7 @@ export function renderOrderReceipt(data: OrderReceipt) {
       <th align="left">Item</th><th>Qty</th><th align="right">Amount (${data.currency})</th>
     </tr></thead><tbody>${tableRows}</tbody></table>
     <table width="100%" style="margin-top:18px;font-size:14px;">${summary.map(([label, value]) => `<tr><td style="padding:5px 0;">${label}</td><td align="right">${escapeHtml(value)}</td></tr>`).join('')}</table>
+    ${customsNotice ? `<p style="font-size:13px;line-height:1.6;margin-top:18px;">${escapeHtml(customsNotice)}</p>` : ''}
     <p style="font-size:13px;line-height:1.6;margin-top:24px;">Please keep this email for your records. If you have a question about your order, reply to this email.</p>
   </td></tr>`;
   const text = [
@@ -56,6 +61,7 @@ export function renderOrderReceipt(data: OrderReceipt) {
     `Order reference: ${data.reference}`, '',
     ...rows.map(item => `${item.name}${item.ringSize !== undefined ? ` - Ring size (India): ${item.ringSize}` : ''} - Qty ${item.quantity} - ${money(item.line)}`), '',
     ...summary.map(([label, value]) => `${label}: ${value}`), '',
+    ...(customsNotice ? [customsNotice, ''] : []),
     'Please keep this email for your records. Reply to this email with any questions about your order.',
   ].join('\n');
   return { subject: `Order confirmation - Surya Jewellers - ${data.reference}`, html, text };

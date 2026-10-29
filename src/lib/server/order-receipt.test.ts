@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { renderOrderReceipt, type OrderReceipt } from './order-receipt';
+import { INTERNATIONAL_CUSTOMS_NOTICE } from '@/lib/shipping';
 
 const receipt: OrderReceipt = {
   reference: 'SJ-EXAMPLE', customer: { name: 'Test Buyer', email: 'buyer@example.com' },
@@ -31,5 +32,16 @@ describe('customer order confirmation', () => {
     const result = renderOrderReceipt({ ...receipt, items: receipt.items.map((item, index) => index === 0 ? { ...item, ringSize: 12 } : item) });
     expect(result.text).toContain('Emerald Ring - Ring size (India): 12');
     expect(result.html).toContain('Ring size (India): 12');
+  });
+  it.each(['IT', 'Italy', 'DE'])('discloses customer-paid customs charges for international delivery to %s', country => {
+    const result = renderOrderReceipt({ ...receipt, customer: { ...receipt.customer, country } });
+    expect(result.text).toContain(INTERNATIONAL_CUSTOMS_NOTICE);
+    expect(result.html).toContain(INTERNATIONAL_CUSTOMS_NOTICE);
+    expect(result.text).toContain('Order total: \u20ac221.13');
+  });
+  it.each(['IN', 'India', undefined, 'unknown-country'])('does not infer international delivery from currency when country is %s', country => {
+    const result = renderOrderReceipt({ ...receipt, customer: { ...receipt.customer, country } });
+    expect(result.text).not.toContain(INTERNATIONAL_CUSTOMS_NOTICE);
+    expect(result.html).not.toContain(INTERNATIONAL_CUSTOMS_NOTICE);
   });
 });

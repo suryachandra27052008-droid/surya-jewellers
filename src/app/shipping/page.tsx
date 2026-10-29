@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
-import { INTERNATIONAL_SHIPPING_FEE } from '@/lib/shipping';
+import { INTERNATIONAL_SHIPPING_FEE, INTERNATIONAL_CUSTOMS_NOTICE } from '@/lib/shipping';
 
 const shipping = [
   { icon: '✦', title: 'Free Shipping Across India', desc: 'Free standard shipping within India on orders of ₹2,000 or more. A ₹150 fee applies below that amount.' },
@@ -103,7 +103,7 @@ export default function ShippingPage() {
                 <h3 className="font-serif text-base text-white mb-2 group-hover:text-gold-light transition-colors duration-300">
                   {item.title}
                 </h3>
-                <p className="text-white/50 text-sm font-light leading-relaxed">{item.international ? `Flat international shipping: ${formatPrice(INTERNATIONAL_SHIPPING_FEE, mounted ? currency : 'USD')} (US$30) per order. Duties and taxes may apply.` : item.desc}</p>
+                <p className="text-white/50 text-sm font-light leading-relaxed">{item.international ? `Flat international shipping: ${formatPrice(INTERNATIONAL_SHIPPING_FEE, mounted ? currency : 'USD')} (US$30) per order. ${INTERNATIONAL_CUSTOMS_NOTICE}` : item.desc}</p>
               </motion.div>
             ))}
           </div>

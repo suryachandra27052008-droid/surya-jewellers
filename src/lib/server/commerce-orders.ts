@@ -11,8 +11,10 @@ export type CommerceOrder = PayPalCheckoutRecord & {
   checkoutVersion?: number; paymentMethod?: 'paypal' | 'razorpay'; ownerUserId?: string;
   reservationId?: string; reservationExpiresAt?: string; inventoryCommittedAt?: string;
   fulfillmentBlocked?: boolean; processingError?: string; reconciliationAttempts?: number;
+  inventoryCommitAttempts?: number;
   lastReconciledAt?: string; nextReconcileAt?: string; paidAt?: string;
   notificationAttempts?: number; notificationError?: string;
+  notificationFirstAttemptAt?: string;
   analytics?: AnalyticsContext;
 };
 
@@ -45,11 +47,20 @@ export async function recordCommerceCheckout(provider: 'paypal' | 'razorpay', id
 
 export async function deliverOrderReceipt(order: CommerceOrder) {
   const latest = await writeClient.getDocument<CommerceOrder>(order._id);
-  if (!latest || latest.orderConfirmationSentAt || !latest.customer?.email) return;
+  if (!latest || latest.orderConfirmationSentAt || !latest.customer?.email || !latest.paidAt) return;
   if (!Object.hasOwn(CURRENCIES, latest.paymentCurrency)) throw new Error('Unsupported order currency.');
   // Resend retains keys for 24 hours. Older uncertain sends require manual review,
   // rather than risking a duplicate after the provider's idempotency window.
-  if (latest.notificationAttempts && latest.paidAt && Date.now() - Date.parse(latest.paidAt) > 23 * 60 * 60_000) return;
+  const firstAttempt = Date.parse(latest.notificationFirstAttemptAt || latest.paidAt);
+  if (!Number.isFinite(firstAttempt) || Date.now() - firstAttempt > 23 * 60 * 60_000) {
+    await writeClient.patch(latest._id).set({ notificationError: 'Confirmation delivery is uncertain; check the provider before sending manually.' }).commit();
+    return;
+  }
+  // Save the send intent first: a provider-accepted email followed by a failed CMS
+  // update must not become a fresh send after the provider's deduplication window.
+  await writeClient.patch(latest._id)
+    .setIfMissing({ notificationFirstAttemptAt: new Date().toISOString(), notificationAttempts: 0 })
+    .inc({ notificationAttempts: 1 }).commit();
   try {
     const emailId = await sendOrderReceiptEmail({ reference: `SJ-${latest.razorpayOrderId}`,
       customer: latest.customer, items: latest.items, discount: latest.discount,
@@ -59,14 +70,16 @@ export async function deliverOrderReceipt(order: CommerceOrder) {
     await writeClient.patch(latest._id).set({ orderConfirmationSentAt: new Date().toISOString(),
       orderConfirmationEmailId: emailId, notificationError: '' }).commit();
   } catch {
-    await writeClient.patch(latest._id).set({ notificationError: 'Order confirmation needs retry.' })
-      .setIfMissing({ notificationAttempts: 0 }).inc({ notificationAttempts: 1 }).commit();
+    await writeClient.patch(latest._id).set({ notificationError: 'Order confirmation needs retry.' }).commit();
   }
 }
 
 async function markPayment(order: CommerceOrder, captureId: string, state: string, pending: boolean) {
   const latest = await writeClient.getDocument<CommerceOrder>(order._id);
   if (!latest) throw new Error('The saved checkout could not be found.');
+  if (pending && latest.paidAt) {
+    return { success: true, pending: false, paymentId: latest.razorpayPaymentId || captureId };
+  }
   const fields: Record<string, unknown> = { razorpayPaymentId: captureId, paymentStatus: state,
     lastReconciledAt: new Date().toISOString(), processingError: '',
     nextReconcileAt: new Date(Date.now() + 5 * 60_000).toISOString() };
@@ -88,7 +101,9 @@ async function markPayment(order: CommerceOrder, captureId: string, state: strin
     // A late payment never consumes another buyer's stock or permits dispatch.
     if (!committed?.inventoryCommittedAt) {
       await writeClient.patch(order._id).set({ fulfillmentBlocked: true, needsMerchantReview: true,
-        processingError: (error as Error).message }).commit();
+        processingError: (error as Error).message,
+        nextReconcileAt: new Date(Date.now() + 15 * 60_000).toISOString() })
+        .setIfMissing({ inventoryCommitAttempts: 0 }).inc({ inventoryCommitAttempts: 1 }).commit();
     }
   }
   await deliverOrderReceipt({ ...order, ...fields } as CommerceOrder);
@@ -107,6 +122,8 @@ export async function reconcileCommerceOrder(order: CommerceOrder, options: { ca
       let provider = await getPayPalOrder(order.razorpayOrderId);
       let unit = provider.purchase_units?.[0];
       if (provider.status === 'APPROVED' && !unit?.payments?.captures?.length && options.captureApproved) {
+        if (unit?.amount?.currency_code !== order.paymentCurrency || unit?.amount?.value !== order.paymentAmount ||
+          unit?.custom_id !== `server_total_inr_${order.total}`) throw new Error('Provider amount does not match the saved order.');
         if (!order.reservationId) throw new Error('Checkout stock reservation is missing.');
         await reserveStock(order.items.map(item => ({ _id: item.productId, quantity: item.quantity })), order.reservationId);
         provider = await capturePayPalOrder(order.razorpayOrderId);
@@ -142,7 +159,9 @@ export async function reconcileCommerceOrder(order: CommerceOrder, options: { ca
       Number(payment.amount) !== expected || Number(providerOrder.amount) !== expected) {
       throw new Error('Provider amount does not match the saved order.');
     }
-    if (payment.status === 'authorized') {
+    if (payment.status === 'authorized' && process.env.RAZORPAY_MANUAL_CAPTURE_ENABLED === 'true' && process.env.RAZORPAY_WEBHOOK_SECRET) {
+      const latest = await writeClient.getDocument<CommerceOrder>(order._id);
+      if (latest?.paidAt) return await markPayment(order, payment.id, payment.status, true);
       if (!order.reservationId) throw new Error('Checkout stock reservation is missing.');
       await reserveStock(order.items.map(item => ({ _id: item.productId, quantity: item.quantity })), order.reservationId, true);
       payment = await razorpay.payments.capture(payment.id, expected, order.paymentCurrency);
@@ -160,7 +179,10 @@ export async function retryCommerceOrders() {
   const orders = await writeClient.fetch<CommerceOrder[]>(
     `*[_type == "order" && checkoutVersion == 2 &&
       ((status == "pending" && coalesce(nextReconcileAt, _createdAt) <= $now) ||
-       (status == "paid" && !defined(orderConfirmationSentAt) && coalesce(notificationAttempts, 0) < 5))]
+       (status in ["paid", "confirmed", "shipped", "delivered"] && defined(paidAt) &&
+        ((!defined(orderConfirmationSentAt) && coalesce(notificationAttempts, 0) < 5) ||
+         (!defined(inventoryCommittedAt) && coalesce(inventoryCommitAttempts, 0) < 5)) &&
+        coalesce(nextReconcileAt, _createdAt) <= $now))]
       | order(_createdAt asc)[0...30]`, { now: new Date().toISOString() }, { cache: 'no-store' });
   let failed = 0;
   for (const order of orders) {

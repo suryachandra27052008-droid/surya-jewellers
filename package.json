@@ -34,6 +34,12 @@
     "zustand": "^5.0.12"
   },
   "overrides": {
+    "@sanity/runtime-cli": {
+      "adm-zip": "0.6.1"
+    },
+    "typeid-js": {
+      "uuid": "11.1.1"
+    },
     "@vercel/cli-config": {
       "zod": "4.6.7"
     },
@@ -51,8 +57,9 @@
     "@types/three": "^0.185.1",
     "eslint": "^9",
     "eslint-config-next": "^16.4.3",
+    "groq-js": "^1.30.3",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.12"
   }
 }
