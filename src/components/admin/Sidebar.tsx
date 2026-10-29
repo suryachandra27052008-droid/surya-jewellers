@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   FileSpreadsheet,
+  ClipboardCheck,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -32,6 +33,11 @@ const navItems = [
     label: 'Inventory',
     href: '/admin/inventory',
     icon: Package,
+  },
+  {
+    label: 'Product Quality',
+    href: '/admin/product-quality',
+    icon: ClipboardCheck,
   },
   {
     label: 'Add Product',

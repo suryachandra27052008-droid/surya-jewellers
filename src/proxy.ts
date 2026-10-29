@@ -8,9 +8,11 @@ function unauthorized(isApi: boolean, message = 'Authentication required') {
     isApi ? JSON.stringify({ error: message }) : message,
     {
       status: 401,
-      headers: isApi
-        ? { 'Content-Type': 'application/json' }
-        : { 'WWW-Authenticate': 'Basic realm="Secure Admin Area"' },
+      headers: {
+        'WWW-Authenticate': 'Basic realm="Secure Admin Area"',
+        'Cache-Control': 'private, no-store',
+        ...(isApi ? { 'Content-Type': 'application/json' } : {}),
+      },
     }
   );
 }

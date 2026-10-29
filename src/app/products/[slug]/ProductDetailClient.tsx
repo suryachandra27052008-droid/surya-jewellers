@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { safeCollectionReturn } from '@/lib/collection-state';
 import { isRingCategory, RING_SIZES } from '@/lib/ring-size';
@@ -14,6 +14,8 @@ import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { useWishlistStore } from '@/stores/wishlist-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import RecentlyViewed from '@/components/catalog/RecentlyViewed';
+import { useRecentlyViewedStore } from '@/stores/recently-viewed-store';
 
 export interface RelatedProduct {
   _id: string;
@@ -98,6 +100,8 @@ export default function ProductDetailClient({
   const wishlistItems = useWishlistStore((s) => s.items);
   const wished = wishlistItems.some((item) => item._id === product._id);
   const salePrice = getSalePrice(product.price, sale);
+  const recordViewed = useRecentlyViewedStore(state => state.record);
+  useEffect(() => { recordViewed(product._id); }, [product._id, recordViewed]);
 
   const cartQuantity = items.filter(i => i._id === product._id).reduce((sum, item) => sum + item.quantity, 0);
   const hasUnsizedRing = isRingCategory(product.category) && items.some(i => i._id === product._id && i.ringSize === undefined);
@@ -459,6 +463,8 @@ export default function ProductDetailClient({
           </section>
         )}
       </div>
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><RecentlyViewed currentId={product._id} returnTo={returnTo} /></div>
 
       {/* Size Guide Modal */}
       {showSizeGuide && (

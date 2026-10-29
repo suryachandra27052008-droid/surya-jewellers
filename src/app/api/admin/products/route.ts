@@ -50,7 +50,9 @@ export async function GET() {
       updatedAt: p._updatedAt,
     }));
 
-    return NextResponse.json({ products: formattedProducts, total: formattedProducts.length });
+    return NextResponse.json({ products: formattedProducts, total: formattedProducts.length }, {
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
   } catch (error) {
     console.error('Failed to fetch products', error);
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });

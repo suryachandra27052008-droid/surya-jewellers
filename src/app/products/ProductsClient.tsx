@@ -7,8 +7,10 @@ import { isRingCategory } from '@/lib/ring-size';
 import Link from 'next/link';
 import Image from 'next/image';
 import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
-import { Heart, Search, X } from 'lucide-react';
-import { matchesProductSearch } from '@/lib/product-search';
+import { Heart } from 'lucide-react';
+import { matchesProductSearch, productSearchScore } from '@/lib/product-search';
+import ProductSearch from '@/components/catalog/ProductSearch';
+import RecentlyViewed from '@/components/catalog/RecentlyViewed';
 import { getSalePrice, useSeasonalSale } from '@/hooks/use-seasonal-sale';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
@@ -315,7 +317,7 @@ export default function ProductsClient({
     let cancelled = false;
     async function fetchFallback() {
       try {
-        const res = await fetch('/api/admin/products');
+        const res = await fetch('/api/catalog');
         if (!res.ok || cancelled) return;
         const data = await res.json() as { products?: InitialProduct[] };
         const products = (data.products ?? []).map(mapProduct);
@@ -388,9 +390,16 @@ export default function ProductsClient({
     [filteredProducts, visibleCount]
   );
 
-  const clearQuery = () => {
-    setQuery('');
-  };
+  const rankedSuggestions = useMemo(() => query.trim().length < 2 ? [] : filteredProducts
+    .map(product => ({ product, score: productSearchScore(product, query) ?? 0 }))
+    .sort((a, b) => b.score - a.score).slice(0, 6), [filteredProducts, query]);
+  const searchSuggestions = rankedSuggestions.map(({ product }) => {
+      const discounted = getSalePrice(product.price, sale);
+      return { id: product._id, name: product.displayName, sku: product.sku,
+        href: `/products/${product.slug.current}?${new URLSearchParams({ returnTo })}`, image: product.images?.[0] || '',
+        price: formatPrice(discounted ?? product.price, currency),
+        ...(discounted !== null ? { originalPrice: formatPrice(product.price, currency) } : {}) };
+    });
 
   const clearAll = () => {
     updateCollection({ category: 'All', stone: 'All', sort: 'featured', min: PRICE_MIN, max: PRICE_MAX, q: '' });
@@ -596,18 +605,8 @@ export default function ProductsClient({
     <div className="pb-20">
       <div className="max-w-[1680px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
 
-        <form role="search" onSubmit={event => {
-          event.preventDefault();
-          updateCollection({ q: query.trim() });
-        }} className="relative mb-5 max-w-xl">
-          <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-muted" />
-          <input id="product-search" type="search" aria-label="Search jewellery" value={query}
-            onChange={event => setQuery(event.target.value.slice(0, 100))} maxLength={100}
-            placeholder="Search jewellery, gemstone or SKU" style={{ paddingLeft: 40, paddingRight: 48 }}
-            className="input-field min-h-[44px] [&::-webkit-search-cancel-button]:appearance-none" />
-          {query && <button type="button" aria-label="Clear search" title="Clear search" onClick={clearQuery}
-            className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-charcoal-muted"><X size={17} /></button>}
-        </form>
+        <ProductSearch query={query} onChange={setQuery} onSubmit={() => updateCollection({ q: query.trim() })}
+          suggestions={searchSuggestions} onNavigate={saveCollectionPosition} />
 
         {/* Mobile top bar: filter toggle + view switcher */}
         <div className="lg:hidden mb-4 flex items-center justify-between gap-3">
@@ -958,6 +957,7 @@ export default function ProductsClient({
             )}
           </div>
         </div>
+        <RecentlyViewed returnTo={returnTo} />
       </div>
     </div>
   );
