@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { shoppingStage } from '@/lib/shopping-analytics';
 import { cartLineKey } from '@/lib/ring-size';
+import { currentCartPrices, repriceCart } from '@/lib/cart-pricing';
 
 export interface CartItem {
   _id: string;
@@ -29,6 +30,7 @@ interface CartState {
   closeCart: () => void;
   getSubtotal: () => number;
   getItemCount: () => number;
+  syncPrices: () => Promise<void>;
 }
 
 export const useCartStore = create<CartState>()(
@@ -91,6 +93,14 @@ export const useCartStore = create<CartState>()(
         })),
 
       clearCart: () => set({ items: [] }),
+      syncPrices: async () => {
+        const snapshot = get().items;
+        if (!snapshot.length) return;
+        const prices = await currentCartPrices(snapshot);
+        const current = get().items;
+        const updated = repriceCart(current, prices);
+        if (updated.some((item, index) => item !== current[index])) set({ items: updated });
+      },
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),

@@ -12,21 +12,23 @@ import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
 import { cartLineKey, isRingCategory } from '@/lib/ring-size';
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal } =
+  const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal, syncPrices } =
     useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
   const [saleSettings, setSaleSettings] = useState<SeasonalSaleSettings | null>(null);
+  const [priceError, setPriceError] = useState('');
 
   const subtotal = getSubtotal();
   const { sale, discountAmount, discountedSubtotal } = calculateSaleTotals(subtotal, saleSettings);
 
   useEffect(() => {
     if (!isOpen) return;
+    void syncPrices().then(() => setPriceError('')).catch(error => setPriceError(error.message));
     fetch('/api/settings')
       .then((r) => r.json())
       .then(setSaleSettings)
       .catch(() => setSaleSettings(null));
-  }, [isOpen]);
+  }, [isOpen, syncPrices]);
 
   return (
     <AnimatePresence>
@@ -78,6 +80,7 @@ export default function CartDrawer() {
 
             {/* Items */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
+              {priceError && <p role="alert" className="mb-3 text-sm text-red-700">{priceError}</p>}
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <svg

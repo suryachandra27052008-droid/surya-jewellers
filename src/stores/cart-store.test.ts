@@ -32,4 +32,17 @@ describe('ring size cart lines', () => {
     expect(orderRingSizeLabel({ name: 'Ruby Stud' })).toBe('');
     expect(orderRingSizeLabel({ ringSize: 12 })).toBe('Ring size (India): 12');
   });
+  it('refreshes a saved bag without restoring products removed during the request', async () => {
+    const fetcher = vi.fn().mockImplementation(async () => Response.json({ products: [{ ...ring, price: 14000 }] }));
+    vi.stubGlobal('fetch', fetcher);
+    try {
+      useCartStore.setState({ items: [{ ...ring, quantity: 1, ringSize: 12 }] });
+      await useCartStore.getState().syncPrices();
+      expect(useCartStore.getState().items).toMatchObject([{ price: 14000, quantity: 1, ringSize: 12 }]);
+      const pending = useCartStore.getState().syncPrices();
+      useCartStore.getState().clearCart();
+      await pending;
+      expect(useCartStore.getState().items).toEqual([]);
+    } finally { vi.unstubAllGlobals(); }
+  });
 });

@@ -12,14 +12,14 @@ export async function GET(request: Request) {
     return Response.json({ error: 'Invalid product selection.' }, { status: 400 });
   }
   try {
-    const products = await client.fetch(
+    const products = await (ids ? client.withConfig({ useCdn: false }) : client).fetch(
       `*[_type == "product" && !(_id in path("drafts.**")) && price >= 1000 && ${ids ? '_id in $ids' : 'inStock != false && coalesce(stockQuantity, 1) > 0'}]
         | order(_createdAt desc) { _id, name, "slug": slug.current, sku, price,
           "category": category->name, silverWeight, mainStoneType, secondaryStoneType,
           "images": images[0..0][].asset->url, inStock, stockQuantity, _createdAt }`,
-      ids ? { ids } : {}, { next: { revalidate: 60 } },
+      ids ? { ids } : {}, ids ? { cache: 'no-store' } : { next: { revalidate: 60 } },
     );
-    return Response.json({ products }, { headers: { 'Cache-Control': 'public, max-age=0, s-maxage=60' } });
+    return Response.json({ products }, { headers: { 'Cache-Control': ids ? 'no-store' : 'public, max-age=0, s-maxage=60' } });
   } catch {
     return Response.json({ error: 'The catalogue is temporarily unavailable.' }, { status: 503 });
   }

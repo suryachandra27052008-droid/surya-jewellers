@@ -17,6 +17,7 @@ import AnimatedSection from '@/components/ui/AnimatedSection';
 import { COUNTRIES, countryCode, postalCodeError, postalCodeRequired } from '@/lib/countries';
 import { analyticsSession } from '@/lib/shopping-analytics';
 import { cartLineKey } from '@/lib/ring-size';
+import { cartPricesMatch } from '@/lib/cart-pricing';
 
 declare global {
   interface Window {
@@ -27,7 +28,8 @@ declare global {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, getSubtotal, clearCart } = useCartStore();
+  const { items, getSubtotal, clearCart, syncPrices } = useCartStore();
+  const cartIds = [...new Set(items.map(item => item._id))].sort().join(',');
   const { user } = useUser();
   const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
@@ -49,6 +51,15 @@ export default function CheckoutPage() {
     pincode: '',
     country: '',
   });
+
+  useEffect(() => {
+    if (!cartIds) return;
+    let cancelled = false;
+    void syncPrices().catch(error => { if (!cancelled) setFormError(error.message); });
+    const refresh = () => { void syncPrices().catch(error => { if (!cancelled) setFormError(error.message); }); };
+    window.addEventListener('focus', refresh);
+    return () => { cancelled = true; window.removeEventListener('focus', refresh); };
+  }, [cartIds, syncPrices]);
 
   useEffect(() => {
     const mountTimer = window.setTimeout(() => setMounted(true), 0);
@@ -212,6 +223,11 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
+      await syncPrices();
+      if (!cartPricesMatch(items, useCartStore.getState().items)) {
+        setFormError('Prices have changed. Please review the updated total, then press Pay again.');
+        return;
+      }
       if (appliedCoupon) {
         const stillValid = await validateCoupon(appliedCoupon.code, true);
         if (!stillValid) {
@@ -562,6 +578,11 @@ export default function CheckoutPage() {
                           setFormError('');
                           setLoading(true);
                           try {
+                            await syncPrices();
+                            if (!cartPricesMatch(items, useCartStore.getState().items)) {
+                              setFormError('Prices have changed. Please review the updated total, then press Pay again.');
+                              return;
+                            }
                             try { localStorage.setItem(
                               'paypal_pending_order',
                               JSON.stringify({

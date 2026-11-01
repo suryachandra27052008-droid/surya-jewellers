@@ -1,11 +1,12 @@
 import { evaluate, parse } from 'groq-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-const mocks = vi.hoisted(() => ({ fetch: vi.fn() }));
-vi.mock('@/lib/sanity/client', () => ({ client: { fetch: mocks.fetch } }));
+const mocks = vi.hoisted(() => ({ fetch: vi.fn(), withConfig: vi.fn() }));
+vi.mock('@/lib/sanity/client', () => ({ client: { fetch: mocks.fetch, withConfig: mocks.withConfig } }));
 import { GET } from './route';
 const product = { _id: 'public-product', _type: 'product', name: 'Test Ring', slug: { current: 'ring' }, price: 15999,
   inStock: true, stockQuantity: 1, customer: { email: 'must-not-leak@example.com' }, checkoutReservation: { id: 'private' } };
 beforeEach(() => {
+  mocks.withConfig.mockReset().mockReturnValue({ fetch: mocks.fetch });
   mocks.fetch.mockReset().mockImplementation(async (query: string, params: Record<string, unknown>) => {
     const result = await evaluate(parse(query), { params, dataset: [product,
       { ...product, _id: 'bad-price', price: 19 }, { ...product, _id: 'drafts.hidden' },
@@ -22,9 +23,13 @@ describe('public catalogue projection', () => {
     expect(response.headers.get('Cache-Control')).toContain('s-maxage=60');
   });
   it('loads current data for viewed IDs and allows honest sold-out history', async () => {
-    const data = await (await GET(request('?ids=sold,public-product,orders.private,bad-price'))).json();
+    const response = await GET(request('?ids=sold,public-product,orders.private,bad-price'));
+    const data = await response.json();
     expect(data.products.map((p: { _id: string }) => p._id).sort()).toEqual(['public-product', 'sold']);
     expect(data.products.find((p: { _id: string }) => p._id === 'public-product').price).toBe(15999);
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    expect(mocks.fetch.mock.calls[0][2]).toEqual({ cache: 'no-store' });
+    expect(mocks.withConfig).toHaveBeenCalledWith({ useCdn: false });
   });
   it.each(['?ids=', '?ids=../bad', '?ids=drafts.hidden', '?ids=%22%5D%20%7C%20*%5B', `?ids=${Array.from({ length: 13 }, (_, i) => `p${i}`).join(',')}`])('rejects malformed or unbounded ID selections: %s', async query => {
     expect((await GET(request(query))).status).toBe(400); expect(mocks.fetch).not.toHaveBeenCalled();
