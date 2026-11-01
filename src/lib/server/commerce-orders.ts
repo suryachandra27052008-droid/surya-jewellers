@@ -41,6 +41,7 @@ export async function recordCommerceCheckout(provider: 'paypal' | 'razorpay', id
       ...(item.ringSize !== undefined ? { ringSize: item.ringSize } : {}) })),
     subtotal: pricing.subtotal, discount: pricing.discount || undefined,
     shipping: pricing.shipping, total: pricing.total,
+    ...(pricing.currencyConversionFee ? { currencyConversionFee: pricing.currencyConversionFee } : {}),
     nextReconcileAt: new Date(Date.now() + 60_000).toISOString(),
   });
 }
@@ -65,6 +66,7 @@ export async function deliverOrderReceipt(order: CommerceOrder) {
     const emailId = await sendOrderReceiptEmail({ reference: `SJ-${latest.razorpayOrderId}`,
       customer: latest.customer, items: latest.items, discount: latest.discount,
       shipping: latest.shipping, total: latest.total,
+      currencyConversionFee: latest.currencyConversionFee,
       currency: latest.paymentCurrency as CurrencyCode, chargedAmount: latest.paymentAmount,
     }, `order-receipt-${latest.razorpayOrderId}`);
     await writeClient.patch(latest._id).set({ orderConfirmationSentAt: new Date().toISOString(),

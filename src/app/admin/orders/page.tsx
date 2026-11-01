@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingBag, ChevronDown, ChevronUp, RefreshCw, Search } from 'lucide-react';
 import OrderFulfillment from '@/components/admin/OrderFulfillment';
 import { orderNeedsAttention } from '@/lib/order-tools';
+import { CURRENCY_CONVERSION_FEE_LABEL } from '@/lib/payment-fees';
 
 interface OrderItem {
   ringSize?: number;
@@ -24,6 +25,7 @@ interface Order {
   subtotal: number;
   discount?: { name: string; percent: number; amount: number; subtotalBeforeDiscount: number } | null;
   shipping: number;
+  currencyConversionFee?: number;
   total: number;
   status: string;
   paidAt: string;
@@ -299,6 +301,10 @@ export default function OrdersPage() {
                                   <span>Shipping</span>
                                   <span>{order.shipping === 0 ? 'Free' : fmt(order.shipping)}</span>
                                 </div>
+                                {!!order.currencyConversionFee && <div className="flex justify-between gap-3 text-gray-500 text-xs">
+                                  <span>{CURRENCY_CONVERSION_FEE_LABEL}</span>
+                                  <span>{fmt(order.currencyConversionFee)}</span>
+                                </div>}
                                 <div className="flex justify-between font-semibold text-gray-900 pt-0.5">
                                   <span>Total</span>
                                   <span>{fmt(order.total)}</span>

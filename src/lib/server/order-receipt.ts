@@ -2,6 +2,7 @@ import { CURRENCIES, roundedCurrencyAmount, type CurrencyCode } from '@/lib/curr
 import { escapeHtml } from '@/lib/server/request-security';
 import { countryCode } from '@/lib/countries';
 import { INTERNATIONAL_CUSTOMS_NOTICE } from '@/lib/shipping';
+import { CURRENCY_CONVERSION_FEE_LABEL } from '@/lib/payment-fees';
 
 export type OrderReceipt = {
   reference: string;
@@ -9,6 +10,7 @@ export type OrderReceipt = {
   items: Array<{ name: string; price: number; quantity: number; ringSize?: number }>;
   discount?: { amount: number } | null;
   shipping: number;
+  currencyConversionFee?: number;
   total: number;
   currency: CurrencyCode;
   chargedAmount?: string;
@@ -25,8 +27,9 @@ export function renderOrderReceipt(data: OrderReceipt) {
   const subtotal = rows.reduce((sum, item) => sum + item.line, 0);
   const discount = roundedCurrencyAmount(data.discount?.amount || 0, data.currency);
   const shipping = roundedCurrencyAmount(data.shipping, data.currency);
+  const conversionFee = roundedCurrencyAmount(data.currencyConversionFee || 0, data.currency);
   const total = data.chargedAmount === undefined ? roundedCurrencyAmount(data.total, data.currency) : Number(data.chargedAmount);
-  const rounding = Number((total - (subtotal - discount + shipping)).toFixed(decimals));
+  const rounding = Number((total - (subtotal - discount + shipping + conversionFee)).toFixed(decimals));
   const tolerance = data.currency === 'JPY' ? Math.max(1, rows.length) : Math.max(0.05, rows.length * 0.01 + 0.02);
   if (!Number.isFinite(total) || Math.abs(rounding) > tolerance) throw new Error('The order currency amounts require review before confirmation.');
   const reference = escapeHtml(data.reference);
@@ -42,6 +45,7 @@ export function renderOrderReceipt(data: OrderReceipt) {
     ['Items subtotal', money(subtotal)],
     ...(discount ? [['Discount', `-${money(discount)}`]] : []),
     ['Shipping', money(shipping)],
+    ...(conversionFee ? [[CURRENCY_CONVERSION_FEE_LABEL, money(conversionFee)]] : []),
     ...(rounding ? [['Currency rounding', `${rounding < 0 ? '-' : '+'}${money(Math.abs(rounding))}`]] : []),
     ['Order total', money(total)],
   ];

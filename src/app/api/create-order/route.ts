@@ -21,6 +21,8 @@ export async function POST(request: Request) {
       couponCode: body.couponCode,
       customerEmail: customer.email,
       country,
+      provider: 'razorpay',
+      currency,
     });
     const paymentAmount = toPaymentAmount(pricing.total, currency);
 

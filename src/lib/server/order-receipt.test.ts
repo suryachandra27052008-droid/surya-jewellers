@@ -25,6 +25,18 @@ describe('customer order confirmation', () => {
   it('does not send a confirmation with mismatched currency amounts', () => {
     expect(() => renderOrderReceipt({ ...receipt, chargedAmount: '300.00' })).toThrow('require review');
   });
+  it('itemizes the saved fee and reconciles the charged total without changing unit prices', () => {
+    const result = renderOrderReceipt({ ...receipt, shipping: 2500, currencyConversionFee: 1019.88,
+      total: 26516.88, chargedAmount: '254.97' });
+    expect(result.text).toContain('Emerald Ring - Qty 1 - €57.68');
+    expect(result.text).toContain('Shipping: €24.04');
+    expect(result.text).toContain('Currency conversion fee (4%): €9.81');
+    expect(result.text).toContain('Order total: €254.97');
+    expect(result.html).toContain('Currency conversion fee (4%)');
+  });
+  it('does not invent fees on old receipts', () => {
+    expect(renderOrderReceipt(receipt).text).not.toContain('Currency conversion fee');
+  });
   it('escapes customer-provided markup', () => {
     expect(renderOrderReceipt({ ...receipt, customer: { ...receipt.customer, name: '<script>bad</script>' } }).html).toContain('&lt;script&gt;');
   });

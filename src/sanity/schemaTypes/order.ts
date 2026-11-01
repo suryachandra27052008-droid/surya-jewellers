@@ -69,6 +69,7 @@ export const order = defineType({
       ],
     }),
     defineField({ name: 'shipping', title: 'Shipping (INR)', type: 'number' }),
+    defineField({ name: 'currencyConversionFee', title: 'Currency Conversion Fee (INR)', type: 'number', readOnly: true }),
     defineField({ name: 'total', title: 'Total (INR)', type: 'number' }),
     defineField({
       name: 'status',

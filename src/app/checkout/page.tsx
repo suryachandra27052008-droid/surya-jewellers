@@ -10,6 +10,7 @@ import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { getShipping, FREE_SHIPPING_THRESHOLD, normalizeShippingCountry, INTERNATIONAL_CUSTOMS_NOTICE } from '@/lib/shipping';
 import { CURRENCIES, roundedCurrencyAmount } from '@/lib/currency';
+import { currencyConversionFee, CURRENCY_CONVERSION_FEE_LABEL } from '@/lib/payment-fees';
 import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
 import type { ActiveCoupon } from '@/lib/coupon';
 import AnimatedSection from '@/components/ui/AnimatedSection';
@@ -121,9 +122,11 @@ export default function CheckoutPage() {
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
   const isIndia = normalizeShippingCountry(form.country) === 'IN';
   const shipping = form.country.trim() ? getShipping(discountedSubtotal, form.country) : 0;
-  const total = discountedSubtotal + shipping;
+  const baseTotal = discountedSubtotal + shipping;
+  const conversionFee = currencyConversionFee(baseTotal, { provider: 'razorpay', currency });
+  const total = conversionFee > 0 ? Number((baseTotal + conversionFee).toFixed(2)) : baseTotal;
   const rounding = Number((roundedCurrencyAmount(total, currency) -
-    (roundedCurrencyAmount(subtotal, currency) - roundedCurrencyAmount(discountAmount, currency) + roundedCurrencyAmount(shipping, currency))).toFixed(2));
+    (roundedCurrencyAmount(subtotal, currency) - roundedCurrencyAmount(discountAmount, currency) + roundedCurrencyAmount(shipping, currency) + roundedCurrencyAmount(conversionFee, currency))).toFixed(2));
   const paypalCurrency = (currency === 'USD' || currency === 'GBP' || currency === 'EUR') ? currency : 'USD';
   const checkoutItems = items.map((item) => ({
     _id: item._id,
@@ -488,6 +491,12 @@ export default function CheckoutPage() {
                       <p className="text-xs text-charcoal-muted">Free shipping on orders above {formatPrice(FREE_SHIPPING_THRESHOLD, currency)}.</p>
                     )}
                     {form.country.trim() && !isIndia && <p className="text-xs text-charcoal-muted">Flat international shipping (US$30).</p>}
+                    {conversionFee > 0 && (
+                      <div className="flex justify-between gap-4" data-testid="currency-conversion-fee">
+                        <span className="text-charcoal-muted">{CURRENCY_CONVERSION_FEE_LABEL} <span className="text-xs">Razorpay only</span></span>
+                        <span className="shrink-0 text-charcoal">{formatPrice(conversionFee, currency)}</span>
+                      </div>
+                    )}
                     {rounding !== 0 && currency !== 'INR' && (
                       <div className="flex justify-between text-xs text-charcoal-muted">
                         <span>Currency rounding</span>
@@ -499,7 +508,7 @@ export default function CheckoutPage() {
                   <div className="h-[1px] bg-cream-dark my-4" />
 
                   <div className="flex justify-between items-baseline mb-6">
-                    <span className="text-sm tracking-[0.1em] uppercase text-charcoal-muted">Total</span>
+                    <span className="text-sm tracking-[0.1em] uppercase text-charcoal-muted">{conversionFee > 0 ? 'Total via Razorpay' : 'Total'}</span>
                     <span className="font-serif text-2xl text-charcoal">
                       {formatPrice(total, currency)}
                     </span>
@@ -592,8 +601,9 @@ export default function CheckoutPage() {
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden="true">
                           <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 4.643-5.813 4.643h-2.19c-.11 0-.217.012-.321.034l-.814 5.158 1.066-6.748c.082-.518.526-.9 1.05-.9h2.19c4.298 0 7.664-1.747 8.647-6.797.03-.149.054-.294.077-.437-.36-.282-.77-.528-1.244-.666z"/>
                         </svg>
-                        Pay with PayPal
+                        Pay {formatPrice(baseTotal, paypalCurrency)} with PayPal
                       </motion.button>
+                      <p className="mt-2 text-center text-xs text-charcoal-muted">The store&apos;s 4% currency conversion fee does not apply to PayPal.</p>
                     </>
                   )}
                 </div>

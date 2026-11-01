@@ -6,6 +6,7 @@ import { getProductCanonicalSlug, getProductDisplayName } from '@/lib/seo/produc
 import { CURRENCIES, type CurrencyCode } from '@/lib/currency';
 import { combineStockLines } from './inventory-reservations';
 import { cartLineKey, isRingCategory, readRingSize } from '@/lib/ring-size';
+import { currencyConversionFee } from '@/lib/payment-fees';
 
 export type CheckoutCurrency = CurrencyCode;
 
@@ -40,6 +41,7 @@ export type PricedCheckout = {
   subtotal: number;
   discount: DiscountSnapshot | null;
   shipping: number;
+  currencyConversionFee?: number;
   total: number;
 };
 
@@ -116,6 +118,8 @@ export async function priceCheckout(
     customerEmail?: string;
     requireInStock?: boolean;
     country?: string;
+    provider?: 'razorpay' | 'paypal';
+    currency?: unknown;
   } = {}
 ): Promise<PricedCheckout> {
   const inputLines = (lines || []).map(line => ({ _id: String(line._id || '').trim(),
@@ -226,12 +230,15 @@ export async function priceCheckout(
 
   const discountedSubtotal = Math.max(0, subtotal - (discount?.amount || 0));
   const shipping = getShipping(discountedSubtotal, options.country ?? 'IN');
+  const baseTotal = discountedSubtotal + shipping;
+  const conversionFee = currencyConversionFee(baseTotal, options);
 
   return {
     items: pricedItems,
     subtotal,
     discount,
     shipping,
-    total: discountedSubtotal + shipping,
+    ...(conversionFee > 0 ? { currencyConversionFee: conversionFee } : {}),
+    total: conversionFee > 0 ? Number((baseTotal + conversionFee).toFixed(2)) : baseTotal,
   };
 }

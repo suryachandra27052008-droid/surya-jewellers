@@ -18,6 +18,7 @@ export type PayPalCheckoutRecord = {
   subtotal: number;
   discount?: PricedCheckout['discount'];
   shipping: number;
+  currencyConversionFee?: number;
   total: number;
   needsMerchantReview?: boolean;
   orderConfirmationSentAt?: string;

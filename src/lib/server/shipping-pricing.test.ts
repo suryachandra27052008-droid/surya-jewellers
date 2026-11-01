@@ -20,4 +20,21 @@ describe('server international shipping totals', () => {
     expect((await priceCheckout([{ _id: 'test-product', quantity: 1 }], { requireInStock: false })).total).toBe(22997);
     expect((await priceCheckout([{ _id: 'test-product', quantity: 1, ringSize: 12 }], { country: 'India' })).shipping).toBe(0);
   });
+  it('adds the opt-in Razorpay fee after international shipping, preserving product prices', async () => {
+    const pricing = await priceCheckout([{ _id: 'test-product', quantity: 1, ringSize: 12 }], {
+      country: 'Italy', provider: 'razorpay', currency: 'EUR',
+    });
+    expect(pricing).toMatchObject({ subtotal: 22997, shipping: 2500, currencyConversionFee: 1019.88, total: 26516.88 });
+    expect(pricing.items[0]).toMatchObject({ price: 22997, ringSize: 12 });
+    expect(toPaymentAmount(pricing.total, 'EUR')).toMatchObject({ subunits: 25497, displayValue: '254.97' });
+  });
+  it.each([
+    { provider: 'razorpay' as const, currency: 'INR' },
+    { provider: 'paypal' as const, currency: 'EUR' },
+    { currency: 'EUR' },
+  ])('does not add a fee to %j', async options => {
+    const pricing = await priceCheckout([{ _id: 'test-product', quantity: 1, ringSize: 12 }], { country: 'Italy', ...options });
+    expect(pricing.total).toBe(25497);
+    expect(pricing.currencyConversionFee).toBeUndefined();
+  });
 });

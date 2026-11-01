@@ -11,7 +11,7 @@ export async function GET() {
       (!defined(ownerUserId) && lower(customer.email) in $emails))]
       | order(_createdAt desc)[0...100]{
         "reference": razorpayOrderId, status, _createdAt, items[]{name, quantity, price, ringSize},
-        subtotal, discount, shipping, total, paymentCurrency, paymentAmount,
+        subtotal, discount, shipping, currencyConversionFee, total, paymentCurrency, paymentAmount,
         courier, trackingNumber, trackingUrl, fulfillmentBlocked
       }`, { userId: user.id, emails }, { cache: 'no-store' },
   );

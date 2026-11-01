@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import { ExternalLink, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { CURRENCIES, formatPrice, type CurrencyCode } from '@/lib/currency';
+import { CURRENCY_CONVERSION_FEE_LABEL } from '@/lib/payment-fees';
 
 type CustomerOrder = { reference: string; status: string; _createdAt: string;
   items: { name: string; quantity: number; ringSize?: number }[]; total: number; paymentCurrency?: CurrencyCode;
-  paymentAmount?: string; courier?: string; trackingNumber?: string; trackingUrl?: string; fulfillmentBlocked?: boolean };
+  paymentAmount?: string; currencyConversionFee?: number; courier?: string; trackingNumber?: string; trackingUrl?: string; fulfillmentBlocked?: boolean };
 
 async function readOrders(signal?: AbortSignal): Promise<CustomerOrder[]> {
   const response = await fetch('/api/account/orders', { cache: 'no-store', signal });
@@ -44,6 +45,7 @@ export default function OrderHistory() {
         <div className="flex flex-wrap justify-between gap-3"><p className="break-all">SJ-{order.reference}</p><p className="text-gold font-semibold">{total}</p></div>
         <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/50"><time>{new Date(order._createdAt).toLocaleDateString()}</time><span className="capitalize">{order.fulfillmentBlocked ? 'Under review' : order.status}</span></div>
         <ul className="mt-4 space-y-1">{order.items?.map((item, index) => <li key={index}>{item.name} <span className="text-white/45">x {item.quantity}</span>{item.ringSize !== undefined && <span className="ml-2 text-white/65">Ring size (India): {item.ringSize}</span>}</li>)}</ul>
+        {!!order.currencyConversionFee && <p className="mt-3 text-xs text-white/60">Includes {CURRENCY_CONVERSION_FEE_LABEL.toLowerCase()}: {formatPrice(order.currencyConversionFee, currency)}</p>}
         {order.trackingNumber && <p className="mt-3">{order.courier}: {order.trackingNumber}</p>}
         {tracking && <a href={tracking} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-2 text-gold">Track parcel<ExternalLink size={14} /></a>}
       </article>;

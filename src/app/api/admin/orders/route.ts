@@ -40,6 +40,7 @@ export async function GET() {
         subtotal,
         discount,
         shipping,
+        currencyConversionFee,
         total,
         status,
         paidAt,
@@ -110,6 +111,7 @@ export async function PATCH(request: Request) {
             subtotal,
             discount,
             shipping,
+            currencyConversionFee,
             total
             ,courier, trackingNumber, trackingUrl
           }`,

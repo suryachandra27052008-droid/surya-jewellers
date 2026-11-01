@@ -345,18 +345,22 @@ describe('payment recovery failure boundaries', () => {
   });
 });
 
-function checkoutRequest(provider: 'paypal' | 'razorpay') {
+function checkoutRequest(provider: 'paypal' | 'razorpay', overrides: Record<string, unknown> = {}) {
   return new Request(`https://example.com/api/${provider}/create-order`, { method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-forwarded-for': `offline-test-${requestNumber++}` },
     body: JSON.stringify({ currency: 'EUR', items: [{ _id: 'product-test', quantity: 1, ringSize: 12, price: 1 }],
       customer: { fullName: 'Test Buyer', email: 'buyer@example.com', phone: '1234567890',
-        address1: 'Test Street 1', city: 'Berlin', pincode: '10115', country: 'DE' } }),
+        address1: 'Test Street 1', city: 'Berlin', pincode: '10115', country: 'DE' }, ...overrides }),
   });
 }
 let requestNumber = 0;
 function checkoutFixtures() {
   Object.assign(mocks.docs.get('product-test')!, { price: 7900, category: { _ref: 'category-rings' }, sku: 'TEST', slug: { current: 'test-ring' } });
   mocks.docs.set('category-rings', { _id: 'category-rings', _type: 'category', name: 'Rings' });
+  mocks.create.mockImplementation(async (input: { amount: number; currency: string }) => {
+    mocks.paymentOrder.mockResolvedValue({ amount: input.amount, currency: input.currency });
+    return { id: 'ORDERTEST', amount: input.amount, currency: input.currency };
+  });
   mocks.fetch.mockImplementation(async (input: string, init?: RequestInit) => {
     if (input.endsWith('/oauth2/token')) return Response.json({ access_token: 'test-access-token' });
     if (input.endsWith('/verify-webhook-signature')) return Response.json({ verification_status: 'SUCCESS' });
@@ -386,21 +390,25 @@ describe.each(['paypal', 'razorpay'] as const)('%s route recovery with isolated 
     const response = await create(checkoutRequest(gateway)); expect(response.status).toBe(200);
     const prepared = await response.json(); expect(prepared.id).toBe('ORDERTEST');
     const snapshot = await findCommerceOrder(gateway, prepared.id);
-    expect(snapshot).toMatchObject({ status: 'pending', paymentCurrency: 'EUR', paymentAmount: '100.00',
-      shipping: 2500, total: 10400, ownerUserId: 'test-owner', customer: { country: 'DE', address: 'Test Street 1, Berlin, 10115, Germany' },
+    const chargedAmount = gateway === 'razorpay' ? '104.00' : '100.00';
+    expect(snapshot).toMatchObject({ status: 'pending', paymentCurrency: 'EUR', paymentAmount: chargedAmount,
+      shipping: 2500, total: gateway === 'razorpay' ? 10816 : 10400, ownerUserId: 'test-owner', customer: { country: 'DE', address: 'Test Street 1, Berlin, 10115, Germany' },
       items: [{ price: 7900, ringSize: 12 }] });
+    expect(snapshot?.currencyConversionFee).toBe(gateway === 'razorpay' ? 416 : undefined);
     expect(mocks.docs.get('product-test')).toMatchObject({ stockQuantity: 1, checkoutReservation: { id: snapshot!.reservationId } });
     expect(mocks.email).not.toHaveBeenCalled();
-    mocks.payment.mockResolvedValue({ id: 'payment-test', order_id: 'ORDERTEST', amount: 10000, currency: 'EUR', status: 'captured' });
+    mocks.payment.mockResolvedValue({ id: 'payment-test', order_id: 'ORDERTEST', amount: Number(chargedAmount) * 100, currency: 'EUR', status: 'captured' });
     expect((await webhook(webhookRequest(gateway))).status).toBe(200);
     expect((await webhook(webhookRequest(gateway))).status).toBe(200);
     const admin = await adminOrders(); expect(admin.headers.get('Cache-Control')).toBe('private, no-store');
     const data = await admin.json(); expect(data.count).toBe(1); expect(data.paidCount).toBe(1);
     expect(data.orders[0]).toMatchObject({ status: 'paid', items: [{ ringSize: 12, price: 7900 }], customer: { country: 'DE' } });
+    expect(data.orders[0].currencyConversionFee).toBe(gateway === 'razorpay' ? 416 : null);
     expect(mocks.docs.get('product-test')).toMatchObject({ stockQuantity: 0, inStock: false });
     expect(mocks.email).toHaveBeenCalledTimes(1); expect(mocks.capture).not.toHaveBeenCalled();
     const receipt = renderOrderReceipt(mocks.email.mock.calls[0][0]);
-    expect(receipt.text).toContain('Ring size (India): 12'); expect(receipt.text).toContain('Order total: \u20ac100.00');
+    expect(receipt.text).toContain('Ring size (India): 12'); expect(receipt.text).toContain(`Order total: \u20ac${chargedAmount}`);
+    expect(receipt.text.includes('Currency conversion fee (4%)')).toBe(gateway === 'razorpay');
   });
   it('does not expose a payment link if saving the checkout fails and releases its reservation', async () => {
     checkoutFixtures(); mocks.failures.set('create', 1);
@@ -424,7 +432,7 @@ describe.each(['paypal', 'razorpay'] as const)('%s route recovery with isolated 
     else mocks.paymentOrder.mockRejectedValueOnce(new Error('Provider timeout'));
     expect((await webhook(webhookRequest(gateway))).status).toBe(503);
     expect((await findCommerceOrder(gateway, 'ORDERTEST'))?.status).toBe('pending'); expect(mocks.email).not.toHaveBeenCalled();
-    mocks.payment.mockResolvedValue({ id: 'payment-test', order_id: 'ORDERTEST', amount: 10000, currency: 'EUR', status: 'captured' });
+    mocks.payment.mockResolvedValue({ id: 'payment-test', order_id: 'ORDERTEST', amount: gateway === 'razorpay' ? 10400 : 10000, currency: 'EUR', status: 'captured' });
     expect((await webhook(webhookRequest(gateway))).status).toBe(200);
     expect(mocks.docs.get('product-test')?.stockQuantity).toBe(0); expect(mocks.email).toHaveBeenCalledTimes(1);
   });
@@ -446,5 +454,43 @@ describe.each(['paypal', 'razorpay'] as const)('%s route recovery with isolated 
     expect((await findCommerceOrder(gateway, 'ORDERTEST'))?.status).toBe('cancelled');
     expect(mocks.docs.get('product-test')).toMatchObject({ stockQuantity: 1 });
     expect(mocks.docs.get('product-test')?.checkoutReservation).toBeUndefined(); expect(mocks.email).not.toHaveBeenCalled();
+  });
+});
+
+describe('server-owned conversion fee integration', () => {
+  it.each([
+    ['INR', 10400, undefined, 1040000],
+    ['EUR', 10816, 416, 10400],
+    ['USD', 10816, 416, 12979],
+    ['GBP', 10816, 416, 10275],
+    ['JPY', 10816, 416, 19252],
+    ['CNY', 10816, 416, 94099],
+  ])('creates and saves exactly the same %s charge, ignoring client fee overrides', async (currency, total, fee, subunits) => {
+    checkoutFixtures();
+    const response = await createRazorpay(checkoutRequest('razorpay', {
+      currency, provider: 'paypal', currencyConversionFee: 0, total: 1,
+    }));
+    expect(response.status).toBe(200);
+    const result = await response.json();
+    expect(result.amount).toBe(subunits);
+    expect(result.pricing).toMatchObject({ subtotal: 7900, shipping: 2500, total, items: [{ price: 7900, ringSize: 12 }] });
+    expect(result.pricing.currencyConversionFee).toBe(fee);
+    const snapshot = (await findCommerceOrder('razorpay', result.id))!;
+    expect(snapshot.total).toBe(total);
+    expect(snapshot.currencyConversionFee).toBe(fee);
+    expect(Math.round(Number(snapshot.paymentAmount) * (currency === 'JPY' ? 1 : 100))).toBe(subunits);
+  });
+
+  it.each(['sale', 'coupon'])('calculates the fee after the %s discount and shipping, not on original item prices', async type => {
+    checkoutFixtures();
+    mocks.docs.set('siteSettings', { _id: 'siteSettings', _type: 'siteSettings',
+      ...(type === 'sale' ? { saleEnabled: true, saleName: 'Test sale', saleDiscountPercent: 20 }
+        : { couponEnabled: true, couponCode: 'TEST20', couponDiscountPercent: 20 }) });
+    const response = await createRazorpay(checkoutRequest('razorpay', { couponCode: type === 'coupon' ? 'TEST20' : undefined }));
+    expect(response.status).toBe(200);
+    const result = await response.json();
+    expect(result.pricing).toMatchObject({ subtotal: 7900, discount: { amount: 1580 }, shipping: 2500,
+      currencyConversionFee: 352.8, total: 9172.8, items: [{ price: 7900 }] });
+    expect(result.amount).toBe(8820);
   });
 });
