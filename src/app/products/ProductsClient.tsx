@@ -257,9 +257,9 @@ export default function ProductsClient({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [stonesExpanded, setStonesExpanded] = useState(false);
 
-  const [allProducts, setAllProducts] = useState<ProductListItem[]>(() =>
-    initialProducts.map(mapProduct)
-  );
+  const [fallbackProducts, setFallbackProducts] = useState<ProductListItem[]>([]);
+  const allProducts = useMemo(() => initialProducts.length > 0 ? initialProducts.map(mapProduct) : fallbackProducts,
+    [initialProducts, fallbackProducts]);
   const [loading, setLoading] = useState(initialProducts.length === 0);
 
   const { addItem, items: cartItems } = useCartStore();
@@ -321,7 +321,7 @@ export default function ProductsClient({
         if (!res.ok || cancelled) return;
         const data = await res.json() as { products?: InitialProduct[] };
         const products = (data.products ?? []).map(mapProduct);
-        if (!cancelled) setAllProducts(products);
+        if (!cancelled) setFallbackProducts(products);
       } catch { /* ignore */ } finally {
         if (!cancelled) setLoading(false);
       }
@@ -329,6 +329,13 @@ export default function ProductsClient({
     fetchFallback();
     return () => { cancelled = true; };
   }, [initialProducts.length]);
+
+  useEffect(() => {
+    const refresh = () => router.refresh();
+    window.addEventListener('focus', refresh);
+    window.addEventListener('pageshow', refresh);
+    return () => { window.removeEventListener('focus', refresh); window.removeEventListener('pageshow', refresh); };
+  }, [router]);
 
   // Dynamic categories derived from actual uploaded products
   const availableCategories = useMemo(() => {

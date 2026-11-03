@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { INTERNATIONAL_SHIPPING_FEE, INTERNATIONAL_CUSTOMS_NOTICE } from '@/lib/shipping';
+import { useStorefrontSettings } from '@/hooks/use-storefront-settings';
+import { formatShippingOfferDate } from '@/lib/shipping-promotion';
 
 const shipping = [
   { icon: '✦', title: 'Free Shipping Across India', desc: 'Free standard shipping within India on orders of ₹2,000 or more. A ₹150 fee applies below that amount.' },
@@ -22,6 +24,7 @@ const returns = [
 ];
 
 export default function ShippingPage() {
+  const { promotion } = useStorefrontSettings();
   const currency = useCurrencyStore(state => state.currency);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -69,6 +72,12 @@ export default function ShippingPage() {
       </section>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-32 space-y-20">
+        {promotion && <section id="shipping-offer" className="scroll-mt-28 border-y border-gold/30 py-6 text-white">
+          <h2 className="font-serif text-2xl text-gold-light">{promotion.name}</h2>
+          <p className="mt-3 text-sm leading-6">Free standard worldwide shipping when your merchandise subtotal after product discounts is strictly above {formatPrice(promotion.minimum, currency)}. Orders at or below this amount retain normal shipping, including existing free shipping within India from INR 2,000.</p>
+          <p className="mt-2 text-sm leading-6">Offer ends {formatShippingOfferDate(promotion.endDate)} at 11:59:59 PM IST. Eligibility is calculated in INR, excluding shipping, taxes and payment fees. Foreign-currency equivalents use our configured rates.</p>
+          <p className="mt-2 text-sm leading-6">{INTERNATIONAL_CUSTOMS_NOTICE} The existing 4% foreign-currency Razorpay fee remains separate; it does not apply to INR or PayPal.</p>
+        </section>}
 
         {/* Shipping Section */}
         <motion.section
@@ -103,7 +112,7 @@ export default function ShippingPage() {
                 <h3 className="font-serif text-base text-white mb-2 group-hover:text-gold-light transition-colors duration-300">
                   {item.title}
                 </h3>
-                <p className="text-white/50 text-sm font-light leading-relaxed">{item.international ? `Flat international shipping: ${formatPrice(INTERNATIONAL_SHIPPING_FEE, mounted ? currency : 'USD')} (US$30) per order. ${INTERNATIONAL_CUSTOMS_NOTICE}` : item.desc}</p>
+                <p className="text-white/50 text-sm font-light leading-relaxed">{item.international ? `Normal international shipping: ${formatPrice(INTERNATIONAL_SHIPPING_FEE, mounted ? currency : 'USD')} (US$30) per order${promotion ? ', waived for qualifying campaign orders above the threshold after discounts' : ''}. ${INTERNATIONAL_CUSTOMS_NOTICE}` : item.desc}</p>
               </motion.div>
             ))}
           </div>

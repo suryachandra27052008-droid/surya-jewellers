@@ -60,6 +60,8 @@ interface ProductFormData {
   featured: boolean;
 }
 
+type ExistingProductImage = { _key: string; assetId: string; url: string };
+
 async function compressImage(file: File, maxWidth = 1200, maxQuality = 0.8): Promise<File> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -102,8 +104,8 @@ export default function EditProductPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [existingImages, setExistingImages] = useState<string[]>([]);
-  const [existingImageRefs, setExistingImageRefs] = useState<{ _key: string; assetId: string }[]>([]);
+  const [existingImages, setExistingImages] = useState<ExistingProductImage[]>([]);
+  const [revision, setRevision] = useState('');
   const [newImages, setNewImages] = useState<{ file: File; preview: string }[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -126,6 +128,7 @@ export default function EditProductPage() {
       try {
         const res = await fetch(`/api/admin/products/${id}`, {
           credentials: 'same-origin',
+          cache: 'no-store',
         });
         if (res.ok) {
           const data = await res.json();
@@ -151,8 +154,9 @@ export default function EditProductPage() {
             featured: p.featured,
           });
           setSelectedStones(p.allStones || []);
-          setExistingImages(p.images || []);
-          setExistingImageRefs(p.imageRefs || []);
+          setRevision(p._rev || '');
+          setExistingImages(p.imageEntries || (p.imageRefs || []).map((ref: Omit<ExistingProductImage, 'url'>, index: number) =>
+            ({ ...ref, url: p.images?.[index] || '' })));
         } else {
           alert('Product not found');
           router.push('/admin/inventory');
@@ -211,7 +215,6 @@ export default function EditProductPage() {
 
   const removeExistingImage = (index: number) => {
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
-    setExistingImageRefs((prev) => prev.filter((_, i) => i !== index));
   };
 
   const onSubmit = async (data: ProductFormData) => {
@@ -226,7 +229,8 @@ export default function EditProductPage() {
         }
       });
       formData.append('allStones', JSON.stringify(selectedStones));
-      formData.append('keptImageRefs', JSON.stringify(existingImageRefs));
+      formData.append('keptImageRefs', JSON.stringify(existingImages.map(({ _key, assetId }) => ({ _key, assetId }))));
+      if (revision) formData.append('revision', revision);
 
       for (const img of newImages) {
         const compressed = await compressImage(img.file);
@@ -240,6 +244,7 @@ export default function EditProductPage() {
       });
 
       if (res.ok) {
+        router.refresh();
         setSubmitSuccess(true);
         setTimeout(() => router.push('/admin/inventory'), 1500);
       } else {
@@ -511,13 +516,16 @@ export default function EditProductPage() {
             <div className="mb-4">
               <p className="text-xs font-medium text-gray-500 mb-2">Current Images — click × to remove</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                {existingImages.map((url, index) => (
-                  <div key={`exist-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50 group">
-                    <Image src={url} alt="Product" fill loader={catalogImageLoader} className="object-cover" sizes="120px" />
+                {existingImages.map((image, index) => (
+                  <div key={image._key} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50 group">
+                    {image.url ? <Image src={image.url} alt={`Product image ${index + 1}`} fill loader={catalogImageLoader} className="object-cover" sizes="120px" />
+                      : <span className="text-xs text-gray-500">Image unavailable</span>}
                     <button
                       type="button"
+                      aria-label={`Remove existing image ${index + 1}`}
+                      title={`Remove image ${index + 1}`}
                       onClick={() => removeExistingImage(index)}
-                      className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                      className="absolute top-1 right-1 h-11 w-11 rounded-full bg-red-500 text-white flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity shadow"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -535,8 +543,10 @@ export default function EditProductPage() {
                     <Image src={img.preview} alt="New" fill unoptimized className="object-cover" />
                     <button
                       type="button"
+                      aria-label={`Remove new image ${index + 1}`}
+                      title={`Remove new image ${index + 1}`}
                       onClick={() => removeNewImage(index)}
-                      className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                      className="absolute top-1 right-1 h-11 w-11 rounded-full bg-red-500 text-white flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity shadow"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>

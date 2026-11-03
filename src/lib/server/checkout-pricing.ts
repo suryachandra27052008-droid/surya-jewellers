@@ -7,6 +7,7 @@ import { CURRENCIES, type CurrencyCode } from '@/lib/currency';
 import { combineStockLines } from './inventory-reservations';
 import { cartLineKey, isRingCategory, readRingSize } from '@/lib/ring-size';
 import { currencyConversionFee } from '@/lib/payment-fees';
+import { getActiveShippingPromotion, qualifiesForShippingOffer } from '@/lib/shipping-promotion';
 
 export type CheckoutCurrency = CurrencyCode;
 
@@ -41,6 +42,7 @@ export type PricedCheckout = {
   subtotal: number;
   discount: DiscountSnapshot | null;
   shipping: number;
+  shippingPromotion?: { id: string; name: string; minimumSubtotal: number };
   currencyConversionFee?: number;
   total: number;
 };
@@ -99,6 +101,12 @@ async function getCheckoutSettings() {
       saleDiscountPercent,
       saleStartDate,
       saleEndDate,
+      shippingPromotionEnabled,
+      shippingPromotionId,
+      shippingPromotionName,
+      shippingPromotionStartDate,
+      shippingPromotionEndDate,
+      shippingPromotionMinOrder,
       couponEnabled,
       couponCode,
       couponName,
@@ -107,7 +115,7 @@ async function getCheckoutSettings() {
       couponStartDate,
       couponEndDate
     }`,
-    { id: DOC_ID }
+    { id: DOC_ID }, { cache: 'no-store' }
   );
 }
 
@@ -229,7 +237,10 @@ export async function priceCheckout(
       : null;
 
   const discountedSubtotal = Math.max(0, subtotal - (discount?.amount || 0));
-  const shipping = getShipping(discountedSubtotal, options.country ?? 'IN');
+  // Legacy callbacks must retain their pre-campaign shipping calculation.
+  const promotionSettings = options.requireInStock === false ? null : settings;
+  const shipping = getShipping(discountedSubtotal, options.country ?? 'IN', promotionSettings);
+  const promotion = getActiveShippingPromotion(promotionSettings);
   const baseTotal = discountedSubtotal + shipping;
   const conversionFee = currencyConversionFee(baseTotal, options);
 
@@ -238,6 +249,8 @@ export async function priceCheckout(
     subtotal,
     discount,
     shipping,
+    ...(promotion && qualifiesForShippingOffer(discountedSubtotal, promotion.minimum)
+      ? { shippingPromotion: { id: promotion.id, name: promotion.name, minimumSubtotal: promotion.minimum } } : {}),
     ...(conversionFee > 0 ? { currencyConversionFee: conversionFee } : {}),
     total: conversionFee > 0 ? Number((baseTotal + conversionFee).toFixed(2)) : baseTotal,
   };

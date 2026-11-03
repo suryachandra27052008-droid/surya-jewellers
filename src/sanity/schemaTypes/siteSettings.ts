@@ -5,6 +5,12 @@ export const siteSettings = defineType({
   title: 'Site Settings',
   type: 'document',
   fields: [
+    defineField({ name: 'shippingPromotionEnabled', title: 'Enable Worldwide Shipping Offer', type: 'boolean', initialValue: false }),
+    defineField({ name: 'shippingPromotionId', title: 'Shipping Campaign ID', type: 'string' }),
+    defineField({ name: 'shippingPromotionName', title: 'Shipping Campaign Name', type: 'string' }),
+    defineField({ name: 'shippingPromotionStartDate', title: 'Shipping Offer Starts (IST, YYYY-MM-DD)', type: 'string' }),
+    defineField({ name: 'shippingPromotionEndDate', title: 'Shipping Offer Ends (IST, YYYY-MM-DD)', type: 'string' }),
+    defineField({ name: 'shippingPromotionMinOrder', title: 'Free Worldwide Shipping Above (INR)', type: 'number', validation: Rule => Rule.positive().max(100_000_000) }),
     defineField({ name: 'domesticDeliveryEstimate', title: 'Approved Domestic Delivery Estimate', type: 'string' }),
     defineField({ name: 'internationalDeliveryEstimate', title: 'Approved International Delivery Estimate', type: 'string' }),
     defineField({

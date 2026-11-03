@@ -15,6 +15,7 @@ import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { useWishlistStore } from '@/stores/wishlist-store';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import RecentlyViewed from '@/components/catalog/RecentlyViewed';
+import ShippingOffer from '@/components/ui/ShippingOffer';
 import { useRecentlyViewedStore } from '@/stores/recently-viewed-store';
 
 export interface RelatedProduct {
@@ -398,6 +399,7 @@ export default function ProductDetailClient({
               </div>
 
               {/* Add to Cart */}
+              <ShippingOffer />
               <motion.button
                 onClick={handleAddToCart}
                 whileTap={atMaxQty ? {} : { scale: 0.97 }}

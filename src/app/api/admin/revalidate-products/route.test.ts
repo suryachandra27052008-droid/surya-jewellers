@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-const mocks = vi.hoisted(() => ({ revalidate: vi.fn() }));
-vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidate }));
+const mocks = vi.hoisted(() => ({ revalidate: vi.fn(), tag: vi.fn() }));
+vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidate, revalidateTag: mocks.tag }));
 import { POST } from './route';
 beforeEach(() => vi.clearAllMocks());
 describe('admin catalogue refresh', () => {
   it('invalidates storefront pages and catalogue caches without changing any documents', async () => {
     const response = await POST(new Request('https://example.com/api/admin/revalidate-products', { method: 'POST' }));
     expect(response.status).toBe(200);
-    expect(mocks.revalidate.mock.calls).toEqual([['/', 'layout'], ['/api/catalog']]);
+    expect(mocks.revalidate.mock.calls).toEqual([['/', 'layout'], ['/api/catalog'], ['/api/catalog/recommendations']]);
+    expect(mocks.tag).toHaveBeenCalledWith('product-catalog', { expire: 0 });
     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
   });
   it('rejects cross-origin browser requests', async () => {

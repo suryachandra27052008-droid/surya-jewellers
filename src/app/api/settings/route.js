@@ -45,19 +45,25 @@ function publicSettings(doc = {}, defaults = fileDefaults()) {
     instagramHandle: doc.instagramHandle ?? defaults.instagramHandle,
     domesticDeliveryEstimate: doc.domesticDeliveryEstimate || '',
     internationalDeliveryEstimate: doc.internationalDeliveryEstimate || '',
+    shippingPromotionEnabled: doc.shippingPromotionEnabled === true,
+    shippingPromotionId: doc.shippingPromotionId || '',
+    shippingPromotionName: doc.shippingPromotionName || '',
+    shippingPromotionStartDate: doc.shippingPromotionStartDate || '',
+    shippingPromotionEndDate: doc.shippingPromotionEndDate || '',
+    shippingPromotionMinOrder: doc.shippingPromotionMinOrder ?? 15000,
   };
 }
 
 export async function GET() {
   try {
-    const doc = await readClient.fetch(`*[_type == "siteSettings" && _id == $id][0]`, { id: DOC_ID });
+    const doc = await readClient.fetch(`*[_type == "siteSettings" && _id == $id][0]`, { id: DOC_ID }, { cache: 'no-store' });
     if (doc) {
-      return NextResponse.json(publicSettings(doc));
+      return NextResponse.json(publicSettings(doc), { headers: { 'Cache-Control': 'no-store' } });
     }
   } catch {
     // fall through to file defaults
   }
-  return NextResponse.json(fileDefaults());
+  return NextResponse.json(publicSettings(), { headers: { 'Cache-Control': 'no-store' } });
 }
 
 export async function POST() {

@@ -35,7 +35,7 @@ async function getProductListItems() {
 // product cards and images — LCP element is discoverable from byte 1.
 async function getInitialProducts(): Promise<InitialProduct[]> {
   try {
-    return await client.fetch<InitialProduct[]>(
+    return await client.withConfig({ useCdn: false }).fetch<InitialProduct[]>(
       `*[_type == "product" && inStock != false && price >= 1000] | order(_createdAt desc) {
         _id, name,
         "slug": slug.current,
@@ -50,7 +50,7 @@ async function getInitialProducts(): Promise<InitialProduct[]> {
         _createdAt
       }`,
       {},
-      { next: { revalidate: 300 } }
+      { next: { revalidate: 300, tags: ['product-catalog'] } }
     );
   } catch {
     return [];

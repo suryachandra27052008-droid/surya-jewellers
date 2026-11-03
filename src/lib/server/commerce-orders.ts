@@ -41,6 +41,7 @@ export async function recordCommerceCheckout(provider: 'paypal' | 'razorpay', id
       ...(item.ringSize !== undefined ? { ringSize: item.ringSize } : {}) })),
     subtotal: pricing.subtotal, discount: pricing.discount || undefined,
     shipping: pricing.shipping, total: pricing.total,
+    ...(pricing.shippingPromotion ? { shippingPromotion: pricing.shippingPromotion } : {}),
     ...(pricing.currencyConversionFee ? { currencyConversionFee: pricing.currencyConversionFee } : {}),
     nextReconcileAt: new Date(Date.now() + 60_000).toISOString(),
   });

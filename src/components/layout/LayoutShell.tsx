@@ -10,10 +10,14 @@ import CursorTrail from '@/components/ui/CursorTrail';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { INTERNATIONAL_SHIPPING_FEE } from '@/lib/shipping';
 import ShoppingAnalytics from '@/components/analytics/ShoppingAnalytics';
+import { useStorefrontSettings } from '@/hooks/use-storefront-settings';
+import { useCartStore } from '@/stores/cart-store';
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const currency = useCurrencyStore(state => state.currency);
+  const { promotion } = useStorefrontSettings();
+  const cartOpen = useCartStore(state => state.isOpen);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const timer = window.setTimeout(() => setMounted(true), 0);
@@ -28,14 +32,13 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  const showShippingBanner = pathname === '/' || pathname === '/checkout';
-  const showWhatsApp = pathname !== '/terms' && pathname !== '/privacy';
+  const showWhatsApp = !cartOpen && !['/terms', '/privacy', '/checkout'].includes(pathname);
 
   // Storefront pages get the full navbar + footer
   return (
     <>
       {/* Shipping banner: in normal document flow — scrolls away on mobile */}
-      {showShippingBanner && <ShippingBanner />}
+      <ShippingBanner />
 
       {/* Sticky navbar — sticks to top after banner scrolls away.
           padding-top: env(safe-area-inset-top) keeps content below the device notch. */}
@@ -69,7 +72,8 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
                 '✦ Certified Gemstones',
                 '✦ Free Shipping in India over ₹2,000',
                 '✦ Lifetime Maintenance',
-                `🌍 International Shipping ${formatPrice(INTERNATIONAL_SHIPPING_FEE, mounted ? currency : 'USD')}`,
+                promotion ? `Worldwide shipping free above ${formatPrice(promotion.minimum, mounted ? currency : 'INR')} after discounts; customs extra`
+                  : `🌍 International Shipping ${formatPrice(INTERNATIONAL_SHIPPING_FEE, mounted ? currency : 'USD')}`,
               ].map((item, i) => (
                 <span key={i} className="flex items-center">
                   <span className="px-5">{item}</span>

@@ -20,7 +20,9 @@ describe('public catalogue projection', () => {
     const response = await GET(request()); const data = await response.json();
     expect(data.products.map((p: { _id: string }) => p._id)).toEqual(['public-product']);
     expect(JSON.stringify(data)).not.toMatch(/must-not-leak|checkoutReservation|customer/);
-    expect(response.headers.get('Cache-Control')).toContain('s-maxage=60');
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    expect(mocks.withConfig).toHaveBeenCalledWith({ useCdn: false });
+    expect(mocks.fetch.mock.calls[0][2]).toEqual({ next: { revalidate: 60, tags: ['product-catalog'] } });
   });
   it('loads current data for viewed IDs and allows honest sold-out history', async () => {
     const response = await GET(request('?ids=sold,public-product,orders.private,bad-price'));

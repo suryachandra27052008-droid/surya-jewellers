@@ -3,6 +3,7 @@
 /* eslint-disable react-hooks/set-state-in-effect -- settings hydrate from local storage and the CMS after mount */
 
 import { useState, useEffect } from 'react';
+import type { ShippingPromotionSettings } from '@/lib/shipping-promotion';
 import {
   Store, Truck, CreditCard, Share2, AlertTriangle, Percent,
   CheckCircle2, Clock, Save, Download, Trash2, ToggleLeft, ToggleRight,
@@ -186,6 +187,13 @@ export default function SettingsPage() {
   const [social, setSocial] = useState<SocialSettings>(DEFAULT_SOCIAL);
   const [sale, setSale] = useState<SaleSettings>(DEFAULT_SALE);
   const [coupon, setCoupon] = useState<CouponSettings>(DEFAULT_COUPON);
+  const [shippingOffer, setShippingOffer] = useState<ShippingPromotionSettings>({
+    shippingPromotionEnabled: false, shippingPromotionId: 'diwali-2026', shippingPromotionName: 'Diwali Special',
+    shippingPromotionStartDate: '2026-11-03', shippingPromotionEndDate: '2026-11-15', shippingPromotionMinOrder: 15000,
+  });
+  const [offerSaved, setOfferSaved] = useState(false);
+  const [offerError, setOfferError] = useState('');
+  const [offerSaving, setOfferSaving] = useState(false);
 
   const [storeSaved, setStoreSaved] = useState(false);
   const [shippingSaved, setShippingSaved] = useState(false);
@@ -209,6 +217,14 @@ export default function SettingsPage() {
     fetch('/api/settings')
       .then((r) => r.json())
       .then((data) => {
+        setShippingOffer(previous => ({ ...previous,
+          shippingPromotionEnabled: data.shippingPromotionEnabled === true,
+          ...(data.shippingPromotionId ? { shippingPromotionId: data.shippingPromotionId } : {}),
+          ...(data.shippingPromotionName ? { shippingPromotionName: data.shippingPromotionName } : {}),
+          ...(data.shippingPromotionStartDate ? { shippingPromotionStartDate: data.shippingPromotionStartDate } : {}),
+          ...(data.shippingPromotionEndDate ? { shippingPromotionEndDate: data.shippingPromotionEndDate } : {}),
+          shippingPromotionMinOrder: data.shippingPromotionMinOrder ?? 15000,
+        }));
         setShipping({
           freeShippingEnabled: data.showFreeShippingBanner ?? DEFAULT_SHIPPING.freeShippingEnabled,
           freeShippingEndDate: data.freeShippingEndDate ?? DEFAULT_SHIPPING.freeShippingEndDate,
@@ -272,6 +288,19 @@ export default function SettingsPage() {
     if (!response.ok) throw new Error('Shipping settings could not be saved.');
     setShippingSaved(true);
     setTimeout(() => setShippingSaved(false), 2500);
+  }
+
+  async function saveShippingOffer() {
+    setOfferError(''); setOfferSaving(true); setOfferSaved(false);
+    try {
+      const response = await fetch('/api/admin/settings', { method: 'POST',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(shippingOffer) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Shipping offer could not be saved.');
+      setOfferSaved(true);
+      setTimeout(() => setOfferSaved(false), 2500);
+    } catch (error) { setOfferError((error as Error).message); }
+    finally { setOfferSaving(false); }
   }
 
   async function saveSale() {
@@ -462,6 +491,24 @@ export default function SettingsPage() {
       </SectionCard>
 
       {/* ── 2. Shipping Settings ── */}
+      <SectionCard icon={Truck} title="Worldwide Shipping Campaign">
+        <div className="space-y-4">
+          <label className="flex items-center gap-3 text-sm font-medium">
+            <input type="checkbox" checked={shippingOffer.shippingPromotionEnabled === true}
+              onChange={event => setShippingOffer({ ...shippingOffer, shippingPromotionEnabled: event.target.checked })} />
+            Enable free worldwide shipping above the campaign threshold
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Campaign name"><Input value={shippingOffer.shippingPromotionName || ''} onChange={event => setShippingOffer({ ...shippingOffer, shippingPromotionName: event.target.value })} /></Field>
+            <Field label="Subtotal must exceed (INR)"><Input type="number" min="0.01" step="0.01" value={shippingOffer.shippingPromotionMinOrder ?? 15000} onChange={event => setShippingOffer({ ...shippingOffer, shippingPromotionMinOrder: Number(event.target.value) })} /></Field>
+            <Field label="Start date (IST)"><Input type="date" value={shippingOffer.shippingPromotionStartDate || ''} onChange={event => setShippingOffer({ ...shippingOffer, shippingPromotionStartDate: event.target.value })} /></Field>
+            <Field label="End date, inclusive (IST)"><Input type="date" value={shippingOffer.shippingPromotionEndDate || ''} onChange={event => setShippingOffer({ ...shippingOffer, shippingPromotionEndDate: event.target.value })} /></Field>
+          </div>
+          <p className="text-xs leading-5 text-gray-500">Calculated after product discounts, excluding taxes, shipping and payment fees. At or below the threshold, normal shipping applies. Customs duties remain payable by the customer. Ends automatically at 11:59:59 PM IST.</p>
+          {offerError && <p role="alert" className="text-sm text-red-700">{offerError}</p>}
+          <div className="flex justify-end"><button type="button" onClick={saveShippingOffer} disabled={offerSaving} className="flex items-center gap-2 rounded border border-gray-300 px-4 py-2 text-sm disabled:opacity-50"><Save size={16} />{offerSaving ? 'Saving...' : offerSaved ? 'Saved' : 'Save Campaign'}</button></div>
+        </div>
+      </SectionCard>
       <SectionCard icon={Truck} title="Shipping Settings">
         <div className="space-y-4">
           {/* Toggle */}

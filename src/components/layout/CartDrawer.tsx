@@ -5,7 +5,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { INTERNATIONAL_SHIPPING_FEE, INTERNATIONAL_CUSTOMS_NOTICE } from '@/lib/shipping';
-import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
+import { calculateSaleTotals } from '@/lib/sale';
+import { useStorefrontSettings } from '@/hooks/use-storefront-settings';
+import ShippingOffer from '@/components/ui/ShippingOffer';
+import CartRecommendations from '@/components/catalog/CartRecommendations';
 import Link from 'next/link';
 import Image from 'next/image';
 import { catalogImageLoader } from '@/lib/sanity/catalog-image-loader';
@@ -15,7 +18,7 @@ export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal, syncPrices } =
     useCartStore();
   const currency = useCurrencyStore((s) => s.currency);
-  const [saleSettings, setSaleSettings] = useState<SeasonalSaleSettings | null>(null);
+  const { settings: saleSettings, promotion } = useStorefrontSettings();
   const [priceError, setPriceError] = useState('');
 
   const subtotal = getSubtotal();
@@ -24,10 +27,6 @@ export default function CartDrawer() {
   useEffect(() => {
     if (!isOpen) return;
     void syncPrices().then(() => setPriceError('')).catch(error => setPriceError(error.message));
-    fetch('/api/settings')
-      .then((r) => r.json())
-      .then(setSaleSettings)
-      .catch(() => setSaleSettings(null));
   }, [isOpen, syncPrices]);
 
   return (
@@ -81,6 +80,7 @@ export default function CartDrawer() {
             {/* Items */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {priceError && <p role="alert" className="mb-3 text-sm text-red-700">{priceError}</p>}
+              {items.length > 0 && <div className="mb-4"><ShippingOffer subtotal={discountedSubtotal} /></div>}
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <svg
@@ -206,6 +206,7 @@ export default function CartDrawer() {
                   ))}
                 </div>
               )}
+              {items.length > 0 && <CartRecommendations />}
             </div>
 
             {/* Footer */}
@@ -240,7 +241,8 @@ export default function CartDrawer() {
                   </div>
                 )}
                 <p className="text-xs text-charcoal-muted">
-                  International shipping: {formatPrice(INTERNATIONAL_SHIPPING_FEE, currency)} (US$30). Shipping calculated at checkout.
+                  {promotion ? <>Free worldwide shipping above {formatPrice(promotion.minimum, currency)} after discounts. Otherwise normal shipping applies.</>
+                    : <>International shipping: {formatPrice(INTERNATIONAL_SHIPPING_FEE, currency)} (US$30). Shipping calculated at checkout.</>}
                 </p>
                 <p className="text-xs leading-5 text-charcoal-muted">{INTERNATIONAL_CUSTOMS_NOTICE}</p>
                 <Link

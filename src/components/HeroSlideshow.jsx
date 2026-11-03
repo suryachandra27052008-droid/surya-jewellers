@@ -8,7 +8,7 @@ const images = [
   { src: '/hero-bg-3.webp', alt: 'Surya Jewellers gold and silver jewellery' },
 ]
 
-export default function HeroSlideshow({ children }) {
+export default function HeroSlideshow({ children, compact = false }) {
   const [current, setCurrent] = useState(0)
   const [firstLoaded, setFirstLoaded] = useState(false)
   const [renderCount, setRenderCount] = useState(1)
@@ -32,7 +32,7 @@ export default function HeroSlideshow({ children }) {
     <div
       role="region"
       aria-label="Hero slideshow"
-      style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}
+      style={{ position: 'relative', width: '100%', height: compact ? 'auto' : '100vh', overflow: 'hidden' }}
     >
       {images.map(({ src, alt }, i) => {
         // Only render the first image before mount to avoid loading all 3 on first paint

@@ -12,7 +12,7 @@ export const faqs = [
   {
     question: 'Do you ship internationally?',
     answer:
-      'Yes, Surya Jewellers ships internationally. We have served customers across India, the United States, the United Kingdom, Australia, the Middle East, and Southeast Asia. International orders are carefully packaged and fully insured during transit.',
+      'Yes, Surya Jewellers ships internationally. Normal international shipping is US$30 equivalent per order; any active free-shipping campaign and its qualifying subtotal are shown on our Shipping & Returns page and at checkout. Customs duties, import taxes and clearance fees are payable by the customer. We have served customers across India, the United States, the United Kingdom, Australia, the Middle East, and Southeast Asia.',
   },
   {
     question: 'What is your return policy?',

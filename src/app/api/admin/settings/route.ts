@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { writeClient } from '@/lib/sanity/client';
+import { campaignDate, type ShippingPromotionSettings } from '@/lib/shipping-promotion';
 
 const DOC_ID = 'siteSettings';
 const HANDLE_PATTERN = /^[a-zA-Z0-9._]{1,30}$/;
@@ -21,6 +22,34 @@ export async function POST(request: Request) {
   try {
     const body = await request.json() as Record<string, unknown>;
     const fields: Record<string, unknown> = {};
+
+    if ('shippingPromotionEnabled' in body) {
+      if (typeof body.shippingPromotionEnabled !== 'boolean') throw new Error('Invalid shipping offer switch.');
+      fields.shippingPromotionEnabled = body.shippingPromotionEnabled;
+    }
+    for (const key of ['shippingPromotionId', 'shippingPromotionName'] as const) {
+      if (key in body) fields[key] = String(body[key] ?? '').trim().slice(0, 80);
+    }
+    for (const key of ['shippingPromotionStartDate', 'shippingPromotionEndDate'] as const) {
+      if (key in body) {
+        if (body[key] !== '' && !Number.isFinite(campaignDate(body[key]))) throw new Error('Enter a valid shipping campaign date.');
+        fields[key] = body[key];
+      }
+    }
+    if ('shippingPromotionMinOrder' in body) {
+      const amount = Number(body.shippingPromotionMinOrder);
+      if (!Number.isFinite(amount) || amount <= 0 || amount > 100_000_000) throw new Error('Enter a positive shipping threshold.');
+      fields.shippingPromotionMinOrder = Math.round(amount * 100) / 100;
+    }
+    if (Object.keys(fields).some(key => key.startsWith('shippingPromotion'))) {
+      const current = await writeClient.fetch<ShippingPromotionSettings | null>(
+        '*[_type == "siteSettings" && _id == $id][0]{shippingPromotionEnabled,shippingPromotionStartDate,shippingPromotionEndDate,shippingPromotionMinOrder}', { id: DOC_ID }, { cache: 'no-store' });
+      const next = { ...current, ...fields } as ShippingPromotionSettings;
+      if (next.shippingPromotionEnabled && (!Number.isFinite(campaignDate(next.shippingPromotionStartDate)) ||
+        !Number.isFinite(campaignDate(next.shippingPromotionEndDate, true)) ||
+        campaignDate(next.shippingPromotionEndDate, true) < campaignDate(next.shippingPromotionStartDate) ||
+        !next.shippingPromotionMinOrder)) throw new Error('An enabled shipping offer needs valid start/end dates and a positive threshold.');
+    }
 
     if ('showFreeShippingBanner' in body) fields.showFreeShippingBanner = Boolean(body.showFreeShippingBanner);
     if ('freeShippingEndDate' in body) fields.freeShippingEndDate = cleanDate(body.freeShippingEndDate);

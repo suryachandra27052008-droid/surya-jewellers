@@ -11,7 +11,9 @@ import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { getShipping, FREE_SHIPPING_THRESHOLD, normalizeShippingCountry, INTERNATIONAL_CUSTOMS_NOTICE } from '@/lib/shipping';
 import { CURRENCIES, roundedCurrencyAmount } from '@/lib/currency';
 import { currencyConversionFee, CURRENCY_CONVERSION_FEE_LABEL } from '@/lib/payment-fees';
-import { calculateSaleTotals, type SeasonalSaleSettings } from '@/lib/sale';
+import { calculateSaleTotals } from '@/lib/sale';
+import { useStorefrontSettings, refreshStorefrontSettings } from '@/hooks/use-storefront-settings';
+import ShippingOffer from '@/components/ui/ShippingOffer';
 import type { ActiveCoupon } from '@/lib/coupon';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import { COUNTRIES, countryCode, postalCodeError, postalCodeRequired } from '@/lib/countries';
@@ -34,7 +36,7 @@ export default function CheckoutPage() {
   const currency = useCurrencyStore((s) => s.currency);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [saleSettings, setSaleSettings] = useState<(SeasonalSaleSettings & { domesticDeliveryEstimate?: string; internationalDeliveryEstimate?: string }) | null>(null);
+  const { settings: saleSettings, promotion } = useStorefrontSettings();
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<ActiveCoupon | null>(null);
   const [couponMessage, setCouponMessage] = useState('');
@@ -63,10 +65,6 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     const mountTimer = window.setTimeout(() => setMounted(true), 0);
-    fetch('/api/settings')
-      .then((r) => r.json())
-      .then(setSaleSettings)
-      .catch(() => setSaleSettings(null));
     return () => window.clearTimeout(mountTimer);
   }, []);
 
@@ -132,7 +130,7 @@ export default function CheckoutPage() {
   const discountAmount = activeDiscount?.amount ?? 0;
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
   const isIndia = normalizeShippingCountry(form.country) === 'IN';
-  const shipping = form.country.trim() ? getShipping(discountedSubtotal, form.country) : 0;
+  const shipping = form.country.trim() ? getShipping(discountedSubtotal, form.country, saleSettings) : 0;
   const baseTotal = discountedSubtotal + shipping;
   const conversionFee = currencyConversionFee(baseTotal, { provider: 'razorpay', currency });
   const total = conversionFee > 0 ? Number((baseTotal + conversionFee).toFixed(2)) : baseTotal;
@@ -213,6 +211,18 @@ export default function CheckoutPage() {
     }
   };
 
+  const confirmCurrentShipping = async () => {
+    const response = await fetch('/api/settings', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Shipping could not be checked. Please try again.');
+    const latestSettings = await response.json();
+    if (getShipping(discountedSubtotal, form.country, latestSettings) !== shipping) {
+      await refreshStorefrontSettings();
+      setFormError('The shipping offer has changed. Please review the updated total, then press Pay again.');
+      return false;
+    }
+    return true;
+  };
+
   const handlePayment = async () => {
     if (!isFormValid()) {
       setFormError(postalCodeError(form.country, form.pincode) || 'Please complete all required shipping details.');
@@ -235,6 +245,8 @@ export default function CheckoutPage() {
           return;
         }
       }
+
+      if (!await confirmCurrentShipping()) return;
 
       const res = await fetch('/api/create-order', {
         method: 'POST',
@@ -500,13 +512,14 @@ export default function CheckoutPage() {
                         )}
                       </span>
                     </div>
-                    {isIndia && shipping === 0 && (
+                    {isIndia && shipping === 0 && !promotion && (
                       <p className="text-xs text-green-600">Free shipping on orders above {formatPrice(FREE_SHIPPING_THRESHOLD, currency)}!</p>
                     )}
-                    {isIndia && shipping > 0 && (
+                    {isIndia && shipping > 0 && !promotion && (
                       <p className="text-xs text-charcoal-muted">Free shipping on orders above {formatPrice(FREE_SHIPPING_THRESHOLD, currency)}.</p>
                     )}
-                    {form.country.trim() && !isIndia && <p className="text-xs text-charcoal-muted">Flat international shipping (US$30).</p>}
+                    {form.country.trim() && !isIndia && shipping > 0 && <p className="text-xs text-charcoal-muted">Normal international shipping (US$30).</p>}
+                    <ShippingOffer subtotal={discountedSubtotal} country={form.country} />
                     {conversionFee > 0 && (
                       <div className="flex justify-between gap-4" data-testid="currency-conversion-fee">
                         <span className="text-charcoal-muted">{CURRENCY_CONVERSION_FEE_LABEL} <span className="text-xs">Razorpay only</span></span>
@@ -583,6 +596,7 @@ export default function CheckoutPage() {
                               setFormError('Prices have changed. Please review the updated total, then press Pay again.');
                               return;
                             }
+                            if (!await confirmCurrentShipping()) return;
                             try { localStorage.setItem(
                               'paypal_pending_order',
                               JSON.stringify({

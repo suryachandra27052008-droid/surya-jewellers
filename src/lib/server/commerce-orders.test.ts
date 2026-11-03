@@ -71,6 +71,7 @@ import { availableStock, combineStockLines, reserveStock, releaseStock } from '.
 import { deliverOrderReceipt, findCommerceOrder, recordCommerceCheckout, reconcileCommerceOrder, retryCommerceOrders, type CommerceOrder } from './commerce-orders';
 import { cancelCheckout, checkoutCancellationToken } from './checkout-cancellation';
 import { renderOrderReceipt } from './order-receipt';
+import { priceCheckout, toPaymentAmount } from './checkout-pricing';
 import { POST as createPayPal } from '@/app/api/paypal/create-order/route';
 import { POST as createRazorpay } from '@/app/api/create-order/route';
 import { POST as paypalWebhook } from '@/app/api/webhooks/paypal/route';
@@ -354,6 +355,68 @@ function checkoutRequest(provider: 'paypal' | 'razorpay', overrides: Record<stri
   });
 }
 let requestNumber = 0;
+describe('Diwali threshold through payment integrations', () => {
+  function campaign(price = 16000) {
+    checkoutFixtures();
+    vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-11-03T12:00:00+05:30'));
+    Object.assign(mocks.docs.get('product-test')!, { price });
+    mocks.docs.set('siteSettings', { _id: 'siteSettings', _type: 'siteSettings', shippingPromotionEnabled: true,
+      shippingPromotionId: 'diwali-2026', shippingPromotionName: 'Diwali Special', shippingPromotionMinOrder: 15000,
+      shippingPromotionStartDate: '2026-11-03', shippingPromotionEndDate: '2026-11-15' });
+  }
+  it.each(['razorpay', 'paypal'] as const)('saves free shipping and the exact %s amount with the existing fee rules', async gateway => {
+    campaign();
+    const response = await (gateway === 'paypal' ? createPayPal : createRazorpay)(checkoutRequest(gateway, { shipping: 999, total: 1 }));
+    expect(response.status).toBe(200);
+    const saved = (await findCommerceOrder(gateway, (await response.json()).id))!;
+    expect(saved).toMatchObject({ subtotal: 16000, shipping: 0, items: [{ price: 16000, ringSize: 12 }],
+      total: gateway === 'razorpay' ? 16640 : 16000,
+      paymentAmount: gateway === 'razorpay' ? '160.00' : '153.85',
+      shippingPromotion: { id: 'diwali-2026', name: 'Diwali Special', minimumSubtotal: 15000 } });
+    expect(saved.currencyConversionFee).toBe(gateway === 'razorpay' ? 640 : undefined);
+    const receipt = renderOrderReceipt({ ...saved, reference: 'SJ-TEST', currency: 'EUR', chargedAmount: saved.paymentAmount });
+    expect(receipt.text).toContain('Shipping: \u20ac0.00');
+    expect(receipt.text).toContain('customs duties');
+  });
+  it.each([14999.99, 15000, 15000.01])('enforces the boundary after discounts for a subtotal of %s', async amount => {
+    campaign(amount);
+    const priced = await priceCheckout([{ _id: 'product-test', quantity: 1, ringSize: 12 }], { country: 'IT' });
+    expect(priced.shipping).toBe(amount > 15000 ? 0 : 2500);
+  });
+  it.each(['sale', 'coupon'])('does not count the pre-%s price or payment fee toward the threshold', async type => {
+    campaign();
+    Object.assign(mocks.docs.get('siteSettings')!, type === 'sale'
+      ? { saleEnabled: true, saleDiscountPercent: 10 }
+      : { couponEnabled: true, couponCode: 'TEST10', couponDiscountPercent: 10 });
+    const pricing = await priceCheckout([{ _id: 'product-test', quantity: 1, ringSize: 12 }], {
+      country: 'IT', provider: 'razorpay', currency: 'EUR', couponCode: type === 'coupon' ? 'TEST10' : undefined,
+    });
+    expect(pricing).toMatchObject({ subtotal: 16000, shipping: 2500, total: 17576, currencyConversionFee: 676 });
+    expect(pricing.shippingPromotion).toBeUndefined();
+  });
+  it.each(['INR', 'USD', 'EUR', 'GBP', 'JPY', 'CNY'])('charges the expected converted amount for %s', async currency => {
+    campaign();
+    const pricing = await priceCheckout([{ _id: 'product-test', quantity: 1, ringSize: 12 }], { country: 'IT', currency, provider: 'razorpay' });
+    expect(pricing.shipping).toBe(0);
+    const payment = toPaymentAmount(pricing.total, currency);
+    const response = await createRazorpay(checkoutRequest('razorpay', { currency }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ amount: payment.subunits, currency });
+  });
+  it('preserves a pre-campaign order, including its shipping and agreed provider amount', async () => {
+    campaign();
+    const saved = order(); saved.items[0].price = 7900; saved.subtotal = 7900; saved.shipping = 2500;
+    mocks.docs.set(saved._id, structuredClone(saved));
+    await reconcileCommerceOrder(saved);
+    expect(mocks.docs.get(saved._id)).toMatchObject({ shipping: 2500, total: 10400, paymentAmount: '100.00' });
+  });
+  it('keeps legacy callback shipping rules and restores standard charges after expiry', async () => {
+    campaign();
+    expect((await priceCheckout([{ _id: 'product-test', quantity: 1 }], { country: 'DE', requireInStock: false })).shipping).toBe(2500);
+    vi.setSystemTime(new Date('2026-11-15T18:30:00.000Z'));
+    expect((await priceCheckout([{ _id: 'product-test', quantity: 1, ringSize: 12 }], { country: 'DE' })).shipping).toBe(2500);
+  });
+});
 function checkoutFixtures() {
   Object.assign(mocks.docs.get('product-test')!, { price: 7900, category: { _ref: 'category-rings' }, sku: 'TEST', slug: { current: 'test-ring' } });
   mocks.docs.set('category-rings', { _id: 'category-rings', _type: 'category', name: 'Rings' });
