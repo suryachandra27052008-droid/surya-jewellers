@@ -25,6 +25,13 @@ const sections = [
     ],
   },
   {
+    title: 'Social Sign-In',
+    body: [
+      'If you choose a social sign-in option, Clerk receives the profile information supplied by that provider to create or authenticate your Surya Jewellers account. This can include your name, email address, profile picture, and a provider account identifier.',
+      'Our Facebook login connection requests basic profile and email access only. It does not request access to your friends, messages, posts, or advertising accounts. Social sign-in is not permission to send you marketing messages.',
+    ],
+  },
+  {
     title: 'Verified Enquiries',
     body: [
       'Contact and wholesale enquiries require a one-time code sent to the supplied email address. This confirms that the sender can access that mailbox before an enquiry is delivered to us.',
@@ -59,7 +66,7 @@ export default function PrivacyPage() {
         <p className="mb-4 text-xs uppercase tracking-[0.35em] text-gold">Surya Jewellers</p>
         <h1 className="font-serif text-4xl sm:text-5xl">Privacy Policy</h1>
         <p className="mt-5 max-w-2xl text-sm leading-7 text-white/55">
-          Last updated: 26 October 2026. This policy explains how information is handled when you use
+          Last updated: 4 November 2026. This policy explains how information is handled when you use
           suryajewellers.com.
         </p>
 
@@ -74,6 +81,38 @@ export default function PrivacyPage() {
               </div>
             </section>
           ))}
+
+          <section id="data-deletion" className="scroll-mt-28">
+            <h2 className="font-serif text-2xl text-white">Delete Your Account or Facebook Login Data</h2>
+            <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm leading-7 text-white/60">
+              <li>
+                Email{' '}
+                <a href="mailto:suryajewellersjaipur@gmail.com?subject=Account%20or%20Facebook%20data%20deletion%20request" className="text-gold underline decoration-gold/40 underline-offset-4 hover:text-gold-light">
+                  suryajewellersjaipur@gmail.com
+                </a>{' '}
+                from the email address associated with your Surya Jewellers account, with the subject
+                &ldquo;Account or Facebook data deletion request&rdquo;.
+              </li>
+              <li>
+                Tell us whether you want to delete your account, information received through Facebook
+                Login, or other personal information we hold. Do not send passwords, verification codes,
+                or payment card details.
+              </li>
+              <li>
+                Our team will review the request and may ask you to verify that you control the account
+                before removing information that we can delete. If you cannot access your account email,
+                contact us for help verifying ownership.
+              </li>
+            </ol>
+            <p className="mt-4 text-sm leading-7 text-white/60">
+              Some order, payment, and related records may need to be retained for legal, accounting,
+              transaction-record, or fraud-prevention obligations. Removing Surya Jewellers from your
+              Facebook Apps and Websites settings disconnects that Facebook connection; it does not by
+              itself delete all information already held by Surya Jewellers. Use the email request above
+              to request deletion of that information. Deletion requests are handled by our team, not
+              by an automatic deletion button.
+            </p>
+          </section>
 
           <section>
             <h2 className="font-serif text-2xl text-white">Bot Protection</h2>
