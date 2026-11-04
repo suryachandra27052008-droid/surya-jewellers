@@ -66,4 +66,19 @@ describe('admin image changes', () => {
     expect((await PATCH(new Request('https://example.com/api/admin/products/product-test', { method: 'PATCH', body: form }), context)).status).toBe(409);
     expect(mocks.commit).not.toHaveBeenCalled();
   });
+  it('saves corrected spelling in the CMS fields', async () => {
+    expect((await PATCH(request({ name: 'Amethist Ring', mainStoneType: 'Blue shaphire', allStones: ['Kynite', 'Cristal'] }), context)).status).toBe(200);
+    expect(mocks.set).toHaveBeenCalledWith({ name: 'Amethyst Ring', mainStoneType: 'Blue sapphire', allStones: ['Kyanite', 'Crystal'] });
+  });
+  it('zeroes an unavailable product without changing price or images', async () => {
+    expect((await PATCH(request({ inStock: false, stockQuantity: 3 }), context)).status).toBe(200);
+    expect(mocks.set).toHaveBeenCalledWith({ inStock: false, stockQuantity: 0 });
+  });
+  it('accepts zero stock and rejects invalid stock instead of silently ignoring it', async () => {
+    expect((await PATCH(request({ stockQuantity: 0 }), context)).status).toBe(200);
+    expect(mocks.set).toHaveBeenCalledWith({ stockQuantity: 0, inStock: false });
+    expect((await PATCH(request({ stockQuantity: '' }), context)).status).toBe(400);
+    expect((await PATCH(request({ stockQuantity: -1 }), context)).status).toBe(400);
+    expect((await PATCH(request({ stockQuantity: 1.5 }), context)).status).toBe(400);
+  });
 });

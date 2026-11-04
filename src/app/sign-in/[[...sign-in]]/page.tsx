@@ -6,6 +6,7 @@ import { useSignIn } from '@clerk/react/legacy';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { getSocialAuthError } from '@/lib/auth/oauth-error';
 
 const GOLD = '#8B6914';
 const INPUT_BG = '#f0ebe3';
@@ -65,7 +66,8 @@ export default function SignInPage() {
   }
 
   async function handleOAuth(provider: 'oauth_google' | 'oauth_facebook') {
-    if (!isLoaded) return;
+    if (!isLoaded || oauthLoading) return;
+    setError('');
     setOauthLoading(provider === 'oauth_google' ? 'google' : 'facebook');
     try {
       await signIn.authenticateWithRedirect({
@@ -73,8 +75,8 @@ export default function SignInPage() {
         redirectUrl: '/sso-callback',
         redirectUrlComplete: '/',
       });
-    } catch {
-      setError('OAuth sign-in failed. Please try again.');
+    } catch (error) {
+      setError(getSocialAuthError(error, provider));
       setOauthLoading(null);
     }
   }
@@ -108,7 +110,7 @@ export default function SignInPage() {
 
         {/* Error */}
         {error && (
-          <div className="mb-5 px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
+          <div role="alert" className="mb-5 px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
             {error}
           </div>
         )}

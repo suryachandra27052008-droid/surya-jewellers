@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
 import { writeClient } from '@/lib/sanity/client';
+import { normalizeProductContent, normalizeProductStock } from '@/lib/product-admin-input';
+import { invalidateProductCatalog } from '@/lib/server/catalog-cache';
 
 // Helper to create a slug
 const slugify = (text: string) =>
@@ -71,7 +73,7 @@ export async function POST(request: Request) {
     console.log('Fields received:', Array.from(formData.keys()));
 
     // Extract text fields
-    const productData = {
+    const productData = normalizeProductContent({
       name: formData.get('name') as string,
       sku: formData.get('sku') as string,
       price: Number(formData.get('price')),
@@ -91,7 +93,14 @@ export async function POST(request: Request) {
       stockQuantity: formData.get('stockQuantity') ? Number(formData.get('stockQuantity')) : 1,
       inStock: formData.get('inStock') === 'true',
       featured: formData.get('featured') === 'true',
-    };
+    });
+
+    let stock: Record<string, unknown>;
+    try {
+      stock = normalizeProductStock({ inStock: productData.inStock, stockQuantity: productData.stockQuantity });
+    } catch (error) {
+      return NextResponse.json({ error: (error as Error).message }, { status: 400 });
+    }
 
     if (!productData.name || !productData.sku || !productData.price || !productData.categoryName) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -157,12 +166,13 @@ export async function POST(request: Request) {
       barcode: productData.barcode,
       images: uploadedImages,
       description: productData.description,
-      stockQuantity: productData.stockQuantity,
+      stockQuantity: stock.stockQuantity,
       featured: productData.featured,
-      inStock: productData.inStock,
+      inStock: stock.inStock,
     });
 
     console.log('Product created successfully in Sanity:', newProduct._id);
+    invalidateProductCatalog();
     return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
   } catch (error) {
     console.error('Product creation error:', error);

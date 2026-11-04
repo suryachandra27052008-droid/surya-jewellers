@@ -118,6 +118,7 @@ export default function EditProductPage() {
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<ProductFormData>();
 
@@ -584,8 +585,8 @@ export default function EditProductPage() {
             <label className="block text-xs font-medium text-gray-700 mb-1.5">Available Pieces <span className="text-red-400">*</span></label>
             <input
               type="number"
-              min={1}
-              {...register('stockQuantity', { required: true, valueAsNumber: true, min: 1 })}
+              min={0}
+              {...register('stockQuantity', { required: true, valueAsNumber: true, min: 0 })}
               className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900"
             />
             <p className="text-xs text-gray-400 mt-1.5">Maximum quantity a customer can add to cart.</p>
@@ -596,7 +597,9 @@ export default function EditProductPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex flex-col sm:flex-row gap-6">
             <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" {...register('inStock')} className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500" />
+              <input type="checkbox" {...register('inStock', { onChange: (event) => {
+                if (!event.target.checked) setValue('stockQuantity', 0, { shouldDirty: true });
+              } })} className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500" />
               <div>
                 <span className="text-sm font-medium text-gray-900">In Stock</span>
                 <p className="text-xs text-gray-500">Product is available for purchase</p>

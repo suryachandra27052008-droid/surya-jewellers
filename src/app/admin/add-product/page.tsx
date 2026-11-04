@@ -697,8 +697,8 @@ export default function AddProductPage() {
             </label>
             <input
               type="number"
-              min={1}
-              {...register('stockQuantity', { required: true, valueAsNumber: true, min: 1 })}
+              min={0}
+              {...register('stockQuantity', { required: true, valueAsNumber: true, min: 0 })}
               className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900"
             />
             <p className="text-xs text-gray-400 mt-1.5">Maximum quantity a customer can add to cart. Default is 1.</p>
@@ -712,7 +712,9 @@ export default function AddProductPage() {
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                {...register('inStock')}
+                {...register('inStock', { onChange: (event) => {
+                  if (!event.target.checked) setValue('stockQuantity', 0, { shouldDirty: true });
+                } })}
                 className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
               />
               <div>

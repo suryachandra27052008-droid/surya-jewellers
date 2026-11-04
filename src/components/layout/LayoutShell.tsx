@@ -6,7 +6,6 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import CartDrawer from './CartDrawer';
 import ShippingBanner from '@/components/ui/ShippingBanner';
-import CursorTrail from '@/components/ui/CursorTrail';
 import { useCurrencyStore, formatPrice } from '@/stores/currency-store';
 import { INTERNATIONAL_SHIPPING_FEE } from '@/lib/shipping';
 import ShoppingAnalytics from '@/components/analytics/ShoppingAnalytics';
@@ -85,7 +84,6 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
         </div>
       </div>
       <CartDrawer />
-      <CursorTrail />
       {showWhatsApp && <a
         href="https://wa.me/919983939306"
         target="_blank"

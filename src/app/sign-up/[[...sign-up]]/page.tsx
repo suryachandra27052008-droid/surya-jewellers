@@ -6,6 +6,7 @@ import { useSignUp } from '@clerk/react/legacy';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { getSocialAuthError } from '@/lib/auth/oauth-error';
 
 const GOLD = '#8B6914';
 const INPUT_BG = '#f0ebe3';
@@ -135,7 +136,8 @@ export default function SignUpPage() {
   }
 
   async function handleOAuth(provider: 'oauth_google' | 'oauth_facebook') {
-    if (!isLoaded) return;
+    if (!isLoaded || oauthLoading) return;
+    setError('');
     setOauthLoading(provider === 'oauth_google' ? 'google' : 'facebook');
     try {
       await signUp.authenticateWithRedirect({
@@ -143,8 +145,8 @@ export default function SignUpPage() {
         redirectUrl: '/sso-callback',
         redirectUrlComplete: '/',
       });
-    } catch {
-      setError('OAuth sign-up failed. Please try again.');
+    } catch (error) {
+      setError(getSocialAuthError(error, provider));
       setOauthLoading(null);
     }
   }

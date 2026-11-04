@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { writeClient } from '@/lib/sanity/client';
 import { invalidateProductCatalog } from '@/lib/server/catalog-cache';
+import { normalizeProductContent, normalizeProductStock } from '@/lib/product-admin-input';
 
 type ProductUpdateBody = Record<string, unknown>;
 
@@ -38,7 +39,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const current = await writeClient.getDocument<{ _type: string; _rev: string; images?: Array<{ _key: string; _type: string; asset: { _type: string; _ref: string }; [key: string]: unknown }> }>(id);
+    const current = await writeClient.getDocument<{ _type: string; _rev: string; inStock?: boolean; stockQuantity?: number; images?: Array<{ _key: string; _type: string; asset: { _type: string; _ref: string }; [key: string]: unknown }> }>(id);
     if (!current || current._type !== 'product') return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     const slugify = (text: string) =>
       text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
@@ -79,7 +80,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Reload the product editor before changing prices or images.' }, { status: 409 });
     }
 
-    const updateData: Record<string, unknown> = {
+    let updateData: Record<string, unknown> = {
       name: body.name,
       sku: body.sku,
       price: Number(body.price),
@@ -105,6 +106,14 @@ export async function PATCH(
     }
     if ('price' in updateData && (!Number.isFinite(updateData.price) || Number(updateData.price) <= 0)) {
       return NextResponse.json({ error: 'Enter a valid positive product price.' }, { status: 400 });
+    }
+    if (Object.hasOwn(body, 'stockQuantity') && !Object.hasOwn(updateData, 'stockQuantity')) {
+      return NextResponse.json({ error: 'Available pieces must be a whole number of zero or more.' }, { status: 400 });
+    }
+    try {
+      updateData = normalizeProductStock(normalizeProductContent(updateData), current);
+    } catch (error) {
+      return NextResponse.json({ error: (error as Error).message }, { status: 400 });
     }
 
     const categoryName = body.categoryName ?? body.category;

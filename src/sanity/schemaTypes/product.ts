@@ -134,7 +134,7 @@ export const product = defineType({
       type: 'number',
       description: 'Maximum number of pieces a customer can buy. Default is 1.',
       initialValue: 1,
-      validation: (Rule) => Rule.required().integer().min(1),
+      validation: (Rule) => Rule.required().integer().min(0),
     }),
     defineField({
       name: 'featured',
